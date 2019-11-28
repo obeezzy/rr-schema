@@ -5,7 +5,7 @@ USE ###DATABASENAME###;
 CREATE PROCEDURE AddSqlUser (
     IN iUser VARCHAR(100),
     IN iPassword VARCHAR(100)
-    )
+)
 BEGIN
     DECLARE _HOST CHAR(14) DEFAULT '@\'localhost\'';
     SET iUser := CONCAT('\'', REPLACE(TRIM(iUser), CHAR(39), CONCAT(CHAR(92), CHAR(39))), '\''),
@@ -24,7 +24,6 @@ END;
 
 CREATE PROCEDURE AddRRUser (
     IN iUser VARCHAR(100),
-    IN iPasswordHash VARCHAR(256),
     IN iFirstName VARCHAR(100),
     IN iLastName VARCHAR(100),
     IN iPhoto BLOB,
@@ -42,7 +41,7 @@ BEGIN
     END IF;
 
     INSERT INTO user_ (user, password, first_name, last_name, photo, phone_number, email_address, note_id, created, last_edited, user_id)
-        VALUES (iUser, iPasswordHash, iFirstName, iLastName, iPhoto, iPhoneNumber, iEmailAddress, iNoteId, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
+        VALUES (iUser, iFirstName, iLastName, iPhoto, iPhoneNumber, iEmailAddress, iNoteId, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
     SELECT LAST_INSERT_ID() AS user_id;
 END;
 
@@ -169,21 +168,10 @@ END;
 
 CREATE PROCEDURE ChangePassword (
     IN iUser VARCHAR(40),
-    IN iOldPasswordHash VARCHAR(256),
     IN iNewPassword VARCHAR(256),
-    IN iNewPasswordHash VARCHAR(256)
 )
 BEGIN
     DECLARE _HOST CHAR(14) DEFAULT '@\'localhost\'';
-
-    SET @password := NULL;
-    SELECT password INTO @password FROM user_ WHERE user = iUser AND password = iOldPasswordHash;
-    IF @password IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Old password does not match current password.';
-    END IF;
-
-    UPDATE user_ SET password = iNewPasswordHash WHERE user = iUser AND password = iOldPasswordHash;
 
 	SET iUser := CONCAT('\'', REPLACE(TRIM(iUser), CHAR(39), CONCAT(CHAR(92), CHAR(39))), '\''),
         iNewPassword := CONCAT('\'', REPLACE(iNewPassword, CHAR(39), CONCAT(CHAR(92), CHAR(39))), '\'');
