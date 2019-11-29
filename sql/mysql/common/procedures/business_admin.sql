@@ -13,6 +13,6 @@ CREATE PROCEDURE UpdateBusinessDetails(
     IN iExtraDetails VARCHAR(200)
 )
 BEGIN
-    REPLACE INTO business_details (id, address, type, establishment_year, phone_number, logo, extra_details, created, last_edited)
+    REPLACE INTO business_details (id, address, business_family, establishment_year, phone_number, logo, extra_details, created, last_edited)
         VALUES (1, iName, iAddress, iBusinessFamily, iEstablishmentYear, iPhoneNumber, iLogo, iExtraDetails, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
 END;
