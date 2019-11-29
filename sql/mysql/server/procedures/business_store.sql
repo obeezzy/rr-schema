@@ -1,4 +1,5 @@
 DROP PROCEDURE IF EXISTS AddBusinessStore;
+---
 CREATE PROCEDURE AddBusinessStore (
     IN iBusinessAdminId INTEGER,
     IN iName VARCHAR(300),
@@ -26,6 +27,7 @@ END;
 ---
 
 DROP PROCEDURE IF EXISTS GetBusinessStores;
+---
 CREATE PROCEDURE GetBusinessStores (
     IN iBusinessAdminId INTEGER
 )
@@ -37,6 +39,7 @@ END;
 ---
 
 DROP PROCEDURE IF EXISTS ActivateBusinessStore;
+---
 CREATE PROCEDURE ActivateBusinessStore (
     IN iBusinessStoreId INTEGER,
     IN iActive BOOLEAN
@@ -48,6 +51,7 @@ END;
 ---
 
 DROP PROCEDURE IF EXISTS LinkBusinessStore;
+---
 CREATE PROCEDURE LinkBusinessStore (
     IN iBusinessSToreId INTEGER
 )

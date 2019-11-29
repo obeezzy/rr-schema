@@ -1,4 +1,5 @@
 DROP PROCEDURE IF EXISTS AddBusinessAdmin;
+---
 CREATE PROCEDURE AddBusinessAdmin (
     IN iEmailAddress VARCHAR(100),
     IN iFirstName VARCHAR(100),
@@ -15,6 +16,7 @@ END;
 ---
 
 DROP PROCEDURE IF EXISTS GetBusinessAdminDetails;
+---
 CREATE PROCEDURE GetBusinessAdminDetails (
     IN iEmailAddress VARCHAR(100)
 )
@@ -26,6 +28,7 @@ END;
 ---
 
 DROP PROCEDURE IF EXISTS ActivateBusinessAdmin;
+---
 CREATE PROCEDURE ActivateBusinessAdmin (
     IN iBusinessAdminId INTEGER,
     IN iActive BOOLEAN
@@ -37,6 +40,7 @@ END;
 ---
 
 DROP PROCEDURE IF EXISTS LinkBusinessAdmin;
+---
 CREATE PROCEDURE LinkBusinessAdmin (
     IN iBusinessAdminId INTEGER
 )
