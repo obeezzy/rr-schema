@@ -186,11 +186,11 @@ END;
 ---
 
 CREATE PROCEDURE UndoArchiveDebtPayment (
-    IN iDebtPaymentId,
+    IN iDebtPaymentId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
-    UPDATE debt_payment SET archived = 0, last_edited = CURRENT_TIMESTAMP(),
+    UPDATE debt_payment SET archived = FALSE, last_edited = CURRENT_TIMESTAMP(),
         user_id = iUserId WHERE id = iDebtPaymentId;
 END;
 
