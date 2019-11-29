@@ -8,10 +8,11 @@ USE ###DATABASENAME###;
 
 -- Create business details table
 CREATE TABLE business_details (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
     address VARCHAR(200) NOT NULL,
-    type VARCHAR(500) DEFAULT NULL,
-    establishment_year INT(11) NOT NULL,
+    business_family VARCHAR(500) NOT NULL,
+    establishment_year INTEGER NOT NULL,
     phone_number VARCHAR(20) DEFAULT NULL,
     logo BLOB,
     extra_details VARCHAR(100) DEFAULT NULL,
@@ -454,8 +455,5 @@ CREATE TABLE vendor (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Add admin user
-DROP USER IF EXISTS 'admin'@'localhost';
-CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
-GRANT ALL PRIVILEGES ON *.* TO 'admin'@'localhost';
 INSERT INTO user_ (user, first_name, last_name, active, created, last_edited, user_id)
     VALUES ('admin', 'admin', 'admin', TRUE, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), 1);
