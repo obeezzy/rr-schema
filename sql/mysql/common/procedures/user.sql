@@ -167,8 +167,8 @@ END;
 ---
 
 CREATE PROCEDURE ChangePassword (
-    IN iUser VARCHAR(40),
-    IN iNewPassword VARCHAR(256),
+    IN iUser VARCHAR(100),
+    IN iNewPassword VARCHAR(256)
 )
 BEGIN
     DECLARE _HOST CHAR(14) DEFAULT '@\'localhost\'';
