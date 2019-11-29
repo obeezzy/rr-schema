@@ -32,7 +32,7 @@ CREATE PROCEDURE GetBusinessStores (
     IN iBusinessAdminId INTEGER
 )
 BEGIN
-    SELECT id AS business_store_id, business_admin_id, name, rack_id, address, location, family, establishment_year, phone_number, logo, created, last_edited
+    SELECT id AS business_store_id, business_admin_id, name, rack_id, address, location, business_family, establishment_year, phone_number, logo, created, last_edited
     FROM business_store WHERE business_admin_id = iBusinessAdminId;
 END;
 
