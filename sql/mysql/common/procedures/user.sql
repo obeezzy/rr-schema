@@ -199,3 +199,25 @@ BEGIN
     DEALLOCATE PREPARE stmt;
     FLUSH PRIVILEGES;
 END;
+
+---
+
+DROP PROCEDURE IF EXISTS GetEmailAddress;
+---
+CREATE PROCEDURE GetEmailAddress (
+    iUserName VARCHAR(40)
+)
+BEGIN
+    SELECT id, email_address FROM rr_user WHERE user = iUserName;
+END;
+
+---
+
+DROP PROCEDURE IF EXISTS GetUserName;
+---
+CREATE PROCEDURE GetUserName (
+    iEmailAddress VARCHAR(40)
+)
+BEGIN
+    SELECT id, user FROM rr_user WHERE email_address = iEmailAddress;
+END;
