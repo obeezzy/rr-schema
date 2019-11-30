@@ -221,3 +221,14 @@ CREATE PROCEDURE GetUserName (
 BEGIN
     SELECT id, user FROM rr_user WHERE email_address = iEmailAddress;
 END;
+
+---
+
+DROP PROCEDURE IF EXISTS UpdateAdminEmailAddress;
+---
+CREATE PROCEDURE UpdateAdminEmailAddress (
+    iEmailAddress VARCHAR(100)
+)
+BEGIN
+    UPDATE rr_user SET email_address = iEmailAddress WHERE user = 'admin';
+END;
