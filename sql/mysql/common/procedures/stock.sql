@@ -29,7 +29,7 @@ BEGIN
         INNER JOIN category ON item.category_id = category.id
         INNER JOIN unit ON item.id = unit.item_id
         INNER JOIN current_quantity ON item.id = current_quantity.item_id
-        LEFT JOIN user_ ON item.user_id = user_.id
+        LEFT JOIN rr_user ON item.user_id = rr_user.id
         WHERE item.archived = 0 AND unit.base_unit_equivalent = 1
         AND category.id = iCategoryId
         ORDER BY (CASE
@@ -91,7 +91,7 @@ BEGIN
         INNER JOIN category ON item.category_id = category.id
         INNER JOIN unit ON item.id = unit.item_id
         INNER JOIN current_quantity ON item.id = current_quantity.item_id
-        LEFT JOIN user_ ON item.user_id = user_.id
+        LEFT JOIN rr_user ON item.user_id = rr_user.id
         WHERE item.archived = 0 AND unit.base_unit_equivalent = 1
         AND category.id = iCategoryId
         AND item.item LIKE (CASE WHEN LOWER(iFilterColumn) = 'item'
@@ -121,7 +121,7 @@ BEGIN
         INNER JOIN category ON item.category_id = category.id
         INNER JOIN unit ON item.id = unit.item_id
         INNER JOIN current_quantity ON item.id = current_quantity.item_id
-        LEFT JOIN user_ ON item.user_id = user_.id
+        LEFT JOIN rr_user ON item.user_id = rr_user.id
         WHERE item.archived = 0 AND unit.base_unit_equivalent = 1
         AND category.category LIKE (CASE
                                     WHEN LOWER(iFilterColumn) = 'category'
@@ -152,12 +152,12 @@ BEGIN
     IF iCategoryId IS NULL THEN
         SELECT COUNT(item.id) AS item_count FROM item
             INNER JOIN category ON item.category_id = category.id
-            LEFT JOIN user_ ON item.user_id = user_.id
+            LEFT JOIN rr_user ON item.user_id = rr_user.id
             WHERE item.archived = IFNULL(iArchived, FALSE);
     ELSE
         SELECT COUNT(item.id) AS item_count FROM item
             INNER JOIN category ON item.category_id = category.id
-            LEFT JOIN user_ ON item.user_id = user_.id
+            LEFT JOIN rr_user ON item.user_id = rr_user.id
             WHERE item.archived = IFNULL(iArchived, FALSE)
             AND category.id = iCategoryId;
     END IF;
@@ -242,12 +242,12 @@ BEGIN
     SELECT item.id AS item_id, category.id AS category_id, category.category, item.item, item.description,
         item.divisible, item.image, current_quantity.quantity,
         unit.id as unit_id, unit.unit, unit.cost_price,
-        unit.retail_price, unit.currency, item.created, item.last_edited, item.user_id, user_.user AS user
+        unit.retail_price, unit.currency, item.created, item.last_edited, item.user_id, rr_user.user AS user
         FROM item
         INNER JOIN category ON item.category_id = category.id
         INNER JOIN unit ON item.id = unit.item_id
         INNER JOIN current_quantity ON item.id = current_quantity.item_id
-        LEFT JOIN user_ ON item.user_id = user_.id
+        LEFT JOIN rr_user ON item.user_id = rr_user.id
         WHERE item.archived = 0 AND unit.base_unit_equivalent = 1
         AND item.id = iItemId;
 END;
@@ -450,7 +450,7 @@ BEGIN
 		INNER JOIN category ON item.category_id = category.id
 		INNER JOIN unit ON item.id = unit.item_id
 		INNER JOIN current_quantity ON item.id = current_quantity.item_id
-		LEFT JOIN user_ ON item.user_id = iUserId
+		LEFT JOIN rr_user ON item.user_id = iUserId
 		WHERE item.archived = 0 AND unit.base_unit_equivalent = 1
 		AND item.id = iItemId;
 
@@ -491,7 +491,7 @@ BEGIN
         INNER JOIN category ON i.category_id = category.id
         INNER JOIN unit ON i.id = unit.item_id
         INNER JOIN current_quantity ON i.id = current_quantity.item_id
-        LEFT JOIN user_ ON i.user_id = user_.id
+        LEFT JOIN rr_user ON i.user_id = rr_user.id
         WHERE i.archived = 0 AND unit.base_unit_equivalent = 1
         AND category.category LIKE (CASE
                                     WHEN LOWER(iFilterColumn) = 'category'
