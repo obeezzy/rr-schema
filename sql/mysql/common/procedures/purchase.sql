@@ -108,12 +108,12 @@ BEGIN
 	SELECT category.id as category_id, category.category, purchase_item.item_id, item.item,
 		purchase_item.unit_price, purchase_item.quantity, purchase_item.unit_id,
 		unit.unit, purchase_item.cost, purchase_item.discount, purchase_item.currency, purchase_item.note_id, note.note,
-        purchase_item.archived, purchase_item.created, purchase_item.last_edited, purchase_item.user_id, user_.user FROM purchase_item
+        purchase_item.archived, purchase_item.created, purchase_item.last_edited, purchase_item.user_id, rr_user.user FROM purchase_item
         INNER JOIN item ON purchase_item.item_id = item.id
         INNER JOIN category ON category.id = item.category_id
         INNER JOIN unit ON purchase_item.unit_id = unit.id
         INNER JOIN purchase_transaction ON purchase_transaction.id = purchase_item.purchase_transaction_id
-		LEFT JOIN user_ ON purchase_item.user_id = user_.id
+		LEFT JOIN rr_user ON purchase_item.user_id = rr_user.id
         LEFT JOIN note ON purchase_transaction.note_id = note.id
         WHERE purchase_transaction_id = iTransactionId AND purchase_transaction.suspended = iSuspended
         AND purchase_transaction.archived = iArchived;
@@ -199,7 +199,7 @@ BEGIN
         INNER JOIN category ON i.category_id = category.id
         INNER JOIN unit ON i.id = unit.item_id
         INNER JOIN current_quantity ON i.id = current_quantity.item_id
-        LEFT JOIN user_ ON i.user_id = user_.id
+        LEFT JOIN rr_user ON i.user_id = rr_user.id
         WHERE i.archived = 0 AND unit.base_unit_equivalent = 1
         AND category.category LIKE (CASE
                                     WHEN LOWER(iFilterColumn) = 'category'
