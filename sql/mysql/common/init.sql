@@ -404,7 +404,7 @@ CREATE TABLE unit_relation (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create user table
-CREATE TABLE user_ (
+CREATE TABLE rr_user (
     id INT(11) NOT NULL AUTO_INCREMENT,
     user VARCHAR(60) NOT NULL,
     first_name VARCHAR(60) NOT NULL,
@@ -455,5 +455,5 @@ CREATE TABLE vendor (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Add admin user
-INSERT INTO user_ (user, first_name, last_name, active, created, last_edited, user_id)
+INSERT INTO rr_user (user, first_name, last_name, active, created, last_edited, user_id)
     VALUES ('admin', 'admin', 'admin', TRUE, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), 1);

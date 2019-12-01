@@ -34,13 +34,13 @@ CREATE PROCEDURE AddRRUser (
 )
 BEGIN
     SET @archived := NULL;
-    SELECT archived INTO @archived FROM user_ WHERE user = iUser AND archived = TRUE;
+    SELECT archived INTO @archived FROM rr_user WHERE user = iUser AND archived = TRUE;
     IF @archived IS NOT NULL THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'This user was previously archived.';
     END IF;
 
-    INSERT INTO user_ (user, password, first_name, last_name, photo, phone_number, email_address, note_id, created, last_edited, user_id)
+    INSERT INTO rr_user (user, password, first_name, last_name, photo, phone_number, email_address, note_id, created, last_edited, user_id)
         VALUES (iUser, iFirstName, iLastName, iPhoto, iPhoneNumber, iEmailAddress, iNoteId, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
     SELECT LAST_INSERT_ID() AS user_id;
 END;
@@ -53,7 +53,7 @@ CREATE PROCEDURE ActivateUser (
 )
 BEGIN
     DECLARE _HOST CHAR(14) DEFAULT '@\'localhost\'';
-    UPDATE user_ SET active = IFNULL(iActive, FALSE) WHERE user_.user = iUser;
+    UPDATE rr_user SET active = IFNULL(iActive, FALSE) WHERE rr_user.user = iUser;
     SET iUser := CONCAT('\'', REPLACE(TRIM(iUser), CHAR(39), CONCAT(CHAR(92), CHAR(39))), '\'');
 
     SET @sql := NULL;
@@ -75,8 +75,8 @@ CREATE PROCEDURE GetUserDetails (
 	iUserName VARCHAR(50)
 )
 BEGIN
-	SELECT user_.id AS user_id, user_.user AS user_name, user_privilege.privileges AS user_privileges FROM user_
-		LEFT JOIN user_privilege ON user_.id = user_privilege.user_id
+	SELECT rr_user.id AS user_id, rr_user.user AS user_name, user_privilege.privileges AS user_privileges FROM rr_user
+		LEFT JOIN user_privilege ON rr_user.id = user_privilege.user_id
         WHERE user = iUserName;
 END
 
@@ -86,7 +86,7 @@ CREATE PROCEDURE ViewUsers (
     iArchived BOOLEAN
 )
 BEGIN
-	SELECT id AS user_id, user, active FROM user_ WHERE archived = IFNULL(iArchived, FALSE) AND id > 1;
+	SELECT id AS user_id, user, active FROM rr_user WHERE archived = IFNULL(iArchived, FALSE) AND id > 1;
 END;
 
 ---
@@ -159,9 +159,9 @@ CREATE PROCEDURE ViewUserDetails (
 )
 BEGIN
     SELECT first_name, last_name, user AS user_name, photo, phone_number, email_address, active, note
-        FROM user_
-        LEFT JOIN note ON user_.note_id = note.id
-        WHERE user_.id = iUserId AND user_.archived = IFNULL(iArchived, FALSE);
+        FROM rr_user
+        LEFT JOIN note ON rr_user.note_id = note.id
+        WHERE rr_user.id = iUserId AND rr_user.archived = IFNULL(iArchived, FALSE);
 END;
 
 ---
@@ -190,7 +190,7 @@ CREATE PROCEDURE RemoveUser (
 BEGIN
     DECLARE _HOST CHAR(14) DEFAULT '@\'localhost\'';
 
-    UPDATE user_ SET archived = TRUE WHERE user_.user = iUser;
+    UPDATE rr_user SET archived = TRUE WHERE rr_user.user = iUser;
 
 	SET iUser := CONCAT('\'', REPLACE(TRIM(iUser), CHAR(39), CONCAT(CHAR(92), CHAR(39))), '\'');
     SET @sql := CONCAT('DROP USER ', iUser, _HOST);
@@ -198,4 +198,37 @@ BEGIN
     EXECUTE stmt;
     DEALLOCATE PREPARE stmt;
     FLUSH PRIVILEGES;
+END;
+
+---
+
+DROP PROCEDURE IF EXISTS GetEmailAddress;
+---
+CREATE PROCEDURE GetEmailAddress (
+    iUserName VARCHAR(40)
+)
+BEGIN
+    SELECT id, email_address FROM rr_user WHERE user = iUserName;
+END;
+
+---
+
+DROP PROCEDURE IF EXISTS GetUserName;
+---
+CREATE PROCEDURE GetUserName (
+    iEmailAddress VARCHAR(40)
+)
+BEGIN
+    SELECT id, user FROM rr_user WHERE email_address = iEmailAddress;
+END;
+
+---
+
+DROP PROCEDURE IF EXISTS UpdateAdminEmailAddress;
+---
+CREATE PROCEDURE UpdateAdminEmailAddress (
+    iEmailAddress VARCHAR(100)
+)
+BEGIN
+    UPDATE rr_user SET email_address = iEmailAddress WHERE user = 'admin';
 END;
