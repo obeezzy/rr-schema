@@ -16,7 +16,7 @@ END;
 
 ---
 
-CREATE PROCEDURE ViewStockItems2 (
+CREATE PROCEDURE ViewStockItems (
     IN iCategoryId INTEGER,
     IN iSortOrder VARCHAR(50)
 )
@@ -88,7 +88,7 @@ BEGIN
         unit.id as unit_id, unit.unit, unit.cost_price,
         unit.retail_price, unit.currency, item.created, item.last_edited, item.user_id, item.user_id AS user
         FROM item
-        INNER JOIN category ON item.category_id = category.id
+        INNER JOIN category ON item.category_id = iCategoryId
         INNER JOIN unit ON item.id = unit.item_id
         INNER JOIN current_quantity ON item.id = current_quantity.item_id
         LEFT JOIN rr_user ON item.user_id = rr_user.id
@@ -106,50 +106,12 @@ END;
 
 ---
 
-CREATE PROCEDURE ViewStockItems (
-    IN iFilterColumn VARCHAR(20),
-    IN iFilterText VARCHAR(100),
-    IN iSortColumn VARCHAR(20),
-    IN iSortOrder VARCHAR(15)
-)
-BEGIN
-    SELECT item.id AS item_id, category.id AS category_id, category.category, item.item, item.description,
-        item.divisible, item.image, current_quantity.quantity,
-        unit.id as unit_id, unit.unit, unit.cost_price,
-        unit.retail_price, unit.currency, item.created, item.last_edited, item.user_id, item.user_id AS user
-        FROM item
-        INNER JOIN category ON item.category_id = category.id
-        INNER JOIN unit ON item.id = unit.item_id
-        INNER JOIN current_quantity ON item.id = current_quantity.item_id
-        LEFT JOIN rr_user ON item.user_id = rr_user.id
-        WHERE item.archived = 0 AND unit.base_unit_equivalent = 1
-        AND category.category LIKE (CASE
-                                    WHEN LOWER(iFilterColumn) = 'category'
-                                    THEN CONCAT('%', iFilterText, '%')
-                                    ELSE '%'
-                                    END)
-        AND item.item LIKE (CASE
-                            WHEN LOWER(iFilterColumn) = 'item'
-                            THEN CONCAT('%', iFilterText, '%')
-                            ELSE '%'
-                            END)
-        ORDER BY (CASE
-                    WHEN LOWER(iSortOrder) = 'descending' AND LOWER(iSortColumn) = 'category'
-                    THEN LOWER(category.category) END) DESC,
-                 (CASE
-                    WHEN (iSortOrder IS NULL AND iSortColumn IS NULL) OR (LOWER(iSortOrder) <> 'descending' AND LOWER(iSortColumn) = 'category')
-                    THEN LOWER(category.category) END) ASC,
-        LOWER(item.item) ASC;
-END;
-
----
-
 CREATE PROCEDURE ViewStockItemCount (
     IN iCategoryId INTEGER,
     IN iArchived BOOLEAN
 )
 BEGIN
-    IF iCategoryId IS NULL THEN
+    IF iCategoryId IS NULL OR iCategoryId < 1 THEN
         SELECT COUNT(item.id) AS item_count FROM item
             INNER JOIN category ON item.category_id = category.id
             LEFT JOIN rr_user ON item.user_id = rr_user.id
@@ -265,6 +227,7 @@ BEGIN
 		VALUES (iCategory, iShortForm, iNoteId, FALSE, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
 
 	IF LAST_INSERT_ID() > 0 THEN
+        UPDATE category SET archived = FALSE WHERE id = LAST_INSERT_ID();
 		SELECT LAST_INSERT_ID() AS id;
 	ELSE
 		SELECT id FROM category WHERE category = iCategory;
