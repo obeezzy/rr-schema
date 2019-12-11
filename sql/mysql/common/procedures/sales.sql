@@ -30,10 +30,11 @@ CREATE PROCEDURE AddSalePayment (
     IN iUserId INTEGER
 )
 BEGIN
-    INSERT INTO note (note, table_name, created, last_edited, user_id)
-		VALUES (iNote, 'sale_payment', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
-
-	SELECT LAST_INSERT_ID() INTO @noteId;
+    IF iNote IS NOT NULL THEN
+        INSERT INTO note (note, table_name, created, last_edited, user_id)
+		    VALUES (iNote, 'sale_payment', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
+        SELECT LAST_INSERT_ID() INTO @noteId;
+    END IF;
 
 	INSERT INTO sale_payment (sale_transaction_id, amount, method, currency, note_id,
 		created, last_edited, user_id) VALUES (iSaleTransactionId, iAmount, iMethod, iCurrency,
