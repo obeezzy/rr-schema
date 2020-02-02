@@ -285,3 +285,29 @@ BEGIN
         HAVING MAX(debt_payment.last_edited) = debt_payment.last_edited
         AND debt_transaction.archived = IFNULL(iArchived, FALSE);
 END;
+
+---
+
+CREATE PROCEDURE ViewDebtPayments(
+	IN iDebtTransactionId INTEGER,
+    IN iArchived BOOLEAN
+)
+BEGIN
+	SELECT debt_transaction_id,
+		debt_payment.id AS debt_payment_id,
+		debt_payment.total_amount,
+		debt_payment.amount_paid,
+		debt_payment.balance AS balance,
+		debt_payment.currency,
+		debt_payment.due_date,
+		debt_payment.note_id,
+		note.note,
+		debt_transaction.archived,
+		debt_payment.created,
+		debt_payment.last_edited
+    FROM debt_payment
+    INNER JOIN debt_transaction ON debt_transaction.id = debt_payment.debt_transaction_id
+    LEFT JOIN note ON note.id = debt_payment.note_id
+    WHERE debt_transaction.id = iDebtTransactionId AND debt_transaction.archived = iArchived
+    ORDER BY debt_payment.last_edited ASC;
+END
