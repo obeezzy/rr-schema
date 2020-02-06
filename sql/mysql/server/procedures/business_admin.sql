@@ -8,16 +8,28 @@ CREATE PROCEDURE AddBusinessAdmin (
     IN iPhoneNumber VARCHAR(100)
 )
 BEGIN
-    INSERT INTO business_admin (email_address, first_name, last_name, phone_number, photo, created, last_edited)
-        VALUES (iEmailAddress, iFirstName, iLastName, iPhoneNumber, iPhoto, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
+    INSERT INTO business_admin (email_address,
+                                first_name,
+                                last_name,
+                                phone_number,
+                                photo,
+                                created,
+                                last_edited)
+        VALUES (iEmailAddress,
+                iFirstName,
+                iLastName,
+                iPhoneNumber,
+                iPhoto,
+                CURRENT_TIMESTAMP(),
+                CURRENT_TIMESTAMP());
     SELECT LAST_INSERT_ID() AS business_admin_id;
 END;
 
 ---
 
-DROP PROCEDURE IF EXISTS GetBusinessAdminDetails;
+DROP PROCEDURE IF EXISTS FetchBusinessAdmin;
 ---
-CREATE PROCEDURE GetBusinessAdminDetails (
+CREATE PROCEDURE FetchBusinessAdmin (
     IN iEmailAddress VARCHAR(100)
 )
 BEGIN
