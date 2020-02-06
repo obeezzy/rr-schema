@@ -12,28 +12,60 @@ CREATE PROCEDURE AddBusinessStore (
 )
 BEGIN
 	SET @id := NULL;
-	SELECT name INTO @id FROM business_store WHERE name = iName;
+	SELECT name INTO @id
+        FROM business_store
+        WHERE name = iName;
 
     IF @id IS NOT NULL THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'A business store name must be unique.';
     END IF;
 
-    INSERT INTO business_store (business_admin_id, name, rack_id, address, business_family, establishment_year, phone_number, logo, created, last_edited)
-        VALUES (iBusinessAdminId, iName, iRackId, iAddress, iBusinessFamily, iEstablishmentYear, iPhoneNumber, iLogo, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
+    INSERT INTO business_store (business_admin_id,
+                                name,
+                                rack_id,
+                                address,
+                                business_family,
+                                establishment_year,
+                                phone_number,
+                                logo,
+                                created,
+                                last_edited)
+        VALUES (iBusinessAdminId,
+                iName,
+                iRackId,
+                iAddress,
+                iBusinessFamily,
+                iEstablishmentYear,
+                iPhoneNumber,
+                iLogo,
+                CURRENT_TIMESTAMP(),
+                CURRENT_TIMESTAMP());
     SELECT LAST_INSERT_ID() AS business_store_id;
 END;
 
 ---
 
-DROP PROCEDURE IF EXISTS GetBusinessStores;
+DROP PROCEDURE IF EXISTS ViewBusinessStores;
 ---
-CREATE PROCEDURE GetBusinessStores (
+CREATE PROCEDURE ViewBusinessStores (
     IN iBusinessAdminId INTEGER
 )
 BEGIN
-    SELECT id AS business_store_id, business_admin_id, name, rack_id, address, location, business_family, establishment_year, phone_number, logo, created, last_edited
-    FROM business_store WHERE business_admin_id = iBusinessAdminId;
+    SELECT id AS business_store_id,
+            business_admin_id,
+            name,
+            rack_id,
+            address,
+            location,
+            business_family,
+            establishment_year,
+            phone_number,
+            logo,
+            created,
+            last_edited
+    FROM business_store
+    WHERE business_admin_id = iBusinessAdminId;
 END;
 
 ---
@@ -45,7 +77,9 @@ CREATE PROCEDURE ActivateBusinessStore (
     IN iActive BOOLEAN
 )
 BEGIN
-    UPDATE business_store SET active = iActive WHERE id = iBusinessStoreId;
+    UPDATE business_store
+        SET active = iActive
+        WHERE id = iBusinessStoreId;
 END;
 
 ---
@@ -53,8 +87,10 @@ END;
 DROP PROCEDURE IF EXISTS LinkBusinessStore;
 ---
 CREATE PROCEDURE LinkBusinessStore (
-    IN iBusinessSToreId INTEGER
+    IN iBusinessStoreId INTEGER
 )
 BEGIN
-    UPDATE business_store SET linked = TRUE WHERE id = iBusinessStoreId;
+    UPDATE business_store
+        SET linked = TRUE
+        WHERE id = iBusinessStoreId;
 END;
