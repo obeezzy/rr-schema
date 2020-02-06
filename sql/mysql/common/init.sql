@@ -21,8 +21,8 @@ CREATE TABLE business_details (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create category table
-CREATE TABLE category (
+-- Create product category table
+CREATE TABLE product_category (
     id INT(11) NOT NULL AUTO_INCREMENT,
     category VARCHAR(100) NOT NULL,
     short_form VARCHAR(25) DEFAULT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE credit_payment (
     amount_paid DECIMAL(19,2) NOT NULL,
     balance DECIMAL(19,2) NOT NULL,
     currency VARCHAR(4) NOT NULL,
-    due_date DATETIME NOT NULL,
+    due_date_time DATETIME NOT NULL,
     note_id INT(11) DEFAULT NULL,
     archived TINYINT NOT NULL,
     created DATETIME NOT NULL,
@@ -96,17 +96,17 @@ CREATE TABLE credit_transaction (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create current quantity table
-CREATE TABLE current_quantity (
+-- Create current product quantity table
+CREATE TABLE current_product_quantity (
     id INT(11) NOT NULL AUTO_INCREMENT,
-    item_id INT(11) DEFAULT NULL,
+    product_id INT(11) DEFAULT NULL,
     quantity DOUBLE NOT NULL,
-    unit_id INT(11) NOT NULL,
+    product_unit_id INT(11) NOT NULL,
     created DATETIME NOT NULL,
     last_edited DATETIME NOT NULL,
     user_id INT(11) NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY item_id (item_id)
+    UNIQUE KEY product_id (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create customer table
@@ -123,14 +123,14 @@ CREATE TABLE customer (
 -- Create damaged quantity table
 CREATE TABLE damaged_quantity (
     id INT(11) NOT NULL AUTO_INCREMENT,
-    item_id INT(11) DEFAULT NULL,
+    product_id INT(11) DEFAULT NULL,
     quantity DOUBLE NOT NULL,
-    unit_id INT(11) NOT NULL,
+    product_unit_id INT(11) NOT NULL,
     created DATETIME NOT NULL,
     last_edited DATETIME NOT NULL,
     user_id INT(11) NOT NULL,
     PRIMARY KEY (id),
-    UNIQUE KEY item_id (item_id)
+    UNIQUE KEY product_id (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create DB info table
@@ -146,11 +146,11 @@ CREATE TABLE db_info (
 CREATE TABLE debt_payment (
     id INT(11) NOT NULL AUTO_INCREMENT,
     debt_transaction_id INT(11) NOT NULL,
-    total_amount DECIMAL(19,2) NOT NULL,
+    total_debt DECIMAL(19,2) NOT NULL,
     amount_paid DECIMAL(19,2) NOT NULL,
     balance DECIMAL(19,2) NOT NULL,
     currency VARCHAR(4) NOT NULL,
-    due_date DATETIME NOT NULL,
+    due_date_time DATETIME NOT NULL,
     note_id INT(11) DEFAULT NULL,
     archived TINYINT NOT NULL,
     created DATETIME NOT NULL,
@@ -192,7 +192,7 @@ CREATE TABLE expense (
     client_id INT(11) DEFAULT NULL,
     purpose VARCHAR(100) NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
-    payment_method VARCHAR(20) NOT NULL,
+    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
     currency VARCHAR(4) NOT NULL,
     note_id INT(11) DEFAULT NULL,
     archived TINYINT NOT NULL DEFAULT 0,
@@ -209,7 +209,7 @@ CREATE TABLE income (
     client_id INT(11) DEFAULT NULL,
     purpose VARCHAR(100) NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
-    payment_method VARCHAR(20) NOT NULL,
+    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
     currency VARCHAR(4) NOT NULL,
     note_id INT(11) DEFAULT NULL,
     archived TINYINT NOT NULL DEFAULT 0,
@@ -219,12 +219,12 @@ CREATE TABLE income (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create initial quantity table
-CREATE TABLE initial_quantity (
+-- Create initial product quantity table
+CREATE TABLE initial_product_quantity (
     id INT(11) NOT NULL AUTO_INCREMENT,
-    item_id INT(11) NOT NULL,
+    product_id INT(11) NOT NULL,
     quantity DOUBLE NOT NULL,
-    unit_id INT(11) NOT NULL,
+    product_unit_id INT(11) NOT NULL,
     reason VARCHAR(30) NOT NULL,
     archived TINYINT NOT NULL DEFAULT 0,
     created DATETIME NOT NULL,
@@ -233,16 +233,16 @@ CREATE TABLE initial_quantity (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create item table
-CREATE TABLE item (
+-- Create product table
+CREATE TABLE product (
     id INT(11) NOT NULL AUTO_INCREMENT,
-    category_id INT(11) NOT NULL,
-    item VARCHAR(200) NOT NULL,
+    product_category_id INT(11) NOT NULL,
+    product VARCHAR(200) NOT NULL,
     short_form VARCHAR(10) DEFAULT NULL,
     description VARCHAR(200) DEFAULT NULL,
     barcode VARCHAR(70) DEFAULT NULL,
     divisible TINYINT DEFAULT 1,
-    image BLOB,
+    image_data BLOB,
     note_id INT(11) DEFAULT NULL,
     archived TINYINT NOT NULL,
     created DATETIME NOT NULL,
@@ -270,14 +270,14 @@ CREATE TABLE note (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create purchase item table
-CREATE TABLE purchase_item (
+-- Create purchased product table
+CREATE TABLE purchased_product (
     id INT(11) NOT NULL AUTO_INCREMENT,
     purchase_transaction_id INT(11) NOT NULL,
-    item_id INT(11) NOT NULL,
+    product_id INT(11) NOT NULL,
     unit_price DECIMAL(19,2) NOT NULL,
     quantity DOUBLE NOT NULL,
-    unit_id INT(11) NOT NULL,
+    product_unit_id INT(11) NOT NULL,
     cost DOUBLE NOT NULL,
     discount DECIMAL(19,2) DEFAULT '0.00',
     currency VARCHAR(4) NOT NULL,
@@ -294,7 +294,7 @@ CREATE TABLE purchase_payment (
     id INT(11) NOT NULL AUTO_INCREMENT,
     purchase_transaction_id INT(11) NOT NULL,
     amount INT(11) NOT NULL,
-    method VARCHAR(20) NOT NULL,
+    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
     currency VARCHAR(4) NOT NULL,
     note_id INT(11) DEFAULT NULL,
     created DATETIME NOT NULL,
@@ -308,7 +308,6 @@ CREATE TABLE purchase_transaction (
     id INT(11) NOT NULL AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL,
     client_id INT(11) DEFAULT NULL,
-    balance DECIMAL(19,2) NOT NULL DEFAULT '0.00',
     discount DECIMAL(19,2) NOT NULL,
     suspended TINYINT NOT NULL,
     note_id INT(11) DEFAULT NULL,
@@ -319,14 +318,14 @@ CREATE TABLE purchase_transaction (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create sale item table
-CREATE TABLE sale_item (
+-- Create sold product table
+CREATE TABLE sold_product (
     id INT(11) NOT NULL AUTO_INCREMENT,
     sale_transaction_id INT(11) NOT NULL,
-    item_id INT(11) NOT NULL,
+    product_id INT(11) NOT NULL,
     unit_price DECIMAL(19,2) NOT NULL,
     quantity DOUBLE NOT NULL,
-    unit_id INT(11) NOT NULL,
+    product_unit_id INT(11) NOT NULL,
     cost DECIMAL(19,2) NOT NULL,
     discount DECIMAL(19,2) DEFAULT '0.00',
     currency VARCHAR(4) NOT NULL,
@@ -343,7 +342,7 @@ CREATE TABLE sale_payment (
     id INT(11) NOT NULL AUTO_INCREMENT,
     sale_transaction_id INT(11) NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
-    method VARCHAR(20) NOT NULL,
+    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
     currency VARCHAR(4) NOT NULL,
     note_id INT(11) DEFAULT NULL,
     created DATETIME NOT NULL,
@@ -357,7 +356,6 @@ CREATE TABLE sale_transaction (
     id INT(11) NOT NULL AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL,
     client_id INT(11) DEFAULT NULL,
-    balance DECIMAL(19,2) NOT NULL DEFAULT '0.00',
     discount DECIMAL(19,2) NOT NULL,
     suspended TINYINT NOT NULL,
     note_id INT(11) DEFAULT NULL,
@@ -371,7 +369,7 @@ CREATE TABLE sale_transaction (
 -- Create unit tale
 CREATE TABLE unit (
     id INT(11) NOT NULL AUTO_INCREMENT,
-    item_id INT(11) NOT NULL,
+    product_id INT(11) NOT NULL,
     unit VARCHAR(30) NOT NULL,
     short_form VARCHAR(10) DEFAULT NULL,
     preferred TINYINT NOT NULL DEFAULT 0,
@@ -390,7 +388,7 @@ CREATE TABLE unit (
 -- Create unit relation table
 CREATE TABLE unit_relation (
     id INT(11) NOT NULL AUTO_INCREMENT,
-    item_id INT(11) NOT NULL,
+    product_id INT(11) NOT NULL,
     old_unit_quantity DOUBLE NOT NULL,
     old_unit_id INT(11) NOT NULL,
     new_unit_quantity DOUBLE NOT NULL,
@@ -455,5 +453,17 @@ CREATE TABLE vendor (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Add admin user
-INSERT INTO rr_user (user, first_name, last_name, active, created, last_edited, user_id)
-    VALUES ('admin', 'admin', 'admin', TRUE, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), 1);
+INSERT INTO rr_user (user,
+                    first_name,
+                    last_name,
+                    active,
+                    created,
+                    last_edited,
+                    user_id)
+    VALUES ('admin',
+            'admin',
+            'admin',
+            TRUE,
+            CURRENT_TIMESTAMP(),
+            CURRENT_TIMESTAMP(),
+            1);
