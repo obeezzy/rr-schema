@@ -2,148 +2,194 @@ USE ###DATABASENAME###;
 
 ---
 
-CREATE PROCEDURE ViewStockCategories (
-    IN iSortOrder VARCHAR(50),
+CREATE PROCEDURE ViewStockProductCategories (
+    IN iSortOrder VARCHAR(20),
     IN iArchived BOOLEAN
 )
 BEGIN
     IF LOWER(iSortOrder) = "descending" THEN
-        SELECT id AS category_id, category FROM category WHERE archived = iArchived ORDER BY LOWER(category) DESC;
+        SELECT id AS product_category_id,
+                category
+                FROM product_category
+                WHERE archived = iArchived
+                ORDER BY LOWER(category) DESC;
     ELSE
-        SELECT id AS category_id, category FROM category WHERE archived = iArchived ORDER BY LOWER(category) ASC;
+        SELECT id AS product_category_id,
+                category
+                FROM product_category
+                WHERE archived = iArchived
+                ORDER BY LOWER(category) ASC;
     END IF;
 END;
 
 ---
 
-CREATE PROCEDURE ViewStockItems (
-    IN iCategoryId INTEGER,
-    IN iSortOrder VARCHAR(50)
+CREATE PROCEDURE ViewStockProducts (
+    IN iProductCategoryId INTEGER,
+    IN iSortOrder VARCHAR(20)
 )
 BEGIN
-    SELECT item.id AS item_id, category.id AS category_id, category.category, item.item, item.description,
-        item.divisible, item.image, current_quantity.quantity,
-        unit.id as unit_id, unit.unit, unit.cost_price,
-        unit.retail_price, unit.currency, item.created, item.last_edited, item.user_id, item.user_id AS user
-        FROM item
-        INNER JOIN category ON item.category_id = category.id
-        INNER JOIN unit ON item.id = unit.item_id
-        INNER JOIN current_quantity ON item.id = current_quantity.item_id
-        LEFT JOIN rr_user ON item.user_id = rr_user.id
-        WHERE item.archived = 0 AND unit.base_unit_equivalent = 1
-        AND category.id = iCategoryId
+    SELECT product.id AS product_id,
+        product_category.id AS product_category_id,
+        product_category.category,
+        product.product,
+        product.description,
+        product.divisible,
+        product.image_data,
+        current_product_quantity.quantity,
+        product_unit.id AS product_unit_id,
+        product_unit.unit,
+        product_unit.cost_price,
+        product_unit.retail_price,
+        product_unit.currency,
+        product.created,
+        product.last_edited,
+        product.user_id,
+        product.user_id AS user
+        FROM product
+        INNER JOIN product_category ON product.product_category_id = product_category.id
+        INNER JOIN product_unit ON product.id = product_unit.product_id
+        INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
+        LEFT JOIN rr_user ON product.user_id = rr_user.id
+        WHERE product.archived = 0 AND product_unit.base_unit_equivalent = 1
+        AND product_category.id = iProductCategoryId
         ORDER BY (CASE
                     WHEN LOWER(iSortOrder) = 'descending'
-                    THEN LOWER(item.item) END) DESC,
+                    THEN LOWER(product.product) END) DESC,
                  (CASE
                   WHEN LOWER(iSortOrder) = 'ascending' OR iSortOrder IS NULL
-                  THEN LOWER(item.item) END) ASC;
+                  THEN LOWER(product.product) END) ASC;
 END;
 
 ---
 
-CREATE PROCEDURE FilterStockCategories (
+CREATE PROCEDURE FilterStockProductCategories (
     IN iFilterText VARCHAR(200),
-    IN iSortOrder VARCHAR(50)
+    IN iSortOrder VARCHAR(20)
 )
 BEGIN
-    SELECT id AS category_id, category FROM category
-    WHERE category.category LIKE CONCAT('%', iFilterText, '%')
-    ORDER BY (CASE WHEN LOWER(iSortOrder) = 'descending'
-                THEN LOWER(category.category) END) DESC,
-             (CASE WHEN LOWER(iSortOrder) <> 'descending' OR iSortOrder IS NULL
-               THEN LOWER(category.category) END) ASC;
-END;
-
----
-
-CREATE PROCEDURE FilterStockCategoriesByItem (
-    IN iFilterText VARCHAR(200),
-    IN iSortOrder VARCHAR(50)
-)
-BEGIN
-    SELECT id AS category_id, category FROM category
-        INNER JOIN (SELECT category_id FROM item
-            INNER JOIN category ON item.category_id = category.id
-            WHERE item.archived = 0
-            AND item.item LIKE CONCAT('%', iFilterText, '%')
+    SELECT id AS category_id,
+            category
+            FROM product_category
+            WHERE product_category.category
+            LIKE CONCAT('%', iFilterText, '%')
             ORDER BY (CASE WHEN LOWER(iSortOrder) = 'descending'
-                        THEN LOWER(item.item) END) DESC,
-                     (CASE WHEN (iSortOrder IS NULL) OR (LOWER(iSortOrder) <> 'descending')
-                        THEN LOWER(item.item) END) ASC) c ON c.category_id = category.id;
+                        THEN LOWER(category.category) END) DESC,
+                    (CASE WHEN LOWER(iSortOrder) <> 'descending' OR iSortOrder IS NULL
+                        THEN LOWER(category.category) END) ASC;
 END;
 
 ---
 
-CREATE PROCEDURE FilterStockItems (
-    IN iCategoryId INTEGER,
+CREATE PROCEDURE FilterStockProductCategoriesByItem (
+    IN iFilterText VARCHAR(200),
+    IN iSortOrder VARCHAR(20)
+)
+BEGIN
+    SELECT id AS product_category_id,
+            category
+            FROM product_category
+            INNER JOIN (SELECT product_category_id FROM product
+                        INNER JOIN product_category ON product.product_category_id = product_category.id
+                        WHERE product.archived = 0
+                        AND product.product LIKE CONCAT('%', iFilterText, '%')
+                        ORDER BY (CASE WHEN LOWER(iSortOrder) = 'descending'
+                                    THEN LOWER(product.product) END) DESC,
+                                (CASE WHEN (iSortOrder IS NULL) OR (LOWER(iSortOrder) <> 'descending')
+                                    THEN LOWER(product.product) END) ASC) pc
+            ON pc.product_category_id = product_category.id;
+END;
+
+---
+
+CREATE PROCEDURE FilterStockProducts (
+    IN iProductCategoryId INTEGER,
     IN iFilterText VARCHAR(200),
     IN iFilterColumn VARCHAR(50),
-    IN iSortOrder VARCHAR(50),
+    IN iSortOrder VARCHAR(20),
     IN iSortColumn VARCHAR(50)
 )
 BEGIN
-    SELECT item.id AS item_id, category.id AS category_id, category.category, item.item, item.description,
-        item.divisible, item.image, current_quantity.quantity,
-        unit.id as unit_id, unit.unit, unit.cost_price,
-        unit.retail_price, unit.currency, item.created, item.last_edited, item.user_id, item.user_id AS user
-        FROM item
-        INNER JOIN category ON item.category_id = iCategoryId
-        INNER JOIN unit ON item.id = unit.item_id
-        INNER JOIN current_quantity ON item.id = current_quantity.item_id
-        LEFT JOIN rr_user ON item.user_id = rr_user.id
-        WHERE item.archived = 0 AND unit.base_unit_equivalent = 1
-        AND category.id = iCategoryId
-        AND item.item LIKE (CASE WHEN LOWER(iFilterColumn) = 'item'
+    SELECT product.id AS product_id,
+            product_category.id AS product_category_id,
+            product_category.category,
+            product.product,
+            product.description,
+            product.divisible,
+            product.image_data,
+            current_product_quantity.quantity,
+            product_unit.id AS product_unit_id,
+            product_unit.unit,
+            product_unit.cost_price,
+            product_unit.retail_price,
+            product_unit.currency,
+            product.created,
+            product.last_edited,
+            product.user_id,
+            product.user_id AS user
+        FROM product
+        INNER JOIN product_category ON product.category_id = iProductCategoryId
+        INNER JOIN product_unit ON product.id = product_unit.product_id
+        INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
+        LEFT JOIN rr_user ON product.user_id = rr_user.id
+        WHERE product.archived = 0 AND product_unit.base_unit_equivalent = 1
+        AND product_category.id = iProductCategoryId
+        AND product.product LIKE (CASE WHEN LOWER(iFilterColumn) = 'product'
                                 THEN CONCAT('%', iFilterText, '%')
                                 ELSE '%'
                                 END)
-        ORDER BY (CASE WHEN LOWER(iSortOrder) = 'descending' AND LOWER(iSortColumn) = 'item'
-                    THEN LOWER(item.item) END) DESC,
-                 (CASE WHEN (iSortOrder IS NULL AND iSortColumn IS NULL) OR (LOWER(iSortOrder) <> 'descending' AND LOWER(iSortColumn) = 'item')
-                    THEN LOWER(item.item) END) ASC;
+        ORDER BY (CASE WHEN LOWER(iSortOrder) = 'descending'
+                    AND LOWER(iSortColumn) = 'product'
+                    THEN LOWER(product.product) END) DESC,
+                 (CASE WHEN (iSortOrder IS NULL
+                            AND iSortColumn IS NULL)
+                    OR (LOWER(iSortOrder) <> 'descending'
+                            AND LOWER(iSortColumn) = 'product')
+                    THEN LOWER(product.product) END) ASC;
 END;
 
 ---
 
-CREATE PROCEDURE ViewStockItemCount (
-    IN iCategoryId INTEGER,
+CREATE PROCEDURE FetchStockProductCount (
+    IN iProductCategoryId INTEGER,
     IN iArchived BOOLEAN
 )
 BEGIN
-    IF iCategoryId IS NULL OR iCategoryId < 1 THEN
-        SELECT COUNT(item.id) AS item_count FROM item
-            INNER JOIN category ON item.category_id = category.id
-            LEFT JOIN rr_user ON item.user_id = rr_user.id
-            WHERE item.archived = IFNULL(iArchived, FALSE);
+    IF iProductCategoryId IS NULL OR iProductCategoryId < 1 THEN
+        SELECT COUNT(product.id) AS product_count
+            FROM product
+            INNER JOIN product_category ON product.product_category_id = product_category.id
+            LEFT JOIN rr_user ON product.user_id = rr_user.id
+            WHERE product.archived = IFNULL(iArchived, FALSE);
     ELSE
-        SELECT COUNT(item.id) AS item_count FROM item
-            INNER JOIN category ON item.category_id = category.id
-            LEFT JOIN rr_user ON item.user_id = rr_user.id
-            WHERE item.archived = IFNULL(iArchived, FALSE)
-            AND category.id = iCategoryId;
+        SELECT COUNT(product.id) AS product_count
+            FROM product
+            INNER JOIN product_category ON product.category_id = product_category.id
+            LEFT JOIN rr_user ON product.user_id = rr_user.id
+            WHERE product.archived = IFNULL(iArchived, FALSE)
+            AND product_category.id = iProductCategoryId;
     END IF;
 END;
 
 ---
 
-CREATE PROCEDURE FilterStockItemCount (
+CREATE PROCEDURE FilterStockProductCount (
     IN iFilterText VARCHAR(200),
     IN iFilterColumn VARCHAR(50),
     IN iArchived BOOLEAN
 )
 BEGIN
-    SELECT COUNT(item.id) AS item_count
-        FROM item
-        INNER JOIN category ON item.category_id = category.id
-        WHERE item.archived = IFNULL(iArchived, FALSE)
-        AND category.category LIKE (CASE
+    SELECT COUNT(product.id) AS product_count
+        FROM product
+        INNER JOIN product_category ON product.product_category_id = product_category.id
+        WHERE product.archived = IFNULL(iArchived, FALSE)
+        AND product_category.category LIKE (CASE
                                     WHEN LOWER(iFilterColumn) = 'category'
                                     THEN CONCAT('%', iFilterText, '%')
                                     ELSE '%'
                                     END)
-        AND item.item LIKE (CASE
-                            WHEN LOWER(iFilterColumn) = 'item'
+        AND product.product LIKE (CASE
+                            WHEN LOWER(iFilterColumn) = 'product'
                             THEN CONCAT('%', iFilterText, '%')
                             ELSE '%'
                             END);
@@ -151,126 +197,216 @@ END;
 
 ---
 
-CREATE PROCEDURE AddStockQuantity (
-    IN iItemId INTEGER,
+CREATE PROCEDURE AddStockProductQuantity (
+    IN iProductId INTEGER,
     IN iQuantity DOUBLE,
-    IN iUnitId INTEGER,
+    IN iProductUnitId INTEGER,
     IN iReason VARCHAR(200),
     IN iUserId INTEGER
 )
 BEGIN
-    INSERT INTO initial_quantity (item_id, quantity, unit_id, reason, archived, created, last_edited, user_id)
-        SELECT iItemId, quantity, iUnitId, iReason, FALSE, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId
-        FROM current_quantity WHERE item_id = iItemId;
+    INSERT INTO initial_product_quantity (product_id,
+                                            quantity,
+                                            product_unit_id,
+                                            reason,
+                                            archived,
+                                            created,
+                                            last_edited,
+                                            user_id)
+        SELECT iProductId,
+                quantity,
+                iProductUnitId,
+                iReason,
+                FALSE,
+                CURRENT_TIMESTAMP(),
+                CURRENT_TIMESTAMP(),
+                iUserId
+        FROM current_product_quantity
+        WHERE product_id = iProductId;
 
-    UPDATE current_quantity SET quantity = quantity + iQuantity, last_edited = CURRENT_TIMESTAMP(), user_id = iUserId
-		WHERE item_id = iItemId;
+    UPDATE current_product_quantity 
+        SET quantity = quantity + iQuantity,
+            last_edited = CURRENT_TIMESTAMP(),
+            user_id = iUserId
+		WHERE product_id = iProductId;
 END;
 
 ---
 
-CREATE PROCEDURE DeductStockQuantity (
-    IN iItemId INTEGER,
+CREATE PROCEDURE DeductStockProductQuantity (
+    IN iProductId INTEGER,
     IN iQuantity DOUBLE,
-    IN iUnitId INTEGER,
+    IN iProductUnitId INTEGER,
     IN iReason VARCHAR(200),
     IN iUserId INTEGER,
     OUT oInitialQuantityId INTEGER
 )
 BEGIN
 	SET @availableQuantity := 0.0;
-	SELECT quantity INTO @availableQuantity FROM current_quantity WHERE item_id = iItemId;
+	SELECT quantity INTO @availableQuantity
+        FROM current_product_quantity
+        WHERE product_id = iProductId;
 
     IF @availableQuantity < iQuantity THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Available quantity is too low to make deduction.';
     END IF;
 
-    INSERT INTO initial_quantity (item_id, quantity, unit_id, reason, archived, created, last_edited, user_id)
-		VALUES (iItemId, @availableQuantity, iUnitId, iReason, FALSE, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
+    INSERT INTO initial_product_quantity (product_id,
+                                            quantity,
+                                            product_unit_id,
+                                            reason,
+                                            archived,
+                                            created,
+                                            last_edited,
+                                            user_id)
+		VALUES (iProductId,
+                @availableQuantity,
+                iProductUnitId,
+                iReason,
+                FALSE,
+                CURRENT_TIMESTAMP(),
+                CURRENT_TIMESTAMP(),
+                iUserId);
 
     SELECT LAST_INSERT_ID() INTO oInitialQuantityId;
 
-    UPDATE current_quantity SET quantity = @availableQuantity - iQuantity, last_edited = CURRENT_TIMESTAMP(), user_id = iUserId
-		WHERE item_id = iItemId;
+    UPDATE current_product_quantity
+            SET quantity = @availableQuantity - iQuantity,
+                last_edited = CURRENT_TIMESTAMP(),
+                user_id = iUserId
+		WHERE product_id = iProductId;
 END;
 
 ---
 
-CREATE PROCEDURE ViewStockItemDetails (
-    IN iItemId INTEGER
+CREATE PROCEDURE FetchStockProductDetails (
+    IN iProductId INTEGER
 )
 BEGIN
-    SELECT item.id AS item_id, category.id AS category_id, category.category, item.item, item.description,
-        item.divisible, item.image, current_quantity.quantity,
-        unit.id as unit_id, unit.unit, unit.cost_price,
-        unit.retail_price, unit.currency, item.created, item.last_edited, item.user_id, rr_user.user AS user
-        FROM item
-        INNER JOIN category ON item.category_id = category.id
-        INNER JOIN unit ON item.id = unit.item_id
-        INNER JOIN current_quantity ON item.id = current_quantity.item_id
-        LEFT JOIN rr_user ON item.user_id = rr_user.id
-        WHERE item.archived = 0 AND unit.base_unit_equivalent = 1
-        AND item.id = iItemId;
+    SELECT product.id AS product_id,
+            product_category.id AS product_category_id,
+            product_category.category,
+            product.product,
+            product.description,
+            product.divisible,
+            product.image_data,
+            current_product_quantity.quantity,
+            product.unit.id AS unit_id,
+            product_unit.unit,
+            product_unit.cost_price,
+            product_unit.retail_price,
+            product_unit.currency,
+            product.created,
+            product.last_edited,
+            product.user_id,
+            rr_user.user AS user
+        FROM product
+        INNER JOIN product_category ON product.product_category_id = product_category.id
+        INNER JOIN product_unit ON product.id = product_unit.product_id
+        INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
+        LEFT JOIN rr_user ON product.user_id = rr_user.id
+        WHERE product.archived = 0 AND product_unit.base_unit_equivalent = 1
+        AND product.id = iProductId;
 END;
 
 ---
 
-CREATE PROCEDURE AddStockCategory (
-    IN iCategory VARCHAR(100),
+CREATE PROCEDURE AddStockProductCategory (
+    IN iProductCategory VARCHAR(100),
     IN iShortForm VARCHAR(10),
     IN iNoteId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
-	INSERT IGNORE INTO category (category, short_form, note_id, archived, created, last_edited, user_id)
-		VALUES (iCategory, iShortForm, iNoteId, FALSE, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
+	INSERT IGNORE INTO product_category (category,
+                                        short_form,
+                                        note_id,
+                                        archived,
+                                        created,
+                                        last_edited,
+                                        user_id)
+		VALUES (iProductCategory,
+                iShortForm,
+                NULLIF(iNoteId, 0),
+                FALSE,
+                CURRENT_TIMESTAMP(),
+                CURRENT_TIMESTAMP(),
+                iUserId);
 
 	IF LAST_INSERT_ID() > 0 THEN
-        UPDATE category SET archived = FALSE WHERE id = LAST_INSERT_ID();
-		SELECT LAST_INSERT_ID() AS id;
+        UPDATE product_category SET archived = FALSE
+            WHERE id = LAST_INSERT_ID();
+		SELECT LAST_INSERT_ID() AS product_category_id;
 	ELSE
-		SELECT id FROM category WHERE category = iCategory;
+		SELECT id
+            FROM product_category
+            WHERE category = iProductCategory;
     END IF;
 END;
 
 ---
 
-CREATE PROCEDURE AddStockItem (
-    IN iCategoryId INTEGER,
-    IN iItem VARCHAR(200),
+CREATE PROCEDURE AddStockProduct (
+    IN iProductCategoryId INTEGER,
+    IN iProduct VARCHAR(200),
     IN iShortForm VARCHAR(10),
     IN iDescription VARCHAR(200),
     IN iBarcode VARCHAR(50),
     IN iDivisible BOOLEAN,
-    IN iImage BLOB,
+    IN iImageData BLOB,
     IN iNoteId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
-    SET @itemAlreadyExists := NULL;
-    SELECT id INTO @itemAlreadyExists FROM item WHERE LOWER(item) = LOWER(iItem) AND archived = FALSE;
-    IF @itemAlreadyExists IS NOT NULL THEN
+    SET @productAlreadyExists := NULL;
+    SELECT id INTO @productAlreadyExists
+            FROM product
+            WHERE LOWER(product) = LOWER(iItem)
+            AND archived = FALSE;
+    IF @productAlreadyExists IS NOT NULL THEN
         SIGNAL SQLSTATE '80001'
             SET MESSAGE_TEXT = 'Product already exists.';
     END IF;
 
-	INSERT INTO item (category_id, item, short_form, description, barcode, divisible, image,
-		note_id, archived, created, last_edited, user_id)
-		VALUES (iCategoryId, iItem, iShortForm, iDescription, iBarcode, iDivisible, iImage,
-		iNoteId, FALSE, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
+	INSERT INTO product (product_category_id,
+                        product,
+                        short_form,
+                        description,
+                        barcode,
+                        divisible,
+                        image,
+                        note_id,
+                        archived,
+                        created,
+                        last_edited,
+                        user_id)
+		VALUES (iProductCategoryId,
+                iProduct,
+                iShortForm,
+                iDescription,
+                iBarcode,
+                iDivisible,
+                iImageData,
+                NULLIF(iNoteId, 0),
+                FALSE,
+                CURRENT_TIMESTAMP(),
+                CURRENT_TIMESTAMP(),
+                iUserId);
 
 	    IF LAST_INSERT_ID() > 0 THEN
-		    SELECT LAST_INSERT_ID() AS id;
+		    SELECT LAST_INSERT_ID() AS product_id;
 	    ELSE
-		    SELECT id FROM item WHERE item = iItem;
+		    SELECT id AS product_id
+                FROM product
+                WHERE product = iProduct;
         END IF;
 END;
 
 ---
 
-CREATE PROCEDURE AddStockUnit (
-    IN iItemId INTEGER,
+CREATE PROCEDURE AddStockProductUnit (
+    IN iProductId INTEGER,
     IN iUnit VARCHAR(100),
     IN iShortForm VARCHAR(10),
     IN iBaseUnitEquivalent INTEGER,
@@ -282,80 +418,138 @@ CREATE PROCEDURE AddStockUnit (
     IN iUserId INTEGER
 )
 BEGIN
-	INSERT INTO unit (item_id, unit, short_form, base_unit_equivalent, cost_price, retail_price, preferred, currency, note_id,
-		archived, created, last_edited, user_id)
-		VALUES (iItemId, iUnit, iShortForm, iBaseUnitEquivalent, iCostPrice, iRetailPrice, iPreferred, iCurrency, iNoteId,
-		FALSE, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
+	INSERT INTO product_unit (product_id,
+                                unit,
+                                short_form,
+                                base_unit_equivalent,
+                                cost_price,
+                                retail_price,
+                                preferred,
+                                currency,
+                                note_id,
+                                archived,
+                                created,
+                                last_edited,
+                                user_id)
+		VALUES (iProductId,
+                iUnit,
+                iShortForm,
+                iBaseUnitEquivalent,
+                iCostPrice,
+                iRetailPrice,
+                iPreferred,
+                iCurrency,
+                NULLIF(iNoteId, 0),
+                FALSE,
+                CURRENT_TIMESTAMP(),
+                CURRENT_TIMESTAMP(),
+                iUserId);
 
 	IF LAST_INSERT_ID() > 0 THEN
 		SELECT LAST_INSERT_ID() AS id;
 	ELSE
-		SELECT id FROM unit WHERE unit = iUnit;
+		SELECT id
+            FROM product_unit
+            WHERE unit = iUnit;
     END IF;
 END;
 
 ---
 
-CREATE PROCEDURE AddInitialQuantity (
-    IN iItemId INTEGER,
+CREATE PROCEDURE AddInitialProductQuantity (
+    IN iProductId INTEGER,
     IN iQuantity DOUBLE,
-    IN iUnitId INTEGER,
+    IN iProductUnitId INTEGER,
     IN iReason VARCHAR(20),
     IN iUserId INTEGER
 )
 BEGIN
-	INSERT INTO initial_quantity (item_id, quantity, unit_id, reason, archived, created, last_edited, user_id)
-		VALUES (iItemId, iQuantity, iUnitId, iReason, FALSE, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
+	INSERT INTO initial_product_quantity (product_id,
+                                            quantity,
+                                            product_unit_id,
+                                            reason,
+                                            archived,
+                                            created,
+                                            last_edited,
+                                            user_id)
+		VALUES (iProductId,
+                iQuantity,
+                iProductUnitId,
+                iReason,
+                FALSE,
+                CURRENT_TIMESTAMP(),
+                CURRENT_TIMESTAMP(),
+                iUserId);
 END;
 
 ---
 
-CREATE PROCEDURE AddCurrentQuantity (
-    IN iItemId INTEGER,
+CREATE PROCEDURE AddCurrentProductQuantity (
+    IN iProductId INTEGER,
     IN iQuantity DOUBLE,
-    IN iUnitId INTEGER,
+    IN iProductUnitId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
-	INSERT INTO current_quantity (item_id, quantity, unit_id, created, last_edited, user_id)
-		VALUES (iItemId, iQuantity, iUnitId, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
+	INSERT INTO current_product_quantity (product_id,
+                                            quantity,
+                                            product_unit_id,
+                                            created,
+                                            last_edited,
+                                            user_id)
+		VALUES (iProductId,
+                iQuantity,
+                iProductUnitId,
+                CURRENT_TIMESTAMP(),
+                CURRENT_TIMESTAMP(),
+                iUserId);
 END;
 
 ---
 
-CREATE PROCEDURE GetStockCategoryId (
-    IN iItemId INTEGER
+CREATE PROCEDURE FetchStockProductCategoryId (
+    IN iProductId INTEGER
 )
 BEGIN
-	SELECT (SELECT category_id FROM item WHERE item.id = iItemId) AS category_id;
+	SELECT (SELECT product_category_id
+            FROM product
+            WHERE product.id = iProductId) AS category_id;
 END;
 
 ---
 
-CREATE PROCEDURE UpdateStockItem (
-    IN iCategoryId INTEGER,
-    IN iItemId INTEGER,
-    IN iItem VARCHAR(100),
+CREATE PROCEDURE UpdateStockProduct (
+    IN iProductCategoryId INTEGER,
+    IN iProductId INTEGER,
+    IN iProduct VARCHAR(100),
     IN iShortForm VARCHAR(10),
     IN iDescription VARCHAR(200),
     IN iBarcode VARCHAR(50),
     IN iDivisible BOOLEAN,
-    IN iImage BLOB,
+    IN iImageData BLOB,
     IN iNoteId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
-	UPDATE item SET category_id = iCategoryId, item = iItem, short_form = iShortForm, description = iDescription,
-		barcode = iBarcode, divisible = iDivisible, image = iImage,
-        note_id = (CASE WHEN iNoteId IS NOT NULL THEN iNoteId ELSE note_id END), archived = FALSE,
-		last_edited = CURRENT_TIMESTAMP(), user_id = iUserId
-		WHERE item.id = iItemId;
+	UPDATE product
+        SET product_category_id = iProductCategoryId,
+            product = iProduct,
+            short_form = iShortForm,
+            description = iDescription,
+		    barcode = iBarcode,
+            divisible = iDivisible,
+            image_data = iImageData,
+            note_id = NULLIF(iNoteId, 0),
+            archived = FALSE,
+		    last_edited = CURRENT_TIMESTAMP(),
+            user_id = iUserId
+		    WHERE product.id = iProductId;
 END;
 
 ---
 
-CREATE PROCEDURE UpdateStockUnit (
-    IN iItemId INTEGER,
+CREATE PROCEDURE UpdateStockProductUnit (
+    IN iProductId INTEGER,
     IN iUnit VARCHAR(100),
     IN iShortForm VARCHAR(10),
     IN iBaseUnitEquivalent INTEGER,
@@ -367,59 +561,111 @@ CREATE PROCEDURE UpdateStockUnit (
     IN iUserId INTEGER
 )
 BEGIN
-	UPDATE unit SET unit = iUnit, short_form = iShortForm,
-		base_unit_equivalent = iBaseUnitEquivalent, cost_price = iCostPrice, retail_price = iRetailPrice,
-        preferred = iPreferred, currency = iCurrency, note_id = iNoteId, archived = FALSE,
-        last_edited = CURRENT_TIMESTAMP(), user_id = iUserId WHERE item_id = iItemId;
+	UPDATE product_unit
+        SET unit = iUnit,
+            short_form = iShortForm,
+		    base_unit_equivalent = iBaseUnitEquivalent,
+            cost_price = iCostPrice,
+            retail_price = iRetailPrice,
+            preferred = iPreferred,
+            currency = iCurrency,
+            note_id = iNoteId,
+            archived = FALSE,
+            last_edited = CURRENT_TIMESTAMP(),
+            user_id = iUserId
+        WHERE product_id = iProductId;
 END;
 
 ---
 
-CREATE PROCEDURE ArchiveStockItem (
-    IN iItemId INTEGER,
+CREATE PROCEDURE ArchiveStockProduct (
+    IN iProductId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
-    UPDATE item SET archived = 1, last_edited = CURRENT_TIMESTAMP(), user_id = iUserId WHERE id = iItemId;
-    SET @categoryId = (SELECT category_id FROM item WHERE id = iItemId);
-    SET @itemExistsUnderCategory = (SELECT EXISTS(SELECT category_id FROM item WHERE archived = 0 AND category_id = @categoryId LIMIT 1));
-    IF @itemExistsUnderCategory = FALSE THEN
-        UPDATE category SET archived = 1, last_edited = CURRENT_TIMESTAMP(), user_id = iUserId WHERE id = @categoryId;
+    UPDATE product
+        SET archived = 1,
+            last_edited = CURRENT_TIMESTAMP(),
+            user_id = iUserId
+            WHERE id = iProductId;
+        SET @productCategoryId = (SELECT category_id
+                                    FROM product
+                                    WHERE id = iProductId);
+        SET @productExistsUnderCategory = (SELECT EXISTS(SELECT product_category_id
+                                                        FROM product
+                                                        WHERE archived = 0
+                                                        AND product_category_id = @productCategoryId LIMIT 1)
+                                        );
+    IF @productExistsUnderCategory = FALSE THEN
+        UPDATE category
+            SET archived = 1,
+                last_edited = CURRENT_TIMESTAMP(),
+                user_id = iUserId
+            WHERE id = @productCategoryId;
     END IF;
 END;
 
 ---
 
 CREATE PROCEDURE UndoArchiveStockItem (
-    IN iItemId INTEGER,
+    IN iProductId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
-	UPDATE item SET archived = 0, last_edited = CURRENT_TIMESTAMP(), user_id = iUserId WHERE id = iItemId;
-        SET @categoryId := 0;
-        SELECT category_id INTO @categoryId FROM item
-            INNER JOIN category on category.id = item.category_id
-            WHERE item.id = iItemId;
+	UPDATE product
+        SET archived = 0,
+            last_edited = CURRENT_TIMESTAMP(),
+            user_id = iUserId
+        WHERE id = iProductId;
 
+    SET @productCategoryId := 0;
+    SELECT product_category_id INTO @productCategoryId
+        FROM product
+        INNER JOIN product_category ON product_category.id = product.product_category_id
+        WHERE product.id = iProductId;
+
+    UPDATE product_category
+        SET archived = 0,
+            last_edited = CURRENT_TIMESTAMP(),
+            user_id = iUserId
+        WHERE id = @productCategoryId;
+
+	SELECT product.id AS product,
+            product_category.id AS product_category_id,
+            product_category.category,
+            product.product,
+            product.description,
+            product.divisible,
+            product.image_data,
+            current_product_quantity.quantity,
+            product_unit.id AS product_unit_id,
+            product_unit.unit,
+            product_unit.cost_price,
+            product_unit.retail_price,
+            product_unit.currency,
+            product.created,
+            product.last_edited,
+            product.user_id,
+            product.user_id AS user
+        FROM product
+		INNER JOIN product_category ON product.product_category_id = product_category.id
+		INNER JOIN product_unit ON product.id = product_unit.product_id
+		INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
+		LEFT JOIN rr_user ON product.user_id = iUserId
+		WHERE product.archived = 0
+        AND product_unit.base_unit_equivalent = 1
+		AND product.id = iProductId;
+
+    SET @productCategoryId = (SELECT id
+                        FROM product
+                        WHERE archived = 0
+                        LIMIT 1);
+    IF @productCategoryId IS NOT NULL THEN
         UPDATE category
-            SET archived = 0, last_edited = CURRENT_TIMESTAMP(), user_id = iUserId
-            WHERE id = @categoryId;
-
-	SELECT item.id AS item_id, category.id AS category_id, category.category, item.item, item.description,
-		item.divisible, item.image, current_quantity.quantity,
-		unit.id as unit_id, unit.unit, unit.cost_price,
-		unit.retail_price, unit.currency, item.created, item.last_edited, item.user_id, item.user_id AS user
-		FROM item
-		INNER JOIN category ON item.category_id = category.id
-		INNER JOIN unit ON item.id = unit.item_id
-		INNER JOIN current_quantity ON item.id = current_quantity.item_id
-		LEFT JOIN rr_user ON item.user_id = iUserId
-		WHERE item.archived = 0 AND unit.base_unit_equivalent = 1
-		AND item.id = iItemId;
-
-    SET @categoryId = (SELECT id FROM item WHERE archived = 0 LIMIT 1);
-    IF @categoryId IS NOT NULL THEN
-        UPDATE category SET archived = 0, last_edited = CURRENT_TIMESTAMP(), user_id = iUserId WHERE id = @categoryId;
+        SET archived = 0,
+            last_edited = CURRENT_TIMESTAMP(),
+            user_id = iUserId
+            WHERE id = @productCategoryId;
     END IF;
 END;
 
@@ -431,63 +677,57 @@ CREATE PROCEDURE ViewStockReport (
     IN iFilterColumn VARCHAR(20),
     IN iFilterText VARCHAR(100),
     IN iSortColumn VARCHAR(20),
-    IN iSortOrder VARCHAR(15)
+    IN iSortOrder VARCHAR(20)
 )
 BEGIN
-    SELECT i.id AS item_id, category.id AS category_id, category.category, i.item,
-        (SELECT IFNULL(quantity, 0) FROM initial_quantity
+    SELECT p.id AS product_id,
+        category.id AS category_id,
+        product_category.category,
+        p.product,
+        (SELECT IFNULL(quantity, 0)
+            FROM initial_product_quantity
             WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
                                     AND IFNULL(iTo, CURRENT_TIMESTAMP())
-            AND initial_quantity.item_id = i.id
-            ORDER BY created ASC LIMIT 1) as opening_stock_quantity,
-        (SELECT IFNULL(SUM(quantity), 0) FROM sale_item
+            AND initial_product_quantity.product_id = p.id
+            ORDER BY created ASC
+            LIMIT 1) AS opening_stock_quantity,
+        (SELECT IFNULL(SUM(quantity), 0)
+            FROM sold_product
             WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
                                     AND IFNULL(iTo, CURRENT_TIMESTAMP())
-            AND sale_item.item_id = i.id) AS quantity_sold,
-        (SELECT IFNULL(SUM(quantity), 0) FROM purchase_item
+            AND sold_product.product_id = p.id) AS quantity_sold,
+        (SELECT IFNULL(SUM(quantity), 0)
+            FROM purchased_product
             WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
                                     AND IFNULL(iTo, CURRENT_TIMESTAMP())
-            AND purchase_item.item_id = i.id) AS quantity_bought,
-        current_quantity.quantity AS quantity_in_stock,
-        unit.id as unit_id, unit.unit
-        FROM item i
-        INNER JOIN category ON i.category_id = category.id
-        INNER JOIN unit ON i.id = unit.item_id
-        INNER JOIN current_quantity ON i.id = current_quantity.item_id
-        LEFT JOIN rr_user ON i.user_id = rr_user.id
-        WHERE i.archived = 0 AND unit.base_unit_equivalent = 1
-        AND category.category LIKE (CASE
-                                    WHEN LOWER(iFilterColumn) = 'category'
-                                    THEN CONCAT('%', iFilterText, '%')
-                                    ELSE '%'
-                                    END)
-        AND i.item LIKE (CASE
-                            WHEN LOWER(iFilterColumn) = 'item'
+            AND purchased_product.product_id = p.id) AS quantity_bought,
+            current_product_quantity.quantity AS quantity_in_stock,
+            product_unit.id AS product_unit_id,
+            product_unit.unit
+        FROM product p
+        INNER JOIN product_category ON p.product_category_id = product_category.id
+        INNER JOIN product_unit ON product.id = product_unit.product_id
+        INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
+        LEFT JOIN rr_user ON product.user_id = rr_user.id
+        WHERE PLAN.archived = 0 AND product_unit.base_unit_equivalent = 1
+        AND product_category.category LIKE (CASE
+                                        WHEN LOWER(iFilterColumn) = 'category'
+                                        THEN CONCAT('%', iFilterText, '%')
+                                        ELSE '%'
+                                        END)
+        AND p.product LIKE (CASE
+                            WHEN LOWER(iFilterColumn) = 'product'
                             THEN CONCAT('%', iFilterText, '%')
                             ELSE '%'
                             END)
         ORDER BY (CASE
-                    WHEN LOWER(iSortOrder) = 'descending' AND LOWER(iSortColumn) = 'category'
-                    THEN LOWER(category.category) END) DESC,
+                    WHEN LOWER(iSortOrder) = 'descending'
+                    AND LOWER(iSortColumn) = 'category'
+                    THEN LOWER(product_category.category) END) DESC,
                  (CASE
-                    WHEN (iSortOrder IS NULL AND iSortColumn IS NULL) OR (LOWER(iSortOrder) <> 'descending' AND LOWER(iSortColumn) = 'category')
-                    THEN LOWER(category.category) END) ASC,
-        LOWER(i.item) ASC;
-END;
-
----
-
-CREATE PROCEDURE MoveItemToStockCategory (
-    IN iCategoryId INTEGER,
-    IN iItemId INTEGER
-)
-BEGIN
-    UPDATE item
-        SET archived = 0
-        AND category_id = iCategoryId
-        WHERE id = iItemId;
-
-    UPDATE category
-        SET archived = 0
-        WHERE id = iCategoryId;
+                    WHEN (iSortOrder IS NULL AND iSortColumn IS NULL)
+                            OR (LOWER(iSortOrder) <> 'descending'
+                            AND LOWER(iSortColumn) = 'category')
+                    THEN LOWER(product_category.category) END) ASC,
+        LOWER(p.product) ASC;
 END;
