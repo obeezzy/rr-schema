@@ -705,7 +705,7 @@ BEGIN
         INNER JOIN product_unit ON product.id = product_unit.product_id
         INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
         LEFT JOIN rr_user ON product.user_id = rr_user.id
-        WHERE PLAN.archived = 0 AND product_unit.base_unit_equivalent = 1;
+        WHERE p.archived = FALSE AND product_unit.base_unit_equivalent = 1;
 END;
 
 ---
@@ -748,7 +748,7 @@ BEGIN
         INNER JOIN product_unit ON product.id = product_unit.product_id
         INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
         LEFT JOIN rr_user ON product.user_id = rr_user.id
-        WHERE PLAN.archived = 0 AND product_unit.base_unit_equivalent = 1
+        WHERE p.archived = FALSE AND product_unit.base_unit_equivalent = 1
         AND product_category.category LIKE (CASE
                                         WHEN LOWER(iFilterColumn) = 'category'
                                         THEN CONCAT('%', iFilterText, '%')
