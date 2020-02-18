@@ -121,7 +121,7 @@ END;
 
 ---
 
-CREATE PROCEDURE ViewUserPrivileges (
+CREATE PROCEDURE FetchUserPrivileges (
 	IN iUserId INTEGER
 )
 BEGIN

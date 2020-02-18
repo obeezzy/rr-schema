@@ -93,7 +93,7 @@ END;
 
 ---
 
-CREATE PROCEDURE ArchiveDebtTransaction1 (
+CREATE PROCEDURE ArchiveDebtTransactionByTransactionTable (
 	IN iArchived BOOLEAN,
 	IN iTransactionTable VARCHAR(40),
     IN iTransactionId INTEGER,
@@ -101,7 +101,7 @@ CREATE PROCEDURE ArchiveDebtTransaction1 (
 )
 BEGIN
 	UPDATE debt_transaction
-		SET archived = iArchived,
+		SET archived = IFNULL(iArchived, FALSE),
 			last_edited = CURRENT_TIMESTAMP(),
 			user_id = iUserId
 		WHERE transaction_table = iTransactionTable
@@ -145,7 +145,7 @@ END;
 
 ---
 
-CREATE PROCEDURE ArchiveDebtTransaction2 (
+CREATE PROCEDURE ArchiveDebtTransactionById (
 	IN iDebtTransactionId INTEGER,
     IN iUserId INTEGER
 )
@@ -213,7 +213,7 @@ END;
 
 ---
 
-CREATE PROCEDURE ArchiveDebtTransaction3 (
+CREATE PROCEDURE ArchiveDebtTransactionByDebtorId (
 	IN iDebtorId INTEGER,
     IN iUserId INTEGER
 )
@@ -287,7 +287,8 @@ BEGIN
 	SELECT debtor.client_id,
 			debtor.id AS debtor_id,
 			client.preferred_name AS preferred_name,
-			(SELECT SUM(debt_payment.balance) FROM debt_payment
+			(SELECT SUM(debt_payment.balance)
+				FROM debt_payment
 				INNER JOIN debt_transaction ON debt_transaction.id = debt_payment.debt_transaction_id
 				INNER JOIN debtor ON debt_transaction.debtor_id = debtor.id
 				WHERE debt_payment.debt_transaction_id IN
@@ -324,8 +325,7 @@ BEGIN
 			client.phone_number,
 			note.note,
 			debtor.archived,
-       		debtor.user_id,
-			debtor.user_id AS user
+       		debtor.user_id
         FROM debtor
         INNER JOIN client ON client.id = debtor.client_id
 		LEFT JOIN note ON note.id = debtor.note_id
@@ -410,6 +410,7 @@ BEGIN
     FROM debt_payment
     INNER JOIN debt_transaction ON debt_transaction.id = debt_payment.debt_transaction_id
     LEFT JOIN note ON note.id = debt_payment.note_id
-    WHERE debt_transaction.id = iDebtTransactionId AND debt_transaction.archived = iArchived
+    WHERE debt_transaction.id = iDebtTransactionId
+	AND debt_transaction.archived = IFNULL(iArchived, FALSE)
     ORDER BY debt_payment.last_edited ASC;
 END
