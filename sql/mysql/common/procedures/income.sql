@@ -25,7 +25,7 @@ BEGIN
                         last_edited,
                         user_id)
         VALUES (iName,
-                iClientId,
+                NULLIF(iClientId, 0),
                 iPurpose,
                 iAmount,
                 iPaymentMethod,
@@ -52,18 +52,18 @@ BEGIN
         FROM income
 		WHERE created BETWEEN iFrom
                         AND iTo
-        AND archived = iArchived;
+        AND archived = IFNULL(iArchived, FALSE);
 END
 
 ---
 
-CREATE PROCEDURE ViewIncomeReport (
-    IN iFrom DATETIME,
-    IN iTo DATETIME,
+CREATE PROCEDURE FilterIncomeReport (
     IN iFilterColumn VARCHAR(20),
     IN iFilterText VARCHAR(100),
     IN iSortColumn VARCHAR(20),
-    IN iSortOrder VARCHAR(15)
+    IN iSortOrder VARCHAR(15),
+    IN iFrom DATETIME,
+    IN iTo DATETIME
 )
 BEGIN
     SELECT id AS income_id,
@@ -89,4 +89,20 @@ BEGIN
                         AND LOWER(iSortColumn) = 'purpose')
                     THEN LOWER(income.purpose) END) ASC,
         LOWER(income.purpose) ASC;
+END;
+
+---
+
+CREATE PROCEDURE ViewIncomeReport (
+    IN iFrom DATETIME,
+    IN iTo DATETIME
+)
+BEGIN
+    SELECT id AS income_id,
+            purpose,
+            amount
+        FROM income
+        WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+                        AND IFNULL(iTo, CURRENT_TIMESTAMP())
+        AND income.archived = FALSE;
 END;

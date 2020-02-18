@@ -23,8 +23,8 @@ BEGIN
             purchase_transaction.user_id
         FROM purchase_transaction
         LEFT JOIN note ON purchase_transaction.note_id = note.id
-        WHERE purchase_transaction.suspended = iSuspended
-        AND purchase_transaction.archived = iArchived
+        WHERE purchase_transaction.suspended = IFNULL(iSuspended, FALSE)
+        AND purchase_transaction.archived = IFNULL(iArchived, FALSE)
         AND purchase_transaction.created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
 									        AND IFNULL(iTo, CURRENT_TIMESTAMP())
         ORDER BY created ASC;
@@ -52,11 +52,11 @@ BEGIN
 		                                created,
                                         last_edited,
                                         user_id)
-        VALUES (iClientName,
-                iClientId,
-                IBalance,
+        VALUES (NULLIF(iClientName, ""),
+                NULLIF(iClientId, 0),
+                iBalance,
                 iDiscount,
-                iSuspended,
+                IFNULL(iSuspended, FALSE),
                 NULLIF(iNoteId, 0),
                 FALSE,
                 CURRENT_TIMESTAMP(),
@@ -197,8 +197,8 @@ BEGIN
 		LEFT JOIN rr_user ON purchased_product.user_id = rr_user.id
         LEFT JOIN note ON purchase_transaction.note_id = note.id
         WHERE purchase_transaction_id = iTransactionId
-        AND purchase_transaction.suspended = iSuspended
-        AND purchase_transaction.archived = iArchived;
+        AND purchase_transaction.suspended = IFNULL(iSuspended, FALSE)
+        AND purchase_transaction.archived = IFNULL(iArchived, FALSE);
 END;
 
 ---
@@ -258,7 +258,7 @@ CREATE PROCEDURE ArchivePurchaseTransaction (
 )
 BEGIN
 	UPDATE purchase_transaction
-        SET archived = iArchived,
+        SET archived = IFNULL(iArchived, FALSE),
             last_edited = CURRENT_TIMESTAMP(),
             user_id = iUserId
         WHERE id = iTransactionId;
@@ -284,11 +284,43 @@ END;
 
 CREATE PROCEDURE ViewPurchaseReport (
     IN iFrom DATETIME,
-    IN iTo DATETIME,
+    IN iTo DATETIME
+)
+BEGIN
+    SELECT p.id AS product_id,
+            product_category.id AS category_id,
+            product_category.category,
+            p.product,
+            (SELECT IFNULL(SUM(quantity), 0)
+                FROM purchased_product
+            WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+                            AND IFNULL(iTo, CURRENT_TIMESTAMP())
+            AND purchased_product.product_id = p.id) AS quantity_bought,
+            product_unit.id AS unit_id,
+            product_unit.unit,
+        (SELECT IFNULL(SUM(cost), 0)
+            FROM purchased_product
+            WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+                            AND IFNULL(iTo, CURRENT_TIMESTAMP())
+            AND purchased_product.product_id = p.id) AS total_amount
+        FROM product p
+        INNER JOIN product_category ON p.product_category_id = product_category.id
+        INNER JOIN product_unit ON p.id = product_unit.product_id
+        INNER JOIN current_product_quantity ON i.id = current_product_quantity.product_id
+        LEFT JOIN rr_user ON i.user_id = rr_user.id
+        WHERE p.archived = FALSE
+        AND product_unit.base_unit_equivalent = 1;
+END;
+
+---
+
+CREATE PROCEDURE FilterPurchaseReport (
     IN iFilterColumn VARCHAR(20),
     IN iFilterText VARCHAR(100),
     IN iSortColumn VARCHAR(20),
-    IN iSortOrder VARCHAR(15)
+    IN iSortOrder VARCHAR(15),
+    IN iFrom DATETIME,
+    IN iTo DATETIME
 )
 BEGIN
     SELECT p.id AS product_id,

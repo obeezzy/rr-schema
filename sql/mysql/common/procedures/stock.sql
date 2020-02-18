@@ -11,7 +11,7 @@ BEGIN
         SELECT id AS product_category_id,
                 category
                 FROM product_category
-                WHERE archived = iArchived
+                WHERE archived = IFNULL(iArchived, FALSE)
                 ORDER BY LOWER(category) DESC;
     ELSE
         SELECT id AS product_category_id,
@@ -280,7 +280,7 @@ END;
 
 ---
 
-CREATE PROCEDURE FetchStockProductDetails (
+CREATE PROCEDURE FetchStockProduct (
     IN iProductId INTEGER
 )
 BEGIN
@@ -312,8 +312,8 @@ END;
 
 ---
 
-CREATE PROCEDURE AddStockProductCategory (
-    IN iProductCategory VARCHAR(100),
+CREATE PROCEDURE AddOrUpdateStockProductCategory (
+    IN iCategory VARCHAR(100),
     IN iShortForm VARCHAR(10),
     IN iNoteId INTEGER,
     IN iUserId INTEGER
@@ -326,7 +326,7 @@ BEGIN
                                         created,
                                         last_edited,
                                         user_id)
-		VALUES (iProductCategory,
+		VALUES (iCategory,
                 iShortForm,
                 NULLIF(iNoteId, 0),
                 FALSE,
@@ -341,7 +341,7 @@ BEGIN
 	ELSE
 		SELECT id
             FROM product_category
-            WHERE category = iProductCategory;
+            WHERE category = iCategory;
     END IF;
 END;
 
@@ -673,11 +673,50 @@ END;
 
 CREATE PROCEDURE ViewStockReport (
     IN iFrom DATETIME,
-    IN iTo DATETIME,
+    IN iTo DATETIME
+)
+BEGIN
+    SELECT p.id AS product_id,
+        category.id AS category_id,
+        product_category.category,
+        p.product,
+        (SELECT IFNULL(quantity, 0)
+            FROM initial_product_quantity
+            WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+                                    AND IFNULL(iTo, CURRENT_TIMESTAMP())
+            AND initial_product_quantity.product_id = p.id
+            ORDER BY created ASC
+            LIMIT 1) AS opening_stock_quantity,
+        (SELECT IFNULL(SUM(quantity), 0)
+            FROM sold_product
+            WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+                                    AND IFNULL(iTo, CURRENT_TIMESTAMP())
+            AND sold_product.product_id = p.id) AS quantity_sold,
+        (SELECT IFNULL(SUM(quantity), 0)
+            FROM purchased_product
+            WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+                                    AND IFNULL(iTo, CURRENT_TIMESTAMP())
+            AND purchased_product.product_id = p.id) AS quantity_bought,
+            current_product_quantity.quantity AS quantity_in_stock,
+            product_unit.id AS product_unit_id,
+            product_unit.unit
+        FROM product p
+        INNER JOIN product_category ON p.product_category_id = product_category.id
+        INNER JOIN product_unit ON product.id = product_unit.product_id
+        INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
+        LEFT JOIN rr_user ON product.user_id = rr_user.id
+        WHERE PLAN.archived = 0 AND product_unit.base_unit_equivalent = 1;
+END;
+
+---
+
+CREATE PROCEDURE FilterStockReport (
     IN iFilterColumn VARCHAR(20),
     IN iFilterText VARCHAR(100),
     IN iSortColumn VARCHAR(20),
-    IN iSortOrder VARCHAR(20)
+    IN iSortOrder VARCHAR(20),
+    IN iFrom DATETIME,
+    IN iTo DATETIME
 )
 BEGIN
     SELECT p.id AS product_id,

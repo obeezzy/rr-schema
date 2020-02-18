@@ -2,7 +2,7 @@ USE ###DATABASENAME###;
 
 ---
 
-CREATE PROCEDURE ViewClients(
+CREATE PROCEDURE FilterClients (
     IN iFilterColumn VARCHAR(100),
     IN iFilterText VARCHAR(100),
     IN iArchived BOOLEAN
@@ -31,6 +31,19 @@ BEGIN
             FROM client
             WHERE client.archived = IFNULL(iArchived, FALSE)
    END IF;
+END;
+
+---
+
+CREATE PROCEDURE ViewClients (
+    IN iArchived BOOLEAN
+)
+BEGIN
+    SELECT id AS client_id,
+                preferred_name,
+                phone_number
+            FROM client
+            WHERE client.archived = IFNULL(iArchived, FALSE)
 END;
 
 ---

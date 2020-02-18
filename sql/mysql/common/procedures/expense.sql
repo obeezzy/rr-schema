@@ -11,7 +11,7 @@ CREATE PROCEDURE AddExpenseTransaction (
     IN iCurrency VARCHAR(4),
     IN iNoteId INTEGER,
     IN iUserId INTEGER
-    )
+)
 BEGIN
     INSERT INTO expense (name,
                             client_id,
@@ -25,7 +25,7 @@ BEGIN
                             last_edited,
                             user_id)
         VALUES (iName,
-                iClientId,
+                NULLIF(iClientId, 0),
                 iPurpose,
                 iAmount,
                 iPaymentMethod,
@@ -53,18 +53,18 @@ BEGIN
         FROM expense
 		WHERE created BETWEEN iFrom
                         AND iTo
-        AND archived = iArchived;
+        AND archived = IFNULL(iArchived, FALSE);
 END
 
 ---
 
-CREATE PROCEDURE ViewExpenseReport (
-    IN iFrom DATETIME,
-    IN iTo DATETIME,
+CREATE PROCEDURE FilterExpenseReport (
     IN iFilterColumn VARCHAR(20),
     IN iFilterText VARCHAR(100),
     IN iSortColumn VARCHAR(20),
-    IN iSortOrder VARCHAR(15)
+    IN iSortOrder VARCHAR(15),
+    IN iFrom DATETIME,
+    IN iTo DATETIME
 )
 BEGIN
     SELECT id AS expense_id,
@@ -90,4 +90,20 @@ BEGIN
                         AND LOWER(iSortColumn) = 'purpose')
                     THEN LOWER(expense.purpose) END) ASC,
         LOWER(expense.purpose) ASC;
+END;
+
+---
+
+CREATE PROCEDURE ViewExpenseReport (
+    IN iFrom DATETIME,
+    IN iTo DATETIME
+)
+BEGIN
+    SELECT id AS expense_id,
+            purpose,
+            amount
+        FROM expense
+        WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+                        AND IFNULL(iTo, CURRENT_TIMESTAMP())
+        AND expense.archived = FALSE;
 END;
