@@ -93,11 +93,11 @@ BEGIN
 		                            created,
                                     last_edited,
                                     user_id)
-        VALUES (iClientName,
-                iClientId,
-                iBalance,
-                iDiscount,
-                iSuspended,
+        VALUES (NULLIF(iClientName, ""),
+                NULLIF(iClientId, 0),
+                IFNULL(iBalance, 0),
+                IFNULL(iDiscount, 0),
+                IFNULL(iSuspended, FALSE),
                 NULLIF(iNoteId, 0),
                 FALSE,
                 CURRENT_TIMESTAMP(),
@@ -110,10 +110,10 @@ END;
 ---
 
 CREATE PROCEDURE ViewSaleTransactions (
-	IN iSuspended BOOLEAN,
-    IN iArchived BOOLEAN,
     IN iFrom DATETIME,
-    IN iTo DATETIME
+    IN iTo DATETIME,
+	IN iSuspended BOOLEAN,
+    IN iArchived BOOLEAN
 )
 BEGIN
 	SELECT sale_transaction.id AS transaction_id,
@@ -130,8 +130,8 @@ BEGIN
             sale_transaction.user_id
         FROM sale_transaction
         LEFT JOIN note ON sale_transaction.note_id = note.id
-        WHERE sale_transaction.suspended = iSuspended
-        AND sale_transaction.archived = iArchived
+        WHERE sale_transaction.suspended = IFNULL(iSuspended, FALSE)
+        AND sale_transaction.archived = IFNULL(iArchived, FALSE)
         AND sale_transaction.created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
 									 AND IFNULL(iTo, CURRENT_TIMESTAMP()) ORDER BY created ASC;
 END;
@@ -157,12 +157,12 @@ CREATE PROCEDURE ArchiveSaleTransaction (
 )
 BEGIN
 	UPDATE sale_transaction
-        SET archived = iArchived,
+        SET archived = IFNULL(iArchived, FALSE),
             last_edited = CURRENT_TIMESTAMP(),
             user_id = iUserId
         WHERE id = iSaleTransactionId;
     UPDATE sold_product
-        SET archived = iArchived,
+        SET archived = IFNULL(iArchived, FALSE),
             last_edited = CURRENT_TIMESTAMP(),
             user_id = iUserId
         WHERE sale_transaction_id = iSaleTransactionId;
@@ -250,8 +250,8 @@ BEGIN
 		LEFT JOIN rr_user ON sold_product.user_id = rr_user.id
         LEFT JOIN note ON sale_transaction.note_id = note.id
         WHERE sale_transaction_id = iTransactionId
-        AND sale_transaction.suspended = iSuspended
-        AND sale_transaction.archived = iArchived;
+        AND sale_transaction.suspended = IFNULL(iSuspended, FALSE)
+        AND sale_transaction.archived = IFNULL(iArchived, FALSE);
 END;
 
 ---
@@ -272,7 +272,7 @@ END;
 
 ---
 
-CREATE PROCEDURE GetTotalRevenue (
+CREATE PROCEDURE FetchTotalRevenue (
 	IN iFrom DATE,
     IN iTo DATE
 )
@@ -290,7 +290,7 @@ END;
 
 ---
 
-CREATE PROCEDURE GetMostSoldProducts (
+CREATE PROCEDURE FetchMostSoldProducts (
 	IN iFrom DATETIME,
     IN iTo DATETIME,
     IN iLimit INTEGER
@@ -316,11 +316,42 @@ END;
 
 CREATE PROCEDURE ViewSaleReport (
     IN iFrom DATETIME,
-    IN iTo DATETIME,
+    IN iTo DATETIME
+)
+BEGIN
+    SELECT p.id AS product_id,
+            product_category.id AS product_category_id,
+            product_category.category,
+            p.product,
+            (SELECT IFNULL(SUM(quantity), 0)
+                FROM sold_product
+                WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+                                AND IFNULL(iTo, CURRENT_TIMESTAMP())
+                AND sold_product.product_id = p.product_id) AS quantity_sold,
+            product_unit.id AS product_unit_id, product_unit.unit,
+            (SELECT IFNULL(SUM(cost), 0)
+                FROM sold_product
+                WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+                                AND IFNULL(iTo, CURRENT_TIMESTAMP())
+                AND sold_product.product_id = p.id) AS total_amount
+        FROM product p
+        INNER JOIN product_category ON p.product_category_id = product_category.id
+        INNER JOIN product_unit ON p.id = product_unit.product_id
+        INNER JOIN current_product_quantity ON p.id = current_product_quantity.product_id
+        LEFT JOIN rr_user ON p.user_id = rr_user.id
+        WHERE p.archived = 0
+        AND product_unit.base_unit_equivalent = 1;
+END;
+
+---
+
+CREATE PROCEDURE FilterSaleReport (
     IN iFilterColumn VARCHAR(20),
     IN iFilterText VARCHAR(100),
     IN iSortColumn VARCHAR(20),
-    IN iSortOrder VARCHAR(15)
+    IN iSortOrder VARCHAR(15),
+    IN iFrom DATETIME,
+    IN iTo DATETIME
 )
 BEGIN
     SELECT p.id AS product_id,
