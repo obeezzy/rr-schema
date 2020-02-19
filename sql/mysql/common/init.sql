@@ -242,7 +242,7 @@ CREATE TABLE product (
     description VARCHAR(200) DEFAULT NULL,
     barcode VARCHAR(70) DEFAULT NULL,
     divisible TINYINT DEFAULT 1,
-    image_data BLOB,
+    image BLOB,
     note_id INT(11) DEFAULT NULL,
     archived TINYINT NOT NULL,
     created DATETIME NOT NULL,
@@ -366,13 +366,13 @@ CREATE TABLE sale_transaction (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create unit tale
-CREATE TABLE unit (
+-- Create product_unit tale
+CREATE TABLE product_unit (
     id INT(11) NOT NULL AUTO_INCREMENT,
     product_id INT(11) NOT NULL,
     unit VARCHAR(30) NOT NULL,
     short_form VARCHAR(10) DEFAULT NULL,
-    preferred TINYINT NOT NULL DEFAULT 0,
+    preferred BOOLEAN NOT NULL DEFAULT FALSE,
     base_unit_equivalent INT(11) NOT NULL,
     cost_price DECIMAL(19,2) NOT NULL,
     retail_price DECIMAL(19,2) NOT NULL,
