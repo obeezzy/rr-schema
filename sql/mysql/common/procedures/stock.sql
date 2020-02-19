@@ -354,7 +354,7 @@ CREATE PROCEDURE AddStockProduct (
     IN iDescription VARCHAR(200),
     IN iBarcode VARCHAR(50),
     IN iDivisible BOOLEAN,
-    IN iImageData BLOB,
+    IN iImage BLOB,
     IN iNoteId INTEGER,
     IN iUserId INTEGER
 )
@@ -387,7 +387,7 @@ BEGIN
                 iDescription,
                 iBarcode,
                 iDivisible,
-                iImageData,
+                iImage,
                 NULLIF(iNoteId, 0),
                 FALSE,
                 CURRENT_TIMESTAMP(),
