@@ -29,8 +29,8 @@ BEGIN
                 preferred_name,
                 phone_number
             FROM client
-            WHERE client.archived = IFNULL(iArchived, FALSE)
-   END IF;
+            WHERE client.archived = IFNULL(iArchived, FALSE);
+    END IF;
 END;
 
 ---
@@ -43,7 +43,7 @@ BEGIN
                 preferred_name,
                 phone_number
             FROM client
-            WHERE client.archived = IFNULL(iArchived, FALSE)
+            WHERE client.archived = IFNULL(iArchived, FALSE);
 END;
 
 ---

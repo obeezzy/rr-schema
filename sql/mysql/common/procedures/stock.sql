@@ -81,7 +81,7 @@ END;
 
 ---
 
-CREATE PROCEDURE FilterStockProductCategoriesByItem (
+CREATE PROCEDURE FilterStockProductCategoriesByProduct (
     IN iFilterText VARCHAR(200),
     IN iSortOrder VARCHAR(20)
 )
@@ -362,7 +362,7 @@ BEGIN
     SET @productAlreadyExists := NULL;
     SELECT id INTO @productAlreadyExists
             FROM product
-            WHERE LOWER(product) = LOWER(iItem)
+            WHERE LOWER(product) = LOWER(iProduct)
             AND archived = FALSE;
     IF @productAlreadyExists IS NOT NULL THEN
         SIGNAL SQLSTATE '80001'
@@ -437,7 +437,7 @@ BEGIN
                 iBaseUnitEquivalent,
                 iCostPrice,
                 iRetailPrice,
-                iPreferred,
+                IFNULL(iPreferred, FALSE),
                 iCurrency,
                 NULLIF(iNoteId, 0),
                 FALSE,
