@@ -50,7 +50,7 @@ class DatabaseClient(object):
         return self.testcursor.fetchall()
 
     def __create_database(self):
-        self.testcursor.execute(f"CREATE DATABASE IF NOT EXISTS {DatabaseClient.DATABASE_NAME***REMOVED***")
+        self.testcursor.execute(f"CREATE DATABASE IF NOT EXISTS {DatabaseClient.DATABASE_NAME}")
         sqlStatements = re.split(";\n", DatabaseClient.INIT_SQL.read_text())
         for statement in sqlStatements:
             statement = statement.replace("###DATABASENAME###", DatabaseClient.DATABASE_NAME)
@@ -69,10 +69,10 @@ class DatabaseClient(object):
             statement = statement.strip()
             statement = statement.replace("(\/\*(.|\n)*?\*\/|^--.*\n|\t|\n)", " ") # Remove tabs and spaces
             statement = statement.strip()
-            self.testcursor.execute(statement)
+            self.execute(statement)
         
     def __drop_database(self):
-        self.testcursor.execute(f"DROP DATABASE IF EXISTS {DatabaseClient.DATABASE_NAME***REMOVED***")
+        self.execute(f"DROP DATABASE IF EXISTS {DatabaseClient.DATABASE_NAME}")
 
     def create_user(self):
         pass

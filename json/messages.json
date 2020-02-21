@@ -9,7 +9,7 @@
             "view",
             "cancel"
         ]
-    ***REMOVED***,
+    },
 
     "welcome": {
         "title": "Welcome to Record Rack",
@@ -21,5 +21,5 @@
             "view",
             "cancel"
         ]
-    ***REMOVED***
-***REMOVED***
+    }
+}
