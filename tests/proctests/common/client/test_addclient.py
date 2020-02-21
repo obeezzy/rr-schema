@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from testutils import DatabaseClient, StoredProcedureTestCase, MySqlError
+from proctests.utils import DatabaseClient, StoredProcedureTestCase, MySqlError
 
 class AddClient(StoredProcedureTestCase):
     def test_add_client(self):
@@ -9,8 +9,8 @@ class AddClient(StoredProcedureTestCase):
             storedValues = fetch_client(self)
 
             self.assertEqual(inputValues, storedValues, "Client table field mismatch.")
-        except MySqlError as e:
-            print(e)
+        except:
+            raise
         finally:
             self.client.cleanup()
 
@@ -18,8 +18,8 @@ class AddClient(StoredProcedureTestCase):
         try:
             add_client(self)
             add_client(self)
-        except MySqlError as e:
-            print(e)
+        except:
+            raise
         finally:
             self.client.cleanup()
 

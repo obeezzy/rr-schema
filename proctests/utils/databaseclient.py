@@ -69,10 +69,10 @@ class DatabaseClient(object):
             statement = statement.strip()
             statement = statement.replace("(\/\*(.|\n)*?\*\/|^--.*\n|\t|\n)", " ") # Remove tabs and spaces
             statement = statement.strip()
-            self.testcursor.execute(statement)
+            self.execute(statement)
         
     def __drop_database(self):
-        self.testcursor.execute(f"DROP DATABASE IF EXISTS {DatabaseClient.DATABASE_NAME}")
+        self.execute(f"DROP DATABASE IF EXISTS {DatabaseClient.DATABASE_NAME}")
 
     def create_user(self):
         pass

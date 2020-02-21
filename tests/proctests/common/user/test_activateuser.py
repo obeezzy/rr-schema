@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 import unittest
-from testutils import DatabaseClient, StoredProcedureTestCase, MySqlError
+from proctests.utils import DatabaseClient, StoredProcedureTestCase, MySqlError
 
 class ActivateUser(StoredProcedureTestCase):
     def test_activate_user(self):
         try:
             activate_user(self, True)
-        except MySqlError as e:
-            print(e)
+        except:
+            raise
         finally:
             self.client.cleanup()
 
     def test_deactivate_user(self):
         try:
             activate_user(self, False)
-        except MySqlError as e:
-            print(e)
+        except:
+            raise
         finally:
             self.client.cleanup()
 
