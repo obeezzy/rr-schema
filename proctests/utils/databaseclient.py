@@ -7,20 +7,29 @@ from .config import config
 class DatabaseClient(object):
     class ErrorCodes:
         USER_DEFINED_EXCEPTION = 1644
+        DUPLICATE_ENTRY_ERROR = 1136
     DATABASE_NAME = "rr_test"
     INIT_SQL = Path(".").resolve().parent.joinpath("sql/mysql/common/init.sql")
     PROCEDURE_DIR = Path(".").resolve().parent.joinpath("sql/mysql/common/procedures")
 
     def __init__(self):
-        self.__connect()
+        self.__connectAsAdmin()
         self.__create_database()
         self.__create_procedures()
+        self.__disconnect()
+        self.__connect()
 
     def __del__(self):
         self.__disconnect()
 
-    def __connect(self):
+    def __connectAsAdmin(self):
         self.testdb = mysql.connector.connect(**config)
+        self.testcursor = self.testdb.cursor()
+
+    def __connect(self):
+        testConfig = dict(config)
+        testConfig["database"] = DatabaseClient.DATABASE_NAME
+        self.testdb = mysql.connector.connect(**testConfig)
         self.testcursor = self.testdb.cursor()
 
     def call_procedure(self, procedureName, args):
@@ -41,7 +50,7 @@ class DatabaseClient(object):
         return self.testcursor.fetchall()
 
     def __create_database(self):
-        self.testcursor.execute(f"CREATE DATABASE IF NOT EXISTS {DatabaseClient.DATABASE_NAME***REMOVED***")
+        self.testcursor.execute(f"CREATE DATABASE IF NOT EXISTS {DatabaseClient.DATABASE_NAME}")
         sqlStatements = re.split(";\n", DatabaseClient.INIT_SQL.read_text())
         for statement in sqlStatements:
             statement = statement.replace("###DATABASENAME###", DatabaseClient.DATABASE_NAME)
@@ -60,10 +69,10 @@ class DatabaseClient(object):
             statement = statement.strip()
             statement = statement.replace("(\/\*(.|\n)*?\*\/|^--.*\n|\t|\n)", " ") # Remove tabs and spaces
             statement = statement.strip()
-            self.testcursor.execute(statement)
+            self.execute(statement)
         
     def __drop_database(self):
-        self.testcursor.execute(f"DROP DATABASE IF EXISTS {DatabaseClient.DATABASE_NAME***REMOVED***")
+        self.execute(f"DROP DATABASE IF EXISTS {DatabaseClient.DATABASE_NAME}")
 
     def create_user(self):
         pass

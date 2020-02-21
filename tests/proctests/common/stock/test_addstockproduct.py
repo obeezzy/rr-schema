@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from testutils import DatabaseClient, StoredProcedureTestCase, MySqlError
+from proctests.utils import DatabaseClient, StoredProcedureTestCase, MySqlError
 
 class AddStockProduct(StoredProcedureTestCase):
     def test_add_stock_product(self):
@@ -9,8 +9,8 @@ class AddStockProduct(StoredProcedureTestCase):
             storedValues = fetch_stock_product(self)
 
             self.assertEqual(inputValues, storedValues, "Product table field mismatch.")
-        except MySqlError as e:
-            print(e)
+        except:
+            raise
         finally:
             self.client.cleanup()
 
@@ -22,8 +22,8 @@ class AddStockProduct(StoredProcedureTestCase):
 
             self.assertEqual(context.exception.errno,
                                 DatabaseClient.ErrorCodes.USER_DEFINED_EXCEPTION)
-        except MySqlError as e:
-            print(e)
+        except:
+            raise
         finally:
             self.client.cleanup()
 
