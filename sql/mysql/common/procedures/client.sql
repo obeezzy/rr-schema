@@ -74,6 +74,7 @@ BEGIN
                 iPhoneNumber,
                 iAddress,
                 NULLIF(iNoteId, 0),
+                FALSE,
                 CURRENT_TIMESTAMP(),
                 CURRENT_TIMESTAMP(),
                 iUserId);
