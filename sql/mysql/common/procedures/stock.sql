@@ -386,7 +386,7 @@ BEGIN
                 iShortForm,
                 iDescription,
                 iBarcode,
-                iDivisible,
+                IFNULL(iDivisible, FALSE),
                 iImage,
                 NULLIF(iNoteId, 0),
                 FALSE,

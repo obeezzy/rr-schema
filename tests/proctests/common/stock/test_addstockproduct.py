@@ -5,14 +5,16 @@ from proctests.utils import DatabaseClient, StoredProcedureTestCase, MySqlError
 class AddStockProduct(StoredProcedureTestCase):
     def test_add_stock_product(self):
         try:
-            inputValues = add_stock_product(self)
-            storedValues = fetch_stock_product(self)
+            addedProduct = add_stock_product(self)
+            fetchedProduct = fetch_stock_product(self)
 
-            self.assertEqual(inputValues, storedValues, "Product table field mismatch.")
+            print("Added:", addedProduct)
+            print("Fetched:", fetchedProduct)
+            self.assertEqual(addedProduct, fetchedProduct, "Product table field mismatch.")
         except:
             raise
         finally:
-            self.client.cleanup()
+            self.db.cleanup()
 
     def test_raise_duplicate_entry_exception(self):
         try:
@@ -25,43 +27,27 @@ class AddStockProduct(StoredProcedureTestCase):
         except:
             raise
         finally:
-            self.client.cleanup()
+            self.db.cleanup()
 
 def add_stock_product(self):
-    iProductCategoryId = 1
-    iProduct = "Product"
-    iShortForm = "Short"
-    iDescription = "Description"
-    iBarcode = "Barcode"
-    iDivisible = True
-    iImage = None
-    iNoteId = None
-    iUserId = 1
+    product = {
+        "product_category_id": 1,
+        "product": "Product",
+        "short_form": "Short",
+        "description": "Description",
+        "barcode": "Barcode",
+        "divisible": True,
+        "image": None,
+        "note_id": None,
+        "user_id": 1
+    }
 
-    self.client.call_procedure("AddStockProduct", [
-        iProductCategoryId,
-        iProduct,
-        iShortForm,
-        iDescription,
-        iBarcode,
-        iDivisible,
-        iImage,
-        iNoteId,
-        iUserId
-    ])
-
-    return (iProductCategoryId,
-            iProduct,
-            iShortForm,
-            iDescription,
-            iBarcode,
-            iDivisible,
-            iImage,
-            iNoteId,
-            iUserId)
+    return self.db.call_procedure("AddStockProduct",
+                                    list(product.values())
+    )
 
 def fetch_stock_product(self):
-    self.client.execute("SELECT product_category_id, \
+    return self.db.execute("SELECT product_category_id, \
                             product, \
                             short_form, \
                             description, \
@@ -71,8 +57,6 @@ def fetch_stock_product(self):
                             note_id, \
                             user_id \
                             FROM product")
-
-    return self.client.fetchone()
 
 if __name__ == '__main__':
     unittest.main()
