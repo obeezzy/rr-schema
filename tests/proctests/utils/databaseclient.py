@@ -32,22 +32,26 @@ class DatabaseClient(object):
         self.testdb = mysql.connector.connect(**testConfig)
         self.testcursor = self.testdb.cursor()
 
-    def call_procedure(self, procedureName, args):
-        if not isinstance(procedureName, str):
-            raise TypeError("Argument 'procedureName' must be of type 'string'.")
+    def call_procedure(self, procedure, args):
+        if not isinstance(procedure, str):
+            raise TypeError("Argument 'procedure' must be of type 'string'.")
         if not isinstance(args, list):
             raise TypeError("Argument 'args' must be of type 'list'.")
 
-        self.testcursor.callproc(procedureName, args)
+        self.testcursor.callproc(procedure, args)
+        results = [storedResult for storedResult in self.testcursor.stored_results()]
+        if results is not None and len(results) > 0:
+            return dict(zip(self.testcursor.description, results[0].fetchall()))
 
-    def execute(self, query):
-        self.testcursor.execute(query)
+        return results
 
-    def fetchone(self):
-        return self.testcursor.fetchone()
+    def execute(self, query, insertValues=None):
+        self.testcursor.execute(query, insertValues)
+        results = self.testcursor.fetchone()
+        if results is not None:
+            return dict(zip(self.testcursor.column_names, results))
 
-    def fetchall(self):
-        return self.testcursor.fetchall()
+        return results
 
     def __create_database(self):
         self.testcursor.execute(f"CREATE DATABASE IF NOT EXISTS {DatabaseClient.DATABASE_NAME}")

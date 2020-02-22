@@ -5,44 +5,35 @@ from proctests.utils import DatabaseClient, StoredProcedureTestCase
 class UpdateBusinessDetails(StoredProcedureTestCase):
     def test_update_business_details(self):
         try:
-            inputValues = update_business_details(self)
-            storedValues = fetch_business_details(self)
+            updatedBusinessDetails = update_business_details(self)
+            fetchedBusinessDetails = fetch_business_details(self)
 
-            self.assertEqual(inputValues, storedValues, "Business details table field mismatch.")
+            self.assertEqual(updatedBusinessDetails, fetchedBusinessDetails,
+                            "Record mismatch for business details.")
         except:
             raise
         finally:
-            self.client.cleanup()
+            self.db.cleanup()
 
 def update_business_details(self):
-    iName = "Business name"
-    iAddress = "Address"
-    iBusinessFamily = "RETAIL"
-    iEstablishmentYear = 1959
-    iPhoneNumber = "123456789"
-    iLogo = None
-    iExtraDetails = None
+    businessDetails = {
+        "name": "Business name",
+        "address": "Address",
+        "business_family": "RETAIL",
+        "establishment_year": 1959,
+        "phone_number": "123456789",
+        "logo": None,
+        "extra_details": None
+    }
 
-    self.client.call_procedure("UpdateBusinessDetails", [
-        iName,
-        iAddress,
-        iBusinessFamily,
-        iEstablishmentYear,
-        iPhoneNumber,
-        iLogo,
-        iExtraDetails
-    ])
+    self.db.call_procedure("UpdateBusinessDetails",
+                            list(businessDetails.values())
+    )
 
-    return (iName,
-            iAddress,
-            iBusinessFamily,
-            iEstablishmentYear,
-            iPhoneNumber,
-            iLogo,
-            iExtraDetails)
+    return businessDetails
 
 def fetch_business_details(self):
-    self.client.execute("SELECT name, \
+    return self.db.execute("SELECT name, \
                             address, \
                             business_family, \
                             establishment_year, \
@@ -50,8 +41,6 @@ def fetch_business_details(self):
                             logo, \
                             extra_details \
                             FROM business_details")
-
-    return self.client.fetchone()
 
 if __name__ == '__main__':
     unittest.main()

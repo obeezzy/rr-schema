@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseClient, StoredProcedureTestCase, MySqlError
+from proctests.utils import DatabaseClient, StoredProcedureTestCase
 
 class AddClient(StoredProcedureTestCase):
     def test_add_client(self):
         try:
-            inputValues = add_client(self)
-            storedValues = fetch_client(self)
+            addedClient = add_client(self)
+            fetchedClient = fetch_client(self)
 
-            self.assertEqual(inputValues, storedValues, "Client table field mismatch.")
+            self.assertEqual(addedClient, fetchedClient, "Fetched record mismatch.")
         except:
             raise
         finally:
-            self.client.cleanup()
+            self.db.cleanup()
 
     def test_add_two_clients(self):
         try:
@@ -21,46 +21,34 @@ class AddClient(StoredProcedureTestCase):
         except:
             raise
         finally:
-            self.client.cleanup()
+            self.db.cleanup()
 
 def add_client(self):
-    iFirstName = "First name"
-    iLastName = "Last name"
-    iPreferredName = "Preferred name"
-    iPhoneNumber = "1234567890"
-    iAddress = "Address"
-    iNoteId = None
-    iUserId = 1
+    client = {
+        "first_name": "First name",
+        "last_name": "Last name",
+        "preferred_name": "Preferred name",
+        "phone_number": "123456789",
+        "address": "Address",
+        "note_id": None,
+        "user_id": 1
+    }
 
-    self.client.call_procedure("AddClient", [
-        iFirstName,
-        iLastName,
-        iPreferredName,
-        iPhoneNumber,
-        iAddress,
-        iNoteId,
-        iUserId
-    ])
+    self.db.call_procedure("AddClient",
+                            list(client.values())
+    )
 
-    return (iFirstName,
-            iLastName,
-            iPreferredName,
-            iPhoneNumber,
-            iAddress,
-            iNoteId,
-            iUserId)
+    return client
 
 def fetch_client(self):
-    self.client.execute("SELECT first_name, \
-                            last_name, \
-                            preferred_name, \
-                            phone_number, \
-                            address, \
-                            note_id, \
-                            user_id \
-                            FROM client")
-
-    return self.client.fetchone()
+    return self.db.execute("SELECT first_name, \
+                                last_name, \
+                                preferred_name, \
+                                phone_number, \
+                                address, \
+                                note_id, \
+                                user_id \
+                                FROM client")
 
 if __name__ == '__main__':
     unittest.main()

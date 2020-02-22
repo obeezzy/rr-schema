@@ -9,7 +9,7 @@ class ActivateUser(StoredProcedureTestCase):
         except:
             raise
         finally:
-            self.client.cleanup()
+            self.db.cleanup()
 
     def test_deactivate_user(self):
         try:
@@ -17,7 +17,7 @@ class ActivateUser(StoredProcedureTestCase):
         except:
             raise
         finally:
-            self.client.cleanup()
+            self.db.cleanup()
 
 def activate_user(self, active):
     pass
