@@ -16,119 +16,105 @@ CREATE TABLE business_details (
     phone_number VARCHAR(20) DEFAULT NULL,
     logo BLOB,
     extra_details VARCHAR(100) DEFAULT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Create product category table
-CREATE TABLE product_category (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    category VARCHAR(100) NOT NULL,
-    short_form VARCHAR(25) DEFAULT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived INT(11) NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE KEY category (category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create client table
 CREATE TABLE client (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT,
     first_name VARCHAR(100) DEFAULT NULL,
     last_name VARCHAR(100) DEFAULT NULL,
     preferred_name VARCHAR(100) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
     alternate_phone_number VARCHAR(20) DEFAULT NULL,
     address VARCHAR(100) DEFAULT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL DEFAULT 0,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY phone_number (phone_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create credit payment table
 CREATE TABLE credit_payment (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    credit_transaction_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    credit_transaction_id INTEGER NOT NULL,
     total_credit DECIMAL(19,2) NOT NULL,
     amount_paid DECIMAL(19,2) NOT NULL,
     balance DECIMAL(19,2) NOT NULL,
     currency VARCHAR(4) NOT NULL,
     due_date_time DATETIME NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create creditor table
 CREATE TABLE creditor (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    client_id INT(11) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT DEFAULT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    client_id INTEGER NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create credit transaction table
 CREATE TABLE credit_transaction (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    creditor_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    creditor_id INTEGER NOT NULL,
     transaction_table VARCHAR(20) NOT NULL,
-    transaction_id INT(11) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT DEFAULT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    transaction_id INTEGER NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create current product quantity table
 CREATE TABLE current_product_quantity (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    product_id INT(11) DEFAULT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    product_id INTEGER DEFAULT NULL,
     quantity DOUBLE NOT NULL,
-    product_unit_id INT(11) NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    product_unit_id INTEGER NOT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY product_id (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create customer table
 CREATE TABLE customer (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    client_id INT(11) DEFAULT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    client_id INTEGER DEFAULT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY client_id (client_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create damaged quantity table
 CREATE TABLE damaged_quantity (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    product_id INT(11) DEFAULT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    product_id INTEGER DEFAULT NULL,
     quantity DOUBLE NOT NULL,
-    product_unit_id INT(11) NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    product_unit_id INTEGER NOT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY product_id (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -137,317 +123,331 @@ CREATE TABLE damaged_quantity (
 CREATE TABLE db_info (
     version VARCHAR(20) NOT NULL,
     rack_id VARCHAR(40) NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create debt payment table
 CREATE TABLE debt_payment (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    debt_transaction_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    debt_transaction_id INTEGER NOT NULL,
     total_debt DECIMAL(19,2) NOT NULL,
     amount_paid DECIMAL(19,2) NOT NULL,
     balance DECIMAL(19,2) NOT NULL,
     currency VARCHAR(4) NOT NULL,
     due_date_time DATETIME NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create debt transaction table
 CREATE TABLE debt_transaction (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    debtor_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    debtor_id INTEGER NOT NULL,
     transaction_table VARCHAR(20) NOT NULL,
-    transaction_id INT(11) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    transaction_id INTEGER NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create debtor table
 CREATE TABLE debtor (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    client_id INT(11) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    client_id INTEGER NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create expense table
 CREATE TABLE expense (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT,
     name VARCHAR(30) NOT NULL,
-    client_id INT(11) DEFAULT NULL,
+    client_id INTEGER DEFAULT NULL,
     purpose VARCHAR(100) NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
     payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
     currency VARCHAR(4) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL DEFAULT 0,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create income table
 CREATE TABLE income (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT,
     name VARCHAR(30) NOT NULL,
-    client_id INT(11) DEFAULT NULL,
+    client_id INTEGER DEFAULT NULL,
     purpose VARCHAR(100) NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
     payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
     currency VARCHAR(4) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL DEFAULT 0,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create initial product quantity table
 CREATE TABLE initial_product_quantity (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    product_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    product_id INTEGER NOT NULL,
     quantity DOUBLE NOT NULL,
-    product_unit_id INT(11) NOT NULL,
+    product_unit_id INTEGER NOT NULL,
     reason VARCHAR(30) NOT NULL,
-    archived TINYINT NOT NULL DEFAULT 0,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Create product table
-CREATE TABLE product (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    product_category_id INT(11) NOT NULL,
-    product VARCHAR(200) NOT NULL,
-    short_form VARCHAR(10) DEFAULT NULL,
-    description VARCHAR(200) DEFAULT NULL,
-    barcode VARCHAR(70) DEFAULT NULL,
-    divisible TINYINT DEFAULT 1,
-    image BLOB,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE KEY barcode (barcode)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create last used date/time table
 CREATE TABLE last_used_date_time (
     last_date_time DATETIME NOT NULL,
-    created DATETIME NOT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (last_date_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create note table
 CREATE TABLE note (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT,
     note VARCHAR(200) NOT NULL,
     table_name VARCHAR(30) DEFAULT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Create product table
+CREATE TABLE product (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    product_category_id INTEGER NOT NULL,
+    product VARCHAR(200) NOT NULL,
+    short_form VARCHAR(10) DEFAULT NULL,
+    description VARCHAR(200) DEFAULT NULL,
+    barcode VARCHAR(70) DEFAULT NULL,
+    divisible BOOLEAN DEFAULT 1,
+    image BLOB,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY barcode (barcode)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Create product category table
+CREATE TABLE product_category (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    category VARCHAR(100) NOT NULL,
+    short_form VARCHAR(25) DEFAULT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY category (category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Create product_unit tale
+CREATE TABLE product_unit (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    product_id INTEGER NOT NULL,
+    unit VARCHAR(30) NOT NULL,
+    short_form VARCHAR(10) DEFAULT NULL,
+    preferred BOOLEAN NOT NULL DEFAULT FALSE,
+    base_unit_equivalent INTEGER NOT NULL,
+    cost_price DECIMAL(19,2) NOT NULL,
+    retail_price DECIMAL(19,2) NOT NULL,
+    currency VARCHAR(4) NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create purchased product table
 CREATE TABLE purchased_product (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    purchase_transaction_id INT(11) NOT NULL,
-    product_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    purchase_transaction_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
     unit_price DECIMAL(19,2) NOT NULL,
     quantity DOUBLE NOT NULL,
-    product_unit_id INT(11) NOT NULL,
+    product_unit_id INTEGER NOT NULL,
     cost DOUBLE NOT NULL,
     discount DECIMAL(19,2) DEFAULT '0.00',
     currency VARCHAR(4) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL DEFAULT 0,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create purchase payment table
 CREATE TABLE purchase_payment (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    purchase_transaction_id INT(11) NOT NULL,
-    amount INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    purchase_transaction_id INTEGER NOT NULL,
+    amount INTEGER NOT NULL,
     payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
     currency VARCHAR(4) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    created DATETIME NOT NULL,
-    last_edited INT(11) NOT NULL,
-    user_id INT(11) NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create purchase transaction table
 CREATE TABLE purchase_transaction (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL,
-    client_id INT(11) DEFAULT NULL,
+    client_id INTEGER DEFAULT NULL,
     discount DECIMAL(19,2) NOT NULL,
-    suspended TINYINT NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    suspended BOOLEAN NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create sold product table
 CREATE TABLE sold_product (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    sale_transaction_id INT(11) NOT NULL,
-    product_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    sale_transaction_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
     unit_price DECIMAL(19,2) NOT NULL,
     quantity DOUBLE NOT NULL,
-    product_unit_id INT(11) NOT NULL,
+    product_unit_id INTEGER NOT NULL,
     cost DECIMAL(19,2) NOT NULL,
     discount DECIMAL(19,2) DEFAULT '0.00',
     currency VARCHAR(4) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create sale payment table
 CREATE TABLE sale_payment (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    sale_transaction_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    sale_transaction_id INTEGER NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
     payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
     currency VARCHAR(4) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create sale transaction table
 CREATE TABLE sale_transaction (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL,
-    client_id INT(11) DEFAULT NULL,
+    client_id INTEGER DEFAULT NULL,
     discount DECIMAL(19,2) NOT NULL,
-    suspended TINYINT NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Create product_unit tale
-CREATE TABLE product_unit (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    product_id INT(11) NOT NULL,
-    unit VARCHAR(30) NOT NULL,
-    short_form VARCHAR(10) DEFAULT NULL,
-    preferred BOOLEAN NOT NULL DEFAULT FALSE,
-    base_unit_equivalent INT(11) NOT NULL,
-    cost_price DECIMAL(19,2) NOT NULL,
-    retail_price DECIMAL(19,2) NOT NULL,
-    currency VARCHAR(4) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    suspended BOOLEAN NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create unit relation table
 CREATE TABLE unit_relation (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    product_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    product_id INTEGER NOT NULL,
     old_unit_quantity DOUBLE NOT NULL,
-    old_unit_id INT(11) NOT NULL,
+    old_unit_id INTEGER NOT NULL,
     new_unit_quantity DOUBLE NOT NULL,
-    new_unit_id INT(11) NOT NULL,
-    note_id INT(11) NOT NULL DEFAULT 0,
-    archived TINYINT NOT NULL DEFAULT 0,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    new_unit_id INTEGER NOT NULL,
+    note_id INTEGER NOT NULL DEFAULT 0,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create user table
 CREATE TABLE rr_user (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT,
     user VARCHAR(60) NOT NULL,
     first_name VARCHAR(60) NOT NULL,
     last_name VARCHAR(60) NOT NULL,
     photo BLOB DEFAULT NULL,
     phone_number VARCHAR(20) DEFAULT NULL,
     email_address VARCHAR(30) DEFAULT NULL,
-    active TINYINT DEFAULT 0,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT DEFAULT 0,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL DEFAULT 0,
+    active BOOLEAN DEFAULT 0,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     UNIQUE user (user)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create user privilege table
 CREATE TABLE user_privilege (
-    user_id INT(11) NOT NULL,
+    user_id INTEGER NOT NULL,
     privileges JSON NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create user privilege preset table
 CREATE TABLE user_privilege_preset (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INTEGER NOT NULL AUTO_INCREMENT,
     preset JSON NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create vendor table
 CREATE TABLE vendor (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    client_id INT(11) NOT NULL,
-    note_id INT(11) DEFAULT NULL,
-    archived TINYINT NOT NULL,
-    created DATETIME NOT NULL,
-    last_edited DATETIME NOT NULL,
-    user_id INT(11) NOT NULL,
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    client_id INTEGER NOT NULL,
+    note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     PRIMARY KEY (id),
     UNIQUE client_id (client_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -457,13 +457,9 @@ INSERT INTO rr_user (user,
                     first_name,
                     last_name,
                     active,
-                    created,
-                    last_edited,
                     user_id)
     VALUES ('admin',
             'admin',
             'admin',
             TRUE,
-            CURRENT_TIMESTAMP(),
-            CURRENT_TIMESTAMP(),
             1);

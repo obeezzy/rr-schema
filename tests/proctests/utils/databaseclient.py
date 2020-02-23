@@ -35,7 +35,7 @@ class DatabaseClient(object):
     def to_iso_format(dateTime):
         return dateTime.strftime("%Y-%m-%d %H:%M:%S")
 
-    def call_procedure(self, procedure, args={}):
+    def call_procedure(self, procedure, args=()):
         if not isinstance(procedure, str):
             raise TypeError("Argument 'procedure' must be of type 'string'.")
         if not isinstance(args, tuple):
