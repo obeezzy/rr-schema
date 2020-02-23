@@ -11,15 +11,9 @@ CREATE PROCEDURE AddCreditor (
 BEGIN
 	INSERT INTO creditor (client_id,
 							note_id,
-							archived,
-							created,
-							last_edited,
 							user_id)
 		VALUES (iClientId,
 				NULLIF(iNoteId, 0),
-				FALSE,
-				CURRENT_TIMESTAMP(),
-				CURRENT_TIMESTAMP(),
 				iUserId);
 	SELECT LAST_INSERT_ID() AS creditor_id;
 END;
