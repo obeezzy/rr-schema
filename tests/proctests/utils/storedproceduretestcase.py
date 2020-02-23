@@ -1,7 +1,7 @@
 import unittest
 import logging
 import sys
-import datetime
+from datetime import datetime
 import time
 from .databaseclient import DatabaseClient
 
@@ -13,10 +13,6 @@ class StoredProcedureTestCase(unittest.TestCase):
 
     def tearDown(self):
         print(f"({round(self.elapsed, 2)}s)")
-
-    @property
-    def now(self):
-        return datetime.datetime.now().replace(second=0, microsecond=0)
 
     @property
     def elapsed(self):

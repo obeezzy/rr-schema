@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseClient, StoredProcedureTestCase
+from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseResult
+from datetime import datetime
 
 class FilterClients(StoredProcedureTestCase):
-    def filter_clients(self):
-        try:
-            add_single_client(self, 1, "First client", "123456789")
-            add_single_client(self, 2, "Second client", "987654321")
-            filteredClients = filter_clients(self,
-                                            filterColumn="preferred_name",
-                                            filterText="Fir",
-                                            archived=False)
-            fetchedClients = fetch_clients(self)
+    def test_filter_clients(self):
+        """Filter clients and return one result"""
+        add_single_client(self, 1, "First client", "123456789")
+        add_single_client(self, 2, "Second client", "987654321")
+        filteredClients = filter_clients(self,
+                                        filterColumn="preferred_name",
+                                        filterText="Fir",
+                                        archived=False)
+        fetchedClients = fetch_clients(self)
 
-            self.assertEqual(filteredClients, fetchedClients, "Record mismatch for client table.")
-        except:
-            raise
-        finally:
-            self.db.cleanup()
+        self.assertEqual(len(fetchedClients), 2, "Expected 2 clients returned.")
+        self.assertEqual(len(filteredClients), 1, "Expected 1 filtered client.")
+        self.assertEqual(filteredClients[0], fetchedClients[0], "Client mismatch")
 
 def add_single_client(self, clientId, preferredName, phoneNumber):
     client = {
@@ -26,46 +25,39 @@ def add_single_client(self, clientId, preferredName, phoneNumber):
         "last_name": "Last name",
         "preferred_name": preferredName,
         "phone_number": phoneNumber,
-        "created": self.now,
-        "last_edited": self.now,
+        "created": DatabaseClient.to_iso_format(datetime.now()),
+        "last_edited": DatabaseClient.to_iso_format(datetime.now()),
         "user_id": 1
     }
 
-    self.db.execute("INSERT INTO client (\
-                            id, \
-                            first_name, \
-                            last_name, \
-                            preferred_name, \
-                            phone_number, \
-                            created, \
-                            last_edited, \
-                            user_id) \
-                            VALUES (\
-                            %s, \
-                            %s, \
-                            %s, \
-                            %s, \
-                            %s, \
-                            %s, \
-                            %s, \
-                            %s)",
-                            tuple(client.values()))
+    clientTable = self.db.schema.get_table("client")
+    clientTable.insert("id",
+                        "first_name",
+                        "last_name",
+                        "preferred_name",
+                        "phone_number",
+                        "created",
+                        "last_edited",
+                        "user_id") \
+                .values(tuple(client.values())) \
+                .execute()
+    return client
 
 def filter_clients(self, filterColumn, filterText, archived):
-    return self.db.call_procedure("FilterClients", [
+    sqlResult = self.db.call_procedure("FilterClients", (
                                         filterColumn,
                                         filterText,
-                                        archived
-    ])
+                                        archived))
+
+    return DatabaseResult(sqlResult).fetch_all()
 
 def fetch_clients(self):
-    return self.db.execute("SELECT id AS client_id, \
-                            first_name, \
-                            last_name, \
-                            preferred_name, \
-                            phone_number, \
-                            user_id \
-                            FROM client")
+    clientTable = self.db.schema.get_table("client")
+    rowResult = clientTable.select("id AS client_id",
+                                    "preferred_name AS preferred_name",
+                                    "phone_number AS phone_number") \
+                            .execute()
+    return DatabaseResult(rowResult).fetch_all()
 
 if __name__ == '__main__':
     unittest.main()
