@@ -1,8 +1,10 @@
-import mysql.connector
+import mysqlx
+from mysqlx.result import SqlResult, RowResult
 import os
 from pathlib import Path
 import re
 from .config import config
+from datetime import datetime
 
 class DatabaseClient(object):
     class ErrorCodes:
@@ -13,58 +15,68 @@ class DatabaseClient(object):
     PROCEDURE_DIR = Path(".").resolve().parent.joinpath("sql/mysql/common/procedures")
 
     def __init__(self):
-        self.__connectAsAdmin()
+        self.session = mysqlx.get_session(**config)
+        self.__drop_database()
         self.__create_database()
         self.__create_procedures()
-        self.__disconnect()
-        self.__connect()
 
     def __del__(self):
-        self.__disconnect()
+        self.session.close()
 
-    def __connectAsAdmin(self):
-        self.testdb = mysql.connector.connect(**config)
-        self.testcursor = self.testdb.cursor()
+    @property
+    def schema(self):
+        return self.session.get_schema(DatabaseClient.DATABASE_NAME)
 
-    def __connect(self):
-        testConfig = dict(config)
-        testConfig["database"] = DatabaseClient.DATABASE_NAME
-        self.testdb = mysql.connector.connect(**testConfig)
-        self.testcursor = self.testdb.cursor()
+    @staticmethod
+    def from_iso_format(dateTimeString):
+        return datetime.strptime(dateTimeString, "%Y-%m-%d %H:%M:%S")
 
-    def call_procedure(self, procedure, args):
+    @staticmethod
+    def to_iso_format(dateTime):
+        return dateTime.strftime("%Y-%m-%d %H:%M:%S")
+
+    def call_procedure(self, procedure, args={}):
         if not isinstance(procedure, str):
             raise TypeError("Argument 'procedure' must be of type 'string'.")
-        if not isinstance(args, list):
-            raise TypeError("Argument 'args' must be of type 'list'.")
+        if not isinstance(args, tuple):
+            raise TypeError("Argument 'args' must be of type 'tuple'.")
 
-        self.testcursor.callproc(procedure, args)
-        results = [storedResult for storedResult in self.testcursor.stored_results()]
-        if results is not None and len(results) > 0:
-            return dict(zip(self.testcursor.description, results[0].fetchall()))
+        argsAsString = ""
+        for i, arg in enumerate(args):
+            if arg is None:
+                argsAsString += "NULL"
+            elif isinstance(arg, datetime):
+                argsAsString += arg.isoformat()
+            elif isinstance(arg, bool):
+                argsAsString += "TRUE" if arg else "FALSE"
+            elif isinstance(arg, int):
+                argsAsString += f"'{str(arg)}'"
+            else:
+                argsAsString += f"'{arg}'"
+            if i < len(args) - 1:
+                argsAsString += ", "
 
-        return results
-
-    def execute(self, query, insertValues=None):
-        self.testcursor.execute(query, insertValues)
-        results = self.testcursor.fetchone()
-        if results is not None:
-            return dict(zip(self.testcursor.column_names, results))
-
-        return results
+        effectiveProcedureCall = f"CALL {procedure}({argsAsString})"
+        #print("Effective procedure call:", effectiveProcedureCall)
+        sqlResult = self.session.sql(effectiveProcedureCall) \
+                                .execute()
+        return sqlResult
 
     def __create_database(self):
-        self.testcursor.execute(f"CREATE DATABASE IF NOT EXISTS {DatabaseClient.DATABASE_NAME}")
+        self.session.sql(f"CREATE DATABASE IF NOT EXISTS {DatabaseClient.DATABASE_NAME}") \
+            .execute()
         sqlStatements = re.split(";\n", DatabaseClient.INIT_SQL.read_text())
         for statement in sqlStatements:
-            statement = statement.replace("###DATABASENAME###", DatabaseClient.DATABASE_NAME)
+            statement = statement.replace("###DATABASENAME###",
+                                            DatabaseClient.DATABASE_NAME)
             if statement != "":
-                statement = self.testcursor.execute(statement)
+                self.session.sql(statement).execute()
 
     def __create_procedures(self):
         sqlFiles = [child for child in DatabaseClient.PROCEDURE_DIR.iterdir() if str(child).endswith(".sql")]
         for file in sqlFiles:
-            sqlData = file.read_text().replace("###DATABASENAME###", DatabaseClient.DATABASE_NAME)
+            sqlData = file.read_text().replace("###DATABASENAME###",
+                                                DatabaseClient.DATABASE_NAME)
             statements = sqlData.split("---")
             self.__execute_stored_procedure(statements)
 
@@ -73,24 +85,84 @@ class DatabaseClient(object):
             statement = statement.strip()
             statement = statement.replace("(\/\*(.|\n)*?\*\/|^--.*\n|\t|\n)", " ") # Remove tabs and spaces
             statement = statement.strip()
-            self.execute(statement)
+            self.session.sql(statement).execute()
         
     def __drop_database(self):
-        self.execute(f"DROP DATABASE IF EXISTS {DatabaseClient.DATABASE_NAME}")
+        self.session.sql(f"DROP DATABASE IF EXISTS {DatabaseClient.DATABASE_NAME}") \
+            .execute()
 
-    def create_user(self):
-        pass
+    def __drop_all_tables(self):
+        tables = self.schema.get_tables()
+        for table in tables:
+            self.session.sql("DROP TABLE :table") \
+                .bind(":table", table) \
+                .execute()
 
-    def drop_user(self):
-        pass
+class DatabaseResult(object):
+    def __init__(self, result):
+        self.sqlResult = None
+        self.rowResult = None
+        if isinstance(result, SqlResult):
+            self.sqlResult = result
+        elif isinstance(result, RowResult):
+            self.rowResult = result
+        else:
+            raise TypeError("Argument 'result' must be of type 'SqlResult' or 'RowResult'.")
 
-    def insert(self, table, args):
-        pass
+    def fetch_all(self):
+        if self.sqlResult is not None:
+            return self.__fetch_all_for_sql_result()
+        elif self.rowResult is not None:
+            return self.__fetch_all_for_row_result()
+        else:
+            raise ValueError("No result set.")
 
-    def __disconnect(self):
-        self.testcursor.close()
-        self.testdb.close()
+    def fetch_one(self):
+        if self.sqlResult is not None:
+            return self.__fetch_one_for_sql_result()
+        elif self.rowResult is not None:
+            return self.__fetch_one_for_row_result()
+        else:
+            raise ValueError("No result set.")
 
-    def cleanup(self):
-        self.__drop_database()
-        self.__disconnect()
+    def __fetch_all_for_sql_result(self):
+        rowsAsList = []
+        if self.sqlResult.has_data():
+            fetchedRows = self.sqlResult.fetch_all()
+            for row in fetchedRows:
+                rowAsDict = {}
+                for column in self.sqlResult.columns:
+                    rowAsDict[column.column_label] = row[column.column_label]
+
+                rowsAsList.append(rowAsDict)
+
+        return rowsAsList
+
+    def __fetch_all_for_row_result(self):
+        rowsAsList = []
+        fetchedRows = self.rowResult.fetch_all()
+        for row in fetchedRows:
+            rowAsDict = {}
+            for column in self.rowResult.columns:
+                rowAsDict[column.column_label] = row[column.column_label]
+
+            rowsAsList.append(rowAsDict)
+
+        return rowsAsList
+
+    def __fetch_one_for_sql_result(self):
+        rowAsDict = {}
+        if self.sqlResult.has_data():
+            row = self.sqlResult.fetch_one()
+            for column in self.sqlResult.columns:
+                rowAsDict[column.column_label] = row[column.column_label]
+
+        return rowAsDict
+
+    def __fetch_one_for_row_result(self):
+        rowAsDict = {}
+        row = self.rowResult.fetch_one()
+        for column in self.rowResult.columns:
+            rowAsDict[column.column_label] = row[column.column_label]
+
+        return rowAsDict

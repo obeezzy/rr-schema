@@ -1,3 +1,3 @@
-from .databaseclient import DatabaseClient
+from .databaseclient import DatabaseClient, DatabaseResult
 from .storedproceduretestcase import StoredProcedureTestCase
-from mysql.connector import Error as MySqlError
+from mysqlx.errors import OperationalError

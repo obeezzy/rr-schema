@@ -198,15 +198,15 @@ CREATE PROCEDURE FetchUser (
     IN iArchived BOOLEAN
 )
 BEGIN
-    SELECT id AS user_id,
-            first_name,
-            last_name,
-            user,
-            photo,
-            phone_number,
-            email_address,
-            active,
-            note
+    SELECT rr_user.id AS user_id,
+            rr_user.first_name AS first_name,
+            rr_user.last_name AS last_name,
+            rr_user.user AS user,
+            rr_user.photo AS photo,
+            rr_user.phone_number AS phone_number,
+            rr_user.email_address AS email_address,
+            rr_user.active AS active,
+            note.note AS note
         FROM rr_user
         LEFT JOIN note ON rr_user.note_id = note.id
         WHERE rr_user.id = iUserId

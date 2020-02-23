@@ -1,19 +1,13 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseClient, StoredProcedureTestCase
+from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseResult
 
 class UpdateBusinessDetails(StoredProcedureTestCase):
     def test_update_business_details(self):
-        try:
-            updatedBusinessDetails = update_business_details(self)
-            fetchedBusinessDetails = fetch_business_details(self)
+        updatedBusinessDetails = update_business_details(self)
+        fetchedBusinessDetails = fetch_business_details(self)
 
-            self.assertEqual(updatedBusinessDetails, fetchedBusinessDetails,
-                            "Record mismatch for business details.")
-        except:
-            raise
-        finally:
-            self.db.cleanup()
+        self.assertEqual(updatedBusinessDetails, fetchedBusinessDetails, "Business details mismatch.")
 
 def update_business_details(self):
     businessDetails = {
@@ -27,20 +21,22 @@ def update_business_details(self):
     }
 
     self.db.call_procedure("UpdateBusinessDetails",
-                            list(businessDetails.values())
-    )
+                            tuple(businessDetails.values()))
 
     return businessDetails
 
 def fetch_business_details(self):
-    return self.db.execute("SELECT name, \
-                            address, \
-                            business_family, \
-                            establishment_year, \
-                            phone_number, \
-                            logo, \
-                            extra_details \
-                            FROM business_details")
+    businessDetailsTable = self.db.schema.get_table("business_details")
+    rowResult = businessDetailsTable.select("name",
+                                            "address",
+                                            "business_family",
+                                            "establishment_year",
+                                            "phone_number",
+                                            "logo",
+                                            "extra_details") \
+                                        .execute()
+
+    return DatabaseResult(rowResult).fetch_one()
 
 if __name__ == '__main__':
     unittest.main()
