@@ -22,38 +22,32 @@ END;
 
 CREATE PROCEDURE AddCreditPayment (
 	IN iCreditTransactionId INTEGER,
-    IN iTotalAmount DECIMAL(19,2),
+    IN iTotalCredit DECIMAL(19,2),
     IN iAmountPaid DECIMAL(19,2),
     IN iBalance DECIMAL(19,2),
     IN iCurrency VARCHAR(4),
-    IN iDueDate DATETIME,
+    IN iDueDateTime DATETIME,
     IN iNoteId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
 	INSERT INTO credit_payment (credit_transaction_id,
-								total_amount,
+								total_credit,
 								amount_paid,
 								balance,
 								currency,
 								due_date_time,
 								note_id,
-								archived,
-								created,
-								last_edited,
 								user_id)
 		VALUES (iCreditTransactionId,
-				iTotalAmount,
+				iTotalCredit,
 				iAmountPaid,
 				iBalance,
 				iCurrency,
-				iDueDate,
+				iDueDateTime,
 				NULLIF(iNoteId, 0),
-				FALSE,
-				CURRENT_TIMESTAMP(),
-				CURRENT_TIMESTAMP(),
 				iUserId);
-	SELECT LAST_INSERT_ID() AS credit_transaction_id;
+	SELECT LAST_INSERT_ID() AS credit_payment_id;
 END;
 
 ---

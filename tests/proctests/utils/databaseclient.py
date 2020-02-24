@@ -132,7 +132,10 @@ class DatabaseResult(object):
             for row in fetchedRows:
                 rowAsDict = {}
                 for column in self.sqlResult.columns:
-                    rowAsDict[column.column_label] = row[column.column_label]
+                    if isinstance(row[column.column_label], datetime):
+                        rowAsDict[column.column_label] = DatabaseClient.to_iso_format(row[column.column_label])
+                    else:
+                        rowAsDict[column.column_label] = row[column.column_label]
 
                 rowsAsList.append(rowAsDict)
 
@@ -144,7 +147,10 @@ class DatabaseResult(object):
         for row in fetchedRows:
             rowAsDict = {}
             for column in self.rowResult.columns:
-                rowAsDict[column.column_label] = row[column.column_label]
+                if isinstance(row[column.column_label], datetime):
+                    rowAsDict[column.column_label] = DatabaseClient.to_iso_format(row[column.column_label])
+                else:
+                    rowAsDict[column.column_label] = row[column.column_label]
 
             rowsAsList.append(rowAsDict)
 
@@ -155,7 +161,10 @@ class DatabaseResult(object):
         if self.sqlResult.has_data():
             row = self.sqlResult.fetch_one()
             for column in self.sqlResult.columns:
-                rowAsDict[column.column_label] = row[column.column_label]
+                if isinstance(row[column.column_label], datetime):
+                    rowAsDict[column.column_label] = DatabaseClient.to_iso_format(row[column.column_label])
+                else:
+                    rowAsDict[column.column_label] = row[column.column_label]
 
         return rowAsDict
 
@@ -163,6 +172,9 @@ class DatabaseResult(object):
         rowAsDict = {}
         row = self.rowResult.fetch_one()
         for column in self.rowResult.columns:
-            rowAsDict[column.column_label] = row[column.column_label]
+            if isinstance(row[column.column_label], datetime):
+                rowAsDict[column.column_label] = DatabaseClient.to_iso_format(row[column.column_label])
+            else:
+                rowAsDict[column.column_label] = row[column.column_label]
 
         return rowAsDict
