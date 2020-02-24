@@ -85,7 +85,6 @@ CREATE PROCEDURE ArchiveCreditTransaction (
 BEGIN
 	UPDATE credit_transaction
 		SET archived = IFNULL(iArchived, FALSE),
-			last_edited = CURRENT_TIMESTAMP(),
 			user_id = iUserId
 		WHERE transaction_table = iTransactionTable
 		AND transaction_id = iTransactionId;
