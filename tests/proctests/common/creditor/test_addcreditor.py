@@ -7,7 +7,7 @@ class AddCreditor(StoredProcedureTestCase):
         addedCreditor = add_creditor(self)
         fetchedCreditor = fetch_creditor(self)
 
-        self.assertEqual(addedCreditor, fetchedCreditor, "Creditor ID mismatch.")
+        self.assertEqual(addedCreditor, fetchedCreditor, "Creditor mismatch.")
 
 def add_creditor(self):
     creditor = {
