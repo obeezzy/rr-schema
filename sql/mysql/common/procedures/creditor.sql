@@ -64,17 +64,11 @@ BEGIN
 									transaction_table,
 									transaction_id,
 									note_id,
-									archived,
-									created,
-									last_edited,
 									user_id)
 		VALUES (iCreditorId,
 				iTransactionTable,
 				iTransactionId,
 				iNoteId,
-				FALSE,
-				CURRENT_TIMESTAMP(),
-				CURRENT_TIMESTAMP(),
 				iUserId);
 
 	SELECT LAST_INSERT_ID() AS credit_transaction_id;
