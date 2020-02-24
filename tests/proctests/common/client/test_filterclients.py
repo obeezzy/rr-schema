@@ -6,19 +6,25 @@ from datetime import datetime
 class FilterClients(StoredProcedureTestCase):
     def test_filter_clients(self):
         """Filter clients and return one result"""
-        add_single_client(self, 1, "First client", "123456789")
-        add_single_client(self, 2, "Second client", "987654321")
-        filteredClients = filter_clients(self,
+        add_single_client(db=self.db,
+                            clientId=1,
+                            preferredName="First client",
+                            phoneNumber="123456789")
+        add_single_client(db=self.db,
+                            clientId=2,
+                            preferredName="Second client",
+                            phoneNumber="987654321")
+        filteredClients = filter_clients(db=self.db,
                                         filterColumn="preferred_name",
                                         filterText="Fir",
                                         archived=False)
-        fetchedClients = fetch_clients(self)
+        fetchedClients = fetch_clients(self.db)
 
         self.assertEqual(len(fetchedClients), 2, "Expected 2 clients returned.")
         self.assertEqual(len(filteredClients), 1, "Expected 1 filtered client.")
         self.assertEqual(filteredClients[0], fetchedClients[0], "Client mismatch")
 
-def add_single_client(self, clientId, preferredName, phoneNumber):
+def add_single_client(db, clientId, preferredName, phoneNumber):
     client = {
         "client_id": clientId,
         "first_name": "First name",
@@ -30,7 +36,7 @@ def add_single_client(self, clientId, preferredName, phoneNumber):
         "user_id": 1
     }
 
-    clientTable = self.db.schema.get_table("client")
+    clientTable = db.schema.get_table("client")
     clientTable.insert("id",
                         "first_name",
                         "last_name",
@@ -43,16 +49,16 @@ def add_single_client(self, clientId, preferredName, phoneNumber):
                 .execute()
     return client
 
-def filter_clients(self, filterColumn, filterText, archived):
-    sqlResult = self.db.call_procedure("FilterClients", (
+def filter_clients(db, filterColumn, filterText, archived):
+    sqlResult = db.call_procedure("FilterClients", (
                                         filterColumn,
                                         filterText,
                                         archived))
 
     return DatabaseResult(sqlResult).fetch_all()
 
-def fetch_clients(self):
-    clientTable = self.db.schema.get_table("client")
+def fetch_clients(db):
+    clientTable = db.schema.get_table("client")
     rowResult = clientTable.select("id AS client_id",
                                     "preferred_name AS preferred_name",
                                     "phone_number AS phone_number") \

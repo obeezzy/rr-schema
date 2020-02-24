@@ -4,16 +4,16 @@ from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseRes
 
 class AddClient(StoredProcedureTestCase):
     def test_add_client(self):
-        addedClient = add_client(self)
-        fetchedClient = fetch_client(self)
+        addedClient = add_client(self.db)
+        fetchedClient = fetch_client(self.db)
 
         self.assertEqual(addedClient, fetchedClient, "Fetched record mismatch.")
 
     def test_add_two_clients(self):
-        add_client(self)
-        add_client(self)
+        add_client(self.db)
+        add_client(self.db)
 
-def add_client(self):
+def add_client(db):
     client = {
         "first_name": "First name",
         "last_name": "Last name",
@@ -24,22 +24,21 @@ def add_client(self):
         "user_id": 1
     }
 
-    self.db.call_procedure("AddClient",
-                            tuple(client.values())
-    )
+    db.call_procedure("AddClient",
+                        tuple(client.values()))
 
     return client
 
-def fetch_client(self):
-    clientTable = self.db.schema.get_table("client")
+def fetch_client(db):
+    clientTable = db.schema.get_table("client")
     rowResult = clientTable.select("first_name",
-                        "last_name",
-                        "preferred_name",
-                        "phone_number",
-                        "address",
-                        "note_id",
-                        "user_id") \
-                .execute()
+                                    "last_name",
+                                    "preferred_name",
+                                    "phone_number",
+                                    "address",
+                                    "note_id",
+                                    "user_id") \
+                            .execute()
     return DatabaseResult(rowResult).fetch_one()
 
 if __name__ == '__main__':

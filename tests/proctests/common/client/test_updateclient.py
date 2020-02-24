@@ -5,36 +5,13 @@ from datetime import datetime
 
 class UpdateClient(StoredProcedureTestCase):
     def test_update_client(self):
-        addedClient = add_single_client(self)
-        update_client(self)
-        fetchedClient = fetch_client(self)
+        addedClient = add_single_client(self.db)
+        update_client(self.db)
+        fetchedClient = fetch_client(self.db)
 
-        self.assertEqual(addedClient["client_id"],
-                            fetchedClient["client_id"],
-                            "Client ID mismatch.")
-        self.assertEqual(addedClient["first_name"],
-                            fetchedClient["first_name"],
-                            "First name mismatch.")
-        self.assertEqual(addedClient["last_name"],
-                            fetchedClient["last_name"],
-                            "Last name mismatch.")
-        self.assertEqual(addedClient["preferred_name"],
-                            fetchedClient["preferred_name"],
-                            "Preferred name mismatch.")
-        self.assertEqual(addedClient["phone_number"],
-                            fetchedClient["phone_number"],
-                            "Phone number mismatch.")
-        self.assertEqual(addedClient["created"],
-                            fetchedClient["created"],
-                            "Created date/time mismatch.")
-        self.assertEqual(addedClient["last_edited"],    
-                            fetchedClient["last_edited"],
-                            "Last edited date/time mismatch.")
-        self.assertEqual(addedClient["user_id"],
-                            fetchedClient["user_id"],
-                            "User ID mismatch.")
+        self.assertEqual(addedClient, fetchedClient, "Client mismatch.")
 
-def add_single_client(self):
+def add_single_client(db):
     client = {
         "client_id": 1,
         "first_name": "First name",
@@ -46,7 +23,7 @@ def add_single_client(self):
         "user_id": 1
     }
 
-    clientTable = self.db.schema.get_table("client")
+    clientTable = db.schema.get_table("client")
     clientTable.insert("id",
                         "first_name",
                         "last_name",
@@ -60,7 +37,7 @@ def add_single_client(self):
 
     return client
 
-def update_client(self):
+def update_client(db):
     client = {
         "client_id": 1,
         "first_name": "First name",
@@ -70,11 +47,11 @@ def update_client(self):
         "user_id": 1
     }
 
-    self.db.call_procedure("UpdateClient",
-                            tuple(client.values()))
+    db.call_procedure("UpdateClient",
+                        tuple(client.values()))
 
-def fetch_client(self):
-    clientTable = self.db.schema.get_table("client")
+def fetch_client(db):
+    clientTable = db.schema.get_table("client")
     rowResult = clientTable.select("id AS client_id",
                                     "first_name AS first_name",
                                     "last_name AS last_name",

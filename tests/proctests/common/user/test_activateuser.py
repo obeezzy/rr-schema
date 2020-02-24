@@ -4,12 +4,12 @@ from proctests.utils import DatabaseClient, StoredProcedureTestCase
 
 class ActivateUser(StoredProcedureTestCase):
     def test_activate_user(self):
-        activate_user(self, True)
+        activate_user(self.db, True)
 
     def test_deactivate_user(self):
-        activate_user(self, False)
+        activate_user(self.db, False)
 
-def activate_user(self, active):
+def activate_user(db, active=True):
     pass
 
 if __name__ == '__main__':
