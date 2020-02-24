@@ -25,10 +25,10 @@ class UpdateClient(StoredProcedureTestCase):
                             fetchedClient["phone_number"],
                             "Phone number mismatch.")
         self.assertEqual(addedClient["created"],
-                            DatabaseClient.to_iso_format(fetchedClient["created"]),
+                            fetchedClient["created"],
                             "Created date/time mismatch.")
         self.assertEqual(addedClient["last_edited"],    
-                            DatabaseClient.to_iso_format(fetchedClient["last_edited"]),
+                            fetchedClient["last_edited"],
                             "Last edited date/time mismatch.")
         self.assertEqual(addedClient["user_id"],
                             fetchedClient["user_id"],
