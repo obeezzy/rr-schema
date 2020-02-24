@@ -5,11 +5,23 @@ from datetime import datetime
 
 class ArchiveCreditTransaction(StoredProcedureTestCase):
     def test_archive_credit_transaction(self):
-        add_single_credit_transaction(db=self.db, creditorId=1, transactionTable="sale_transaction", transactionId=22)
-        add_single_credit_transaction(db=self.db, creditorId=2, transactionTable="purchase_transaction", transactionId=40)
-        add_single_credit_transaction(db=self.db, creditorId=3, transactionTable="income_transaction", transactionId=58)
+        add_single_credit_transaction(db=self.db,
+                                        creditorId=1,
+                                        transactionTable="sale_transaction",
+                                        transactionId=22)
+        add_single_credit_transaction(db=self.db,
+                                        creditorId=2,
+                                        transactionTable="purchase_transaction",
+                                        transactionId=40)
+        add_single_credit_transaction(db=self.db,
+                                        creditorId=3,
+                                        transactionTable="income_transaction",
+                                        transactionId=58)
 
-        archive_credit_transaction(db=self.db, archived=True, transactionTable="sale_transaction", transactionId=22)
+        archive_credit_transaction(db=self.db,
+                                    archived=True,
+                                    transactionTable="sale_transaction",
+                                    transactionId=22)
 
         fetchedCreditTransactions = fetch_credit_transactions(self.db, archived=False)
         self.assertEqual(len(fetchedCreditTransactions), 2, "Expected 2 credit transactions to be returned.")

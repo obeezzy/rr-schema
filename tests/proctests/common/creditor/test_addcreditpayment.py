@@ -5,12 +5,12 @@ from datetime import datetime
 
 class AddCreditPayment(StoredProcedureTestCase):
     def test_add_credit_payment(self):
-        addedCreditPayment = add_credit_payment(self)
-        fetchedCreditPayment = fetch_credit_payment(self)
+        addedCreditPayment = add_credit_payment(self.db)
+        fetchedCreditPayment = fetch_credit_payment(self.db)
 
         self.assertEqual(addedCreditPayment, fetchedCreditPayment, "Credit payment mismatch.")
 
-def add_credit_payment(self):
+def add_credit_payment(db):
     creditPayment = {
         "credit_transaction_id": 1,
         "total_credit": 100,
@@ -22,13 +22,13 @@ def add_credit_payment(self):
         "user_id": 1
     }
 
-    sqlResult = self.db.call_procedure("AddCreditPayment",
+    sqlResult = db.call_procedure("AddCreditPayment",
                                         tuple(creditPayment.values()))
     creditPayment.update(DatabaseResult(sqlResult).fetch_one())
     return creditPayment
 
-def fetch_credit_payment(self):
-    creditPaymentTable = self.db.schema.get_table("credit_payment")
+def fetch_credit_payment(db):
+    creditPaymentTable = db.schema.get_table("credit_payment")
     rowResult = creditPaymentTable.select("id AS credit_payment_id",
                                             "credit_transaction_id AS credit_transaction_id",
                                             "total_credit AS total_credit",

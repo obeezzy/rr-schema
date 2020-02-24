@@ -4,28 +4,37 @@ from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseRes
 
 class ArchiveClient(StoredProcedureTestCase):
     def test_archive_client(self):
-        add_single_client(self, 1, "First client", "1234")
-        add_single_client(self, 2, "Second client", "4321")
-        add_single_client(self, 3, "Third client", "12849")
+        add_single_client(db=self.db,
+                            clientId=1,
+                            preferredName="First client",
+                            phoneNumber="1234")
+        add_single_client(db=self.db,
+                            clientId=2,
+                            preferredName="Second client",
+                            phoneNumber="4321")
+        add_single_client(db=self.db,
+                            clientId=3,
+                            preferredName="Third client",
+                            phoneNumber="12849")
 
-        archive_client(self, clientId=1, userId=1)
-        fetchedClients = fetch_clients(self)
+        archive_client(db=self.db, clientId=1, userId=1)
+        fetchedClients = fetch_clients(self.db)
         clientArchived = len([client for client in fetchedClients if client["client_id"] == 1]) == 0
 
         self.assertEqual(clientArchived, True, "Client not archived.")
 
-def add_single_client(self, clientId, preferredName, phoneNumber, *args, **kwargs):
+def add_single_client(db, clientId, preferredName, phoneNumber, archived=False):
     client = {
         "client_id": clientId,
         "first_name": "First name",
         "last_name": "Last name",
         "preferred_name": preferredName,
         "phone_number": phoneNumber,
-        "archived": kwargs.get("archived", False),
+        "archived": archived,
         "user_id": 1
     }
 
-    clientTable = self.db.schema.get_table("client")
+    clientTable = db.schema.get_table("client")
     clientTable.insert("id",
                         "first_name",
                         "last_name",
@@ -36,20 +45,20 @@ def add_single_client(self, clientId, preferredName, phoneNumber, *args, **kwarg
                 .values(tuple(client.values())) \
                 .execute()
 
-def archive_client(self, clientId, userId):
-    sqlResult = self.db.call_procedure("ArchiveClient", (clientId, userId))
+def archive_client(db, clientId, userId):
+    sqlResult = db.call_procedure("ArchiveClient", (clientId, userId))
 
-def view_archived_clients(self):
-    sqlResult = self.db.call_procedure("ViewClients", (True,))
+def view_archived_clients(db):
+    sqlResult = db.call_procedure("ViewClients", (True,))
     return DatabaseResult(sqlResult).fetch_all()
 
-def fetch_clients(self, *args, **kwargs):
-    clientTable = self.db.schema.get_table("client")
+def fetch_clients(db, archived=False):
+    clientTable = db.schema.get_table("client")
     rowResult = clientTable.select("id AS client_id",
                                     "preferred_name AS preferred_name",
                                     "phone_number AS phone_number") \
                             .where("archived = IFNULL(:archived, FALSE)") \
-                            .bind("archived", kwargs.get("archived")) \
+                            .bind("archived", archived) \
                             .execute()
     return DatabaseResult(rowResult).fetch_all()
 

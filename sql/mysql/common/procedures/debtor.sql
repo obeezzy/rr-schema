@@ -31,26 +31,20 @@ CREATE PROCEDURE AddDebtPayment (
 )
 BEGIN
 	INSERT INTO debt_payment (debt_transaction_id,
-								total_amount,
+								total_debt,
 								amount_paid,
 								balance,
 								currency,
 								due_date_time,
 								note_id,
-								archived,
-								created,
-								last_edited,
 								user_id)
 		VALUES (iDebtTransactionId,
 				iTotalAmount,
 				iAmountPaid,
 				iBalance,
 				iCurrency,
-				iDueDate,
+				iDueDateTime,
                 NULLIF(iNoteId, 0),
-				FALSE,
-				CURRENT_TIMESTAMP(),
-				CURRENT_TIMESTAMP(),
 				iUserId);
 	SELECT LAST_INSERT_ID() AS debt_payment_id;
 END;

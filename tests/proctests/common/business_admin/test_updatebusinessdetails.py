@@ -4,12 +4,12 @@ from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseRes
 
 class UpdateBusinessDetails(StoredProcedureTestCase):
     def test_update_business_details(self):
-        updatedBusinessDetails = update_business_details(self)
-        fetchedBusinessDetails = fetch_business_details(self)
+        updatedBusinessDetails = update_business_details(self.db)
+        fetchedBusinessDetails = fetch_business_details(self.db)
 
         self.assertEqual(updatedBusinessDetails, fetchedBusinessDetails, "Business details mismatch.")
 
-def update_business_details(self):
+def update_business_details(db):
     businessDetails = {
         "name": "Business name",
         "address": "Address",
@@ -20,13 +20,13 @@ def update_business_details(self):
         "extra_details": None
     }
 
-    self.db.call_procedure("UpdateBusinessDetails",
+    db.call_procedure("UpdateBusinessDetails",
                             tuple(businessDetails.values()))
 
     return businessDetails
 
-def fetch_business_details(self):
-    businessDetailsTable = self.db.schema.get_table("business_details")
+def fetch_business_details(db):
+    businessDetailsTable = db.schema.get_table("business_details")
     rowResult = businessDetailsTable.select("name",
                                             "address",
                                             "business_family",
