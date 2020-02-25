@@ -63,17 +63,11 @@ BEGIN
 									transaction_table,
 									transaction_id,
 									note_id,
-									archived,
-									created,
-									last_edited,
 									user_id)
 		VALUES (iDebtorId,
 				iTransactionTable,
 				iTransactionId,
                 NULLIF(iNoteId, 0),
-				FALSE,
-				CURRENT_TIMESTAMP(),
-				CURRENT_TIMESTAMP(),
 				iUserId);
 
 	SELECT LAST_INSERT_ID() AS debt_transaction_id;
