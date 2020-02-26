@@ -2,11 +2,11 @@ USE ###DATABASENAME###;
 
 ---
 
-CREATE PROCEDURE AddNote(
+CREATE PROCEDURE AddNote (
     IN iNote VARCHAR(200),
     IN iTableName VARCHAR(20),
     IN iUserId INTEGER
-    )
+)
 BEGIN
     INSERT INTO note (note, table_name, created, last_edited, user_id)
         VALUES (iNote, iTableName, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), iUserId);
@@ -20,7 +20,7 @@ CREATE PROCEDURE UpdateNote (
     IN iNote VARCHAR(200),
     IN iTableName VARCHAR(20),
     IN iUserId INTEGER
-    )
+)
 BEGIN
     UPDATE note
         SET note = iNote,

@@ -3,7 +3,7 @@ USE ###DATABASENAME###;
 ---
 DROP PROCEDURE IF EXISTS UpdateBusinessDetails;
 ---
-CREATE PROCEDURE UpdateBusinessDetails(
+CREATE PROCEDURE UpdateBusinessDetails (
     IN iName VARCHAR(100),
     IN iAddress VARCHAR(100),
     IN iBusinessFamily VARCHAR(10),
@@ -20,9 +20,7 @@ BEGIN
                                     establishment_year,
                                     phone_number,
                                     logo,
-                                    extra_details,
-                                    created,
-                                    last_edited)
+                                    extra_details)
         VALUES (1,
                 iName,
                 iAddress,
@@ -30,7 +28,5 @@ BEGIN
                 iEstablishmentYear,
                 iPhoneNumber,
                 iLogo,
-                iExtraDetails,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP());
+                iExtraDetails);
 END;
