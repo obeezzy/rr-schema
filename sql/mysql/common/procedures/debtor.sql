@@ -134,7 +134,6 @@ CREATE PROCEDURE ArchiveDebtTransactionById (
 BEGIN
 	UPDATE debt_transaction
 		SET archived = TRUE,
-			last_edited = CURRENT_TIMESTAMP(),
 			user_id = iUserId
 		WHERE id = iDebtTransactionId;
 END;
@@ -372,7 +371,7 @@ END;
 
 ---
 
-CREATE PROCEDURE ViewDebtPayments(
+CREATE PROCEDURE ViewDebtPayments (
 	IN iDebtTransactionId INTEGER,
     IN iArchived BOOLEAN
 )

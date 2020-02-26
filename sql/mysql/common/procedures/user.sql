@@ -253,8 +253,6 @@ END;
 
 ---
 
-DROP PROCEDURE IF EXISTS FetchEmailAddress;
----
 CREATE PROCEDURE FetchEmailAddress (
     iUserName VARCHAR(40)
 )
@@ -266,8 +264,6 @@ END;
 
 ---
 
-DROP PROCEDURE IF EXISTS FetchUserName;
----
 CREATE PROCEDURE FetchUserName (
     iEmailAddress VARCHAR(40)
 )
@@ -280,8 +276,6 @@ END;
 
 ---
 
-DROP PROCEDURE IF EXISTS UpdateAdminEmailAddress;
----
 CREATE PROCEDURE UpdateAdminEmailAddress (
     iEmailAddress VARCHAR(100)
 )
