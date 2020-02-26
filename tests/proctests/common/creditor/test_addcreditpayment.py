@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseResult
+from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
 from datetime import datetime
 
 class AddCreditPayment(StoredProcedureTestCase):
@@ -17,13 +17,13 @@ def add_credit_payment(db):
         "amount_paid": 20,
         "balance": 80,
         "currency": "NGN",
-        "due_date_time": DatabaseClient.to_iso_format(datetime.now()),
+        "due_date_time": DatabaseDateTime(datetime.now()).iso_format,
         "note_id": 1,
         "user_id": 1
     }
 
     sqlResult = db.call_procedure("AddCreditPayment",
-                                        tuple(creditPayment.values()))
+                                    tuple(creditPayment.values()))
     creditPayment.update(DatabaseResult(sqlResult).fetch_one())
     return creditPayment
 

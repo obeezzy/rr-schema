@@ -107,7 +107,7 @@ END;
 
 CREATE PROCEDURE UpdateDebtPayment (
 	IN iDebtPaymentId INTEGER,
-    IN iTotalAmount DECIMAL(19,2),
+    IN iTotalDebt DECIMAL(19,2),
     IN iAmountPaid DECIMAL(19,2),
     IN iBalance DECIMAL(19,2),
     IN iCurrency VARCHAR(4),
@@ -116,11 +116,11 @@ CREATE PROCEDURE UpdateDebtPayment (
 )
 BEGIN
 	UPDATE debt_payment
-		SET total_amount = iTotalAmount,
+		SET total_debt = iTotalDebt,
 			amount_paid = iAmountPaid,
 			balance = iBalance,
 			due_date_time = iDueDateTime,
-			last_edited = CURRENT_TIMESTAMP(),
+			currency = iCurrency,
 			user_id = iUserId
         WHERE id = iDebtPaymentId;
 END;
