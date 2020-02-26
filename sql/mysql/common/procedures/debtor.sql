@@ -147,7 +147,6 @@ CREATE PROCEDURE ArchiveDebtPayment (
 BEGIN
 	UPDATE debt_payment
 		SET archived = TRUE,
-			last_edited = CURRENT_TIMESTAMP(),
 			user_id = iUserId
 		WHERE id = iDebtPaymentId;
 END;
