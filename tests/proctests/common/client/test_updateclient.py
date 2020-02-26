@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseResult
+from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
 from datetime import datetime
 
 class UpdateClient(StoredProcedureTestCase):
@@ -18,8 +18,8 @@ def add_single_client(db):
         "last_name": "Last name",
         "preferred_name": "Preferred name",
         "phone_number": "1234567890",
-        "created": DatabaseClient.to_iso_format(datetime.now()),
-        "last_edited": DatabaseClient.to_iso_format(datetime.now()),
+        "created": DatabaseDateTime(datetime.now()).iso_format,
+        "last_edited": DatabaseDateTime(datetime.now()).iso_format,
         "user_id": 1
     }
 
