@@ -40,6 +40,7 @@ def add_single_debt_transaction(db, debtorId, transactionTable="debtor"):
 
 def archive_debt_transaction_by_debtor_id(db, debtTransactionId):
     debtTransaction = {
+        "archived": True,
         "debt_transaction_id": debtTransactionId,
         "user_id": 1
     }

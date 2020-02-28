@@ -26,7 +26,7 @@ def add_debtor(db, debtorId, clientId):
                 .execute()
 
 def archive_debtor(db, debtorId, userId=1):
-    db.call_procedure("ArchiveDebtor", (debtorId, 1))
+    db.call_procedure("ArchiveDebtor", (True, debtorId, 1))
 
 def fetch_debtors(db, archived=False):
     debtorTable = db.schema.get_table("debtor")

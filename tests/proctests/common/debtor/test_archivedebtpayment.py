@@ -48,6 +48,7 @@ def add_single_debt_payment(db, debtPaymentId):
 
 def archive_debt_payment(db, debtPaymentId):
     debtPayment = {
+        "archived": True,
         "debt_payment_id": debtPaymentId,
         "user_id": 1
     }
