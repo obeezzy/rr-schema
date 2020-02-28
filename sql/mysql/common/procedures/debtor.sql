@@ -264,7 +264,6 @@ CREATE PROCEDURE ArchiveDebtTransactionByDebtorId (
 BEGIN
 	UPDATE debt_transaction
 		SET archived = TRUE,
-			last_edited = CURRENT_TIMESTAMP(),
 			user_id = iUserId
 		WHERE id = iDebtorId;
 END;
