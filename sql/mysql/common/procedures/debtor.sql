@@ -154,27 +154,91 @@ END;
 ---
 
 CREATE PROCEDURE FilterDebtorsByName (
+	IN iFilterColumn VARCHAR(100),
 	IN iFilterText VARCHAR(100),
+	IN iSortColumn VARCHAR(100),
+	IN iSortOrder VARCHAR(15),
     IN iArchived BOOLEAN
 )
 BEGIN
-	SELECT debtor.client_id, debtor.id AS debtor_id,
+	SELECT DISTINCT
+		debtor_list.debtor_id AS debtor_id,
+		debtor_list.preferred_name AS preferred_name,
+		debtor_list.first_name AS first_name,
+		debtor_list.last_name AS last_name,
+		SUM(debtor_list.total_debt) AS total_debt
+		FROM (SELECT
+			dt.debtor_id AS debtor_id,
 			client.preferred_name AS preferred_name,
-			debt_payment.balance AS total_debt,
-			debtor.archived
-		FROM debt_payment
-        INNER JOIN debt_transaction ON debt_transaction.id = debt_payment.debt_transaction_id
-        INNER JOIN debtor ON debtor.id = debt_transaction.debtor_id
-        INNER JOIN client ON client.id = debtor.client_id
-        WHERE debt_transaction.archived = IFNULL(iArchived, NULL)
-		AND client.preferred_name
-		LIKE iFilterText
-        GROUP BY debtor.id,
-					debt_payment.debt_transaction_id,
-					debt_payment.balance,
-        			debt_payment.last_edited
-        HAVING MAX(debt_payment.last_edited) = debt_payment.last_edited
-        AND archived = IFNULL(iArchived, FALSE);
+			client.first_name AS first_name,
+			client.last_name AS last_name,
+			(SELECT balance AS balance
+				FROM (SELECT
+						debt_payment.balance AS balance,
+						debt_payment.created AS created
+						FROM debt_payment
+						WHERE debt_payment.debt_transaction_id = dt.id
+						ORDER BY debt_payment.created DESC
+						LIMIT 1
+					) debt_transactions_for_debtor
+			) AS total_debt
+			FROM debt_transaction dt
+			INNER JOIN debtor ON debtor.id = dt.debtor_id
+							  AND debtor.archived = IFNULL(iArchived, FALSE)
+			INNER JOIN client ON client.id = debtor.client_id) AS debtor_list
+			WHERE debtor_list.first_name LIKE (CASE
+												WHEN LOWER(iFilterColumn) = 'first_name'
+												THEN CONCAT('%', iFilterText, '%')
+												ELSE '%'
+												END)
+			AND debtor_list.last_name LIKE (CASE
+											WHEN LOWER(iFilterColumn) = 'last_name'
+											THEN CONCAT('%', iFilterText, '%')
+											ELSE '%'
+											END)
+			AND debtor_list.preferred_name LIKE (CASE
+													WHEN LOWER(iFilterColumn) = 'preferred_name'
+													THEN CONCAT('%', iFilterText, '%')
+													ELSE '%'
+													END)
+			AND debtor_list.total_debt LIKE (CASE
+												WHEN LOWER(iFilterColumn) = 'total_debt'
+												THEN CONCAT('%', iFilterText, '%')
+												ELSE '%'
+												END)
+			GROUP BY debtor_list.debtor_id
+			ORDER BY (CASE
+						WHEN (LOWER(iSortColumn) = 'first_name') AND (LOWER(iSortOrder) <> 'descending')
+							THEN LOWER(debtor_list.first_name)
+						END) ASC,
+					(CASE
+						WHEN (LOWER(iSortColumn) = 'first_name') AND (LOWER(iSortOrder) = 'descending')
+							THEN LOWER(debtor_list.first_name)
+						END) DESC,
+					(CASE
+						WHEN (LOWER(iSortColumn) = 'last_name') AND (LOWER(iSortOrder) <> 'descending')
+							THEN LOWER(debtor_list.last_name)
+						END) ASC,
+					(CASE
+						WHEN (LOWER(iSortColumn) = 'last_name') AND (LOWER(iSortOrder) = 'descending')
+							THEN LOWER(debtor_list.last_name)
+						END) DESC,
+					(CASE
+						WHEN (LOWER(iSortColumn) = 'total_debt') AND (LOWER(iSortOrder) <> 'descending')
+							THEN CAST(SUM(debtor_list.total_debt) AS unsigned)
+						END) ASC,
+					(CASE
+						WHEN (LOWER(iSortColumn) = 'total_debt') AND (LOWER(iSortOrder) = 'descending')
+							THEN CAST(SUM(debtor_list.total_debt) AS unsigned)
+						END) DESC,
+					(CASE
+						WHEN (LOWER(iSortColumn) = 'preferred_name') AND (LOWER(iSortOrder) <> 'descending')
+							THEN LOWER(debtor_list.preferred_name)
+						END) ASC,
+					(CASE
+						WHEN (LOWER(iSortColumn) = 'preferred_name') AND (LOWER(iSortOrder) = 'descending')
+							THEN LOWER(debtor_list.preferred_name)
+						END) DESC;
 END;
 
 ---
@@ -349,23 +413,24 @@ CREATE PROCEDURE ViewDebtors (
 	IN iArchived INTEGER
 )
 BEGIN
-	SELECT debtor.client_id,
-			debtor.id AS debtor_id,
-			client.preferred_name AS preferred_name,
-			debt_payment.balance AS total_debt,
-			debtor.archived,
-        	MAX(debt_payment.last_edited)
-		FROM debt_payment
-        INNER JOIN debt_transaction ON debt_transaction.id = debt_payment.debt_transaction_id
-		INNER JOIN debtor ON debtor.id = debt_transaction.debtor_id
-        INNER JOIN client ON client.id = debtor.client_id
-		WHERE debt_transaction.archived = IFNULL(iArchived, FALSE)
-        GROUP BY debtor.id,
-					debt_payment.balance,
-        			debt_payment.last_edited,
-					debt_transaction.archived
-        HAVING MAX(debt_payment.last_edited) = debt_payment.last_edited
-        AND debt_transaction.archived = IFNULL(iArchived, FALSE);
+	SELECT
+		dt.debtor_id AS debtor_id,
+		client.preferred_name AS preferred_name,
+		client.first_name AS first_name,
+		client.last_name AS last_name,
+		(SELECT SUM(balance) AS balance
+			FROM (SELECT
+					debt_payment.balance AS balance,
+					debt_payment.created AS created
+					FROM debt_payment
+					WHERE debt_payment.debt_transaction_id = dt.id
+					ORDER BY created DESC
+					LIMIT 1
+				) debt_transactions_for_debtor
+		) AS total_debt
+		FROM debt_transaction dt
+		INNER JOIN debtor ON debtor.id = dt.debtor_id AND debtor.archived = IFNULL(iArchived, FALSE)
+		INNER JOIN client ON client.id = debtor.client_id;
 END;
 
 ---
