@@ -128,12 +128,13 @@ END;
 ---
 
 CREATE PROCEDURE ArchiveDebtTransactionById (
+	IN iArchived BOOLEAN,
 	IN iDebtTransactionId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
 	UPDATE debt_transaction
-		SET archived = TRUE,
+		SET archived = iArchived,
 			user_id = iUserId
 		WHERE id = iDebtTransactionId;
 END;
@@ -141,12 +142,13 @@ END;
 ---
 
 CREATE PROCEDURE ArchiveDebtPayment (
+	IN iArchived BOOLEAN,
 	IN iDebtPaymentId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
 	UPDATE debt_payment
-		SET archived = TRUE,
+		SET archived = iArchived,
 			user_id = iUserId
 		WHERE id = iDebtPaymentId;
 END;
@@ -166,7 +168,7 @@ BEGIN
 		debtor_list.preferred_name AS preferred_name,
 		debtor_list.first_name AS first_name,
 		debtor_list.last_name AS last_name,
-		SUM(debtor_list.total_debt) AS total_debt
+		SUM(debtor_list.balance) AS total_balance
 		FROM (SELECT
 			dt.debtor_id AS debtor_id,
 			client.preferred_name AS preferred_name,
@@ -181,7 +183,7 @@ BEGIN
 						ORDER BY debt_payment.created DESC
 						LIMIT 1
 					) debt_transactions_for_debtor
-			) AS total_debt
+			) AS balance
 			FROM debt_transaction dt
 			INNER JOIN debtor ON debtor.id = dt.debtor_id
 							  AND debtor.archived = IFNULL(iArchived, FALSE)
@@ -201,8 +203,8 @@ BEGIN
 													THEN CONCAT('%', iFilterText, '%')
 													ELSE '%'
 													END)
-			AND debtor_list.total_debt LIKE (CASE
-												WHEN LOWER(iFilterColumn) = 'total_debt'
+			AND debtor_list.total_balance LIKE (CASE
+												WHEN LOWER(iFilterColumn) = 'total_balance'
 												THEN CONCAT('%', iFilterText, '%')
 												ELSE '%'
 												END)
@@ -224,12 +226,12 @@ BEGIN
 							THEN LOWER(debtor_list.last_name)
 						END) DESC,
 					(CASE
-						WHEN (LOWER(iSortColumn) = 'total_debt') AND (LOWER(iSortOrder) <> 'descending')
-							THEN CAST(SUM(debtor_list.total_debt) AS unsigned)
+						WHEN (LOWER(iSortColumn) = 'total_balance') AND (LOWER(iSortOrder) <> 'descending')
+							THEN CAST(SUM(debtor_list.total_balance) AS unsigned)
 						END) ASC,
 					(CASE
-						WHEN (LOWER(iSortColumn) = 'total_debt') AND (LOWER(iSortOrder) = 'descending')
-							THEN CAST(SUM(debtor_list.total_debt) AS unsigned)
+						WHEN (LOWER(iSortColumn) = 'total_balance') AND (LOWER(iSortOrder) = 'descending')
+							THEN CAST(SUM(debtor_list.total_balance) AS unsigned)
 						END) DESC,
 					(CASE
 						WHEN (LOWER(iSortColumn) = 'preferred_name') AND (LOWER(iSortOrder) <> 'descending')
@@ -244,13 +246,13 @@ END;
 ---
 
 CREATE PROCEDURE ArchiveDebtor (
+	IN iArchived BOOLEAN,
 	IN iDebtorId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
 	UPDATE debtor
-		SET archived = TRUE,
-			last_edited = CURRENT_TIMESTAMP(),
+		SET archived = iArchived,
 			user_id = iUserId
 		WHERE id = iDebtorId;
 END;
@@ -281,94 +283,18 @@ END;
 
 ---
 
-CREATE PROCEDURE UndoArchiveDebtor (
-	IN iDebtorId INTEGER,
-    IN iUserId INTEGER
-)
-BEGIN
-	UPDATE debtor
-		SET archived = FALSE,
-			last_edited = CURRENT_TIMESTAMP(),
-			user_id = iUserId
-		WHERE id = iDebtorId;
-END;
-
----
-
-CREATE PROCEDURE UndoArchiveDebtTransaction (
-	IN iDebtTransactionId INTEGER,
-    IN iUserId INTEGER
-)
-BEGIN
-	UPDATE debt_transaction
-		SET archived = 0,
-			last_edited = CURRENT_TIMESTAMP(),
-			user_id = iUserId
-		WHERE id = iDebtTransactionId;
-END;
-
----
-
-CREATE PROCEDURE UndoArchiveDebtPayment (
-    IN iDebtPaymentId INTEGER,
-    IN iUserId INTEGER
-)
-BEGIN
-    UPDATE debt_payment
-		SET archived = FALSE,
-			last_edited = CURRENT_TIMESTAMP(),
-        	user_id = iUserId
-		WHERE id = iDebtPaymentId;
-END;
-
----
-
-CREATE PROCEDURE ViewTotalBalanceForDebtor (
-	IN iDebtorId INTEGER
-)
-BEGIN
-	SELECT debtor.client_id,
-			debtor.id AS debtor_id,
-			client.preferred_name AS preferred_name,
-			(SELECT SUM(debt_payment.balance)
-				FROM debt_payment
-				INNER JOIN debt_transaction ON debt_transaction.id = debt_payment.debt_transaction_id
-				INNER JOIN debtor ON debt_transaction.debtor_id = debtor.id
-				WHERE debt_payment.debt_transaction_id IN
-					(SELECT debt_transaction.id
-						FROM debt_transaction
-						WHERE debt_transaction.debtor_id = debtor.id
-						AND debt_transaction.archived = 0)
-						AND debt_payment.archived = 0 ORDER BY debt_payment.last_edited DESC LIMIT 1) AS total_debt,
-			note.note AS note,
-			debtor.created,
-			debtor.last_edited,
-			debtor.user_id,
-			rr_user.user
-		FROM debtor
-		INNER JOIN client ON client.id = debtor.client_id
-		LEFT JOIN rr_user ON rr_user.id = debtor.user_id
-		LEFT JOIN note ON debtor.note_id = note.id
-		WHERE debtor.archived = FALSE
-		AND debtor.id = iDebtorId;
-END;
-
----
-
 CREATE PROCEDURE FetchDebtor (
 	IN iDebtorId INTEGER,
     IN iArchived BOOLEAN
 )
 BEGIN
 	SELECT debtor.id AS debtor_id,
+			client.first_name AS first_name,
+			client.last_name AS last_name,
 			client.preferred_name AS preferred_name,
-			client.phone_number,
-			client.first_name,
-			client.last_name,
-			client.phone_number,
-			note.note,
-			debtor.archived,
-       		debtor.user_id
+			client.phone_number AS phone_number,
+			note.note AS note,
+       		debtor.user_id AS user_id
         FROM debtor
         INNER JOIN client ON client.id = debtor.client_id
 		LEFT JOIN note ON note.id = debtor.note_id
@@ -417,7 +343,7 @@ BEGIN
 		client.preferred_name AS preferred_name,
 		client.first_name AS first_name,
 		client.last_name AS last_name,
-		(SELECT SUM(balance) AS balance
+		(SELECT SUM(balance) AS total_balance
 			FROM (SELECT
 					debt_payment.balance AS balance,
 					debt_payment.created AS created
@@ -426,7 +352,7 @@ BEGIN
 					ORDER BY created DESC
 					LIMIT 1
 				) debt_transactions_for_debtor
-		) AS total_debt
+		) AS total_balance
 		FROM debt_transaction dt
 		INNER JOIN debtor ON debtor.id = dt.debtor_id AND debtor.archived = IFNULL(iArchived, FALSE)
 		INNER JOIN client ON client.id = debtor.client_id;
