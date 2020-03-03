@@ -172,8 +172,8 @@ CREATE TABLE debtor (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create expense table
-CREATE TABLE expense (
+-- Create expense transaction table
+CREATE TABLE expense_transaction (
     id INTEGER NOT NULL AUTO_INCREMENT,
     name VARCHAR(30) NOT NULL,
     client_id INTEGER DEFAULT NULL,
@@ -189,8 +189,8 @@ CREATE TABLE expense (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Create income table
-CREATE TABLE income (
+-- Create income transaction table
+CREATE TABLE income_transaction (
     id INTEGER NOT NULL AUTO_INCREMENT,
     name VARCHAR(30) NOT NULL,
     client_id INTEGER DEFAULT NULL,
