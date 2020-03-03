@@ -13,17 +13,14 @@ CREATE PROCEDURE AddExpenseTransaction (
     IN iUserId INTEGER
 )
 BEGIN
-    INSERT INTO expense (name,
-                            client_id,
-                            purpose,
-                            amount,
-                            payment_method,
-		                    currency,
-                            note_id,
-                            archived,
-                            created,
-                            last_edited,
-                            user_id)
+    INSERT INTO expense_transaction (name,
+                                    client_id,
+                                    purpose,
+                                    amount,
+                                    payment_method,
+                                    currency,
+                                    note_id,
+                                    user_id)
         VALUES (iName,
                 NULLIF(iClientId, 0),
                 iPurpose,
@@ -31,9 +28,6 @@ BEGIN
                 iPaymentMethod,
                 iCurrency,
                 NULLIF(iNoteId, 0),
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
 	SELECT LAST_INSERT_ID() AS expense_transaction_id;
 END;
