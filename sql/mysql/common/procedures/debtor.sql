@@ -338,24 +338,32 @@ CREATE PROCEDURE ViewDebtors (
 	IN iArchived INTEGER
 )
 BEGIN
-	SELECT
-		dt.debtor_id AS debtor_id,
-		client.preferred_name AS preferred_name,
-		client.first_name AS first_name,
-		client.last_name AS last_name,
-		(SELECT SUM(balance) AS total_balance
-			FROM (SELECT
-					debt_payment.balance AS balance,
-					debt_payment.created AS created
-					FROM debt_payment
-					WHERE debt_payment.debt_transaction_id = dt.id
-					ORDER BY created DESC
-					LIMIT 1
-				) debt_transactions_for_debtor
-		) AS total_balance
-		FROM debt_transaction dt
-		INNER JOIN debtor ON debtor.id = dt.debtor_id AND debtor.archived = IFNULL(iArchived, FALSE)
-		INNER JOIN client ON client.id = debtor.client_id;
+	SELECT DISTINCT
+		debtor_list.debtor_id AS debtor_id,
+		debtor_list.preferred_name AS preferred_name,
+		debtor_list.first_name AS first_name,
+		debtor_list.last_name AS last_name,
+		SUM(debtor_list.balance) AS total_balance
+		FROM (SELECT
+			dt.debtor_id AS debtor_id,
+			client.preferred_name AS preferred_name,
+			client.first_name AS first_name,
+			client.last_name AS last_name,
+			(SELECT balance AS balance
+				FROM (SELECT
+						debt_payment.balance AS balance,
+						debt_payment.created AS created
+						FROM debt_payment
+						WHERE debt_payment.debt_transaction_id = dt.id
+						ORDER BY debt_payment.created DESC
+						LIMIT 1
+					) debt_transactions_for_debtor
+			) AS balance
+			FROM debt_transaction dt
+			INNER JOIN debtor ON debtor.id = dt.debtor_id
+							  AND debtor.archived = IFNULL(iArchived, FALSE)
+			INNER JOIN client ON client.id = debtor.client_id) AS debtor_list
+			GROUP BY debtor_list.debtor_id;
 END;
 
 ---
