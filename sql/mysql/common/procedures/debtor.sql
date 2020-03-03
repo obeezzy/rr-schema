@@ -314,14 +314,14 @@ BEGIN
 			debt_transaction.transaction_id AS related_transaction_id,
 			debt_transaction.created AS debt_transaction_created,
 			debt_payment.id AS debt_payment_id,
-			debt_payment.total_amount,
-			debt_payment.amount_paid,
+			debt_payment.total_amount AS total_amount,
+			debt_payment.amount_paid AS amount_paid,
 			debt_payment.balance AS balance,
-			debt_payment.currency,
-			debt_payment.due_date_time,
+			debt_payment.currency AS currency,
+			debt_payment.due_date_time AS due_date_time,
 			debt_transaction.note_id AS debt_transaction_note_id,
 			debt_payment.note_id AS debt_payment_note_id,
-			debt_transaction.archived,
+			debt_transaction.archived AS archived,
 			debt_payment.created AS debt_payment_created
 		FROM debt_payment
 		INNER JOIN debt_transaction ON debt_transaction.id = debt_payment.debt_transaction_id
