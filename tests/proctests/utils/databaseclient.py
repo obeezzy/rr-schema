@@ -42,7 +42,7 @@ class DatabaseClient(object):
             elif isinstance(arg, bool):
                 argsAsString += "TRUE" if arg else "FALSE"
             elif isinstance(arg, int):
-                argsAsString += f"'{str(arg)}'"
+                argsAsString += f"{str(arg)}"
             else:
                 argsAsString += f"'{arg}'"
             if i < len(args) - 1:

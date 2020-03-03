@@ -373,18 +373,18 @@ CREATE PROCEDURE ViewDebtPayments (
     IN iArchived BOOLEAN
 )
 BEGIN
-	SELECT debt_transaction_id,
+	SELECT debt_transaction_id AS debt_transaction_id,
 		debt_payment.id AS debt_payment_id,
-		debt_payment.total_amount,
-		debt_payment.amount_paid,
+		debt_payment.total_debt AS total_debt,
+		debt_payment.amount_paid AS amount_paid,
 		debt_payment.balance AS balance,
-		debt_payment.currency,
-		debt_payment.due_date_time,
-		debt_payment.note_id,
-		note.note,
-		debt_transaction.archived,
-		debt_payment.created,
-		debt_payment.last_edited
+		debt_payment.currency AS currency,
+		debt_payment.due_date_time AS due_date_time,
+		debt_payment.note_id AS note_id,
+		note.note AS note,
+		debt_transaction.archived AS debt_transaction_archived,
+		debt_payment.created AS created,
+		debt_payment.last_edited AS last_edited
     FROM debt_payment
     INNER JOIN debt_transaction ON debt_transaction.id = debt_payment.debt_transaction_id
     LEFT JOIN note ON note.id = debt_payment.note_id
