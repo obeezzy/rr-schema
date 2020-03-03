@@ -4,7 +4,7 @@ USE ###DATABASENAME###;
 
 CREATE PROCEDURE AddExpenseTransaction (
     IN iClientId INTEGER,
-    IN iName VARCHAR(50),
+    IN iClientName VARCHAR(50),
     IN iPurpose VARCHAR(200),
     IN iAmount DECIMAL(19,2),
     IN iPaymentMethod VARCHAR(20),
@@ -13,7 +13,7 @@ CREATE PROCEDURE AddExpenseTransaction (
     IN iUserId INTEGER
 )
 BEGIN
-    INSERT INTO expense_transaction (name,
+    INSERT INTO expense_transaction (client_name,
                                     client_id,
                                     purpose,
                                     amount,
@@ -21,7 +21,7 @@ BEGIN
                                     currency,
                                     note_id,
                                     user_id)
-        VALUES (iName,
+        VALUES (iClientName,
                 NULLIF(iClientId, 0),
                 iPurpose,
                 iAmount,
@@ -40,11 +40,11 @@ CREATE PROCEDURE ViewExpenseTransactions (
     IN iArchived BOOLEAN
 )
 BEGIN
-	SELECT id AS transaction_id,
-            client_id,
-            name AS client_name,
-            amount
-        FROM expense
+	SELECT id AS expense_transaction_id,
+            client_id AS client_id,
+            client_name AS client_name,
+            amount AS amount
+        FROM expense_transaction
 		WHERE created BETWEEN iFrom
                         AND iTo
         AND archived = IFNULL(iArchived, FALSE);
@@ -61,13 +61,13 @@ CREATE PROCEDURE FilterExpenseReport (
     IN iTo DATETIME
 )
 BEGIN
-    SELECT id AS expense_id,
+    SELECT id AS expense_transaction_id,
             purpose,
             amount
-        FROM expense
+        FROM expense_transaction
         WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
                         AND IFNULL(iTo, CURRENT_TIMESTAMP())
-        AND expense.archived = FALSE
+        AND expense_transaction.archived = FALSE
         AND purpose LIKE (CASE
                             WHEN LOWER(iFilterColumn) = 'purpose'
                             THEN CONCAT('%', iFilterText, '%')
@@ -76,14 +76,14 @@ BEGIN
         ORDER BY (CASE
                     WHEN LOWER(iSortOrder) = 'descending'
                     AND LOWER(iSortColumn) = 'purpose'
-                    THEN LOWER(expense.purpose) END) DESC,
+                    THEN LOWER(expense_transaction.purpose) END) DESC,
                  (CASE
                     WHEN (iSortOrder IS NULL
                         AND iSortColumn IS NULL)
                     OR (LOWER(iSortOrder) <> 'descending'
                         AND LOWER(iSortColumn) = 'purpose')
-                    THEN LOWER(expense.purpose) END) ASC,
-        LOWER(expense.purpose) ASC;
+                    THEN LOWER(expense_transaction.purpose) END) ASC,
+        LOWER(expense_transaction.purpose) ASC;
 END;
 
 ---

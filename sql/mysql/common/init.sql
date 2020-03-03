@@ -175,11 +175,11 @@ CREATE TABLE debtor (
 -- Create expense transaction table
 CREATE TABLE expense_transaction (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    name VARCHAR(30) NOT NULL,
+    client_name VARCHAR(30) NOT NULL,
     client_id INTEGER DEFAULT NULL,
     purpose VARCHAR(100) NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
-    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
+    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL DEFAULT 'cash',
     currency VARCHAR(4) NOT NULL,
     note_id INTEGER DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
@@ -192,11 +192,11 @@ CREATE TABLE expense_transaction (
 -- Create income transaction table
 CREATE TABLE income_transaction (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    name VARCHAR(30) NOT NULL,
+    client_name VARCHAR(30) NOT NULL,
     client_id INTEGER DEFAULT NULL,
     purpose VARCHAR(100) NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
-    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
+    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL DEFAULT 'cash',
     currency VARCHAR(4) NOT NULL,
     note_id INTEGER DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
