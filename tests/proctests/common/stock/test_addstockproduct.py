@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseClient, StoredProcedureTestCase, OperationalError, DatabaseResult
+from proctests.utils import DatabaseErrorCodes, StoredProcedureTestCase, OperationalError, DatabaseResult
 
 class AddStockProduct(StoredProcedureTestCase):
     def test_add_stock_product(self):
@@ -15,7 +15,7 @@ class AddStockProduct(StoredProcedureTestCase):
             add_stock_product(self.db)
 
         self.assertEqual(context.exception.errno,
-                            DatabaseClient.ErrorCodes.USER_DEFINED_EXCEPTION)
+                            DatabaseErrorCodes.USER_DEFINED_EXCEPTION)
 
 def add_stock_product(db):
     product = {

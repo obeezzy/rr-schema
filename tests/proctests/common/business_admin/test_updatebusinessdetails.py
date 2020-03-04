@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class UpdateBusinessDetails(StoredProcedureTestCase):
     def test_update_business_details(self):
