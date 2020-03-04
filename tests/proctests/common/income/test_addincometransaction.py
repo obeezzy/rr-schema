@@ -4,21 +4,21 @@ from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseRes
 from datetime import datetime
 from decimal import Decimal
 
-class AddExpenseTransaction(StoredProcedureTestCase):
-    def test_add_expense_transaction(self):
-        addedExpenseTransaction = add_expense_transaction(db=self.db,
+class AddIncomeTransaction(StoredProcedureTestCase):
+    def test_add_income_transaction(self):
+        addedIncomeTransaction = add_income_transaction(db=self.db,
                                                             name="Lois Lane",
                                                             purpose="Need saving from Superman",
                                                             amount=460.00,
                                                             paymentMethod="cash")
-        fetchedExpenseTransaction = fetch_expense_transaction(self.db)
+        fetchedIncomeTransaction = fetch_income_transaction(self.db)
 
-        self.assertEqual(addedExpenseTransaction, fetchedExpenseTransaction, "Expense transaction mismatch.")
+        self.assertEqual(addedIncomeTransaction, fetchedIncomeTransaction, "Income transaction mismatch.")
 
-def add_expense_transaction(db, name, purpose, amount, paymentMethod):
-    expenseTransaction = {
+def add_income_transaction(db, name, purpose, amount, paymentMethod):
+    incomeTransaction = {
         "client_id": None,
-        "name": name,
+        "client_name": name,
         "purpose": purpose,
         "amount": Decimal(format(amount, '.2f')),
         "payment_method": paymentMethod,
@@ -27,14 +27,14 @@ def add_expense_transaction(db, name, purpose, amount, paymentMethod):
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("AddExpenseTransaction",
-                                    tuple(expenseTransaction.values()))
-    expenseTransaction.update(DatabaseResult(sqlResult).fetch_one())
-    return expenseTransaction
+    sqlResult = db.call_procedure("AddIncomeTransaction",
+                                    tuple(incomeTransaction.values()))
+    incomeTransaction.update(DatabaseResult(sqlResult).fetch_one())
+    return incomeTransaction
 
-def fetch_expense_transaction(db):
-    expenseTransactionTable = db.schema.get_table("expense_transaction")
-    rowResult = expenseTransactionTable.select("id AS expense_transaction_id",
+def fetch_income_transaction(db):
+    incomeTransactionTable = db.schema.get_table("income_transaction")
+    rowResult = incomeTransactionTable.select("id AS income_transaction_id",
                                                 "client_id AS client_id",
                                                 "client_name AS client_name",
                                                 "purpose AS purpose",
