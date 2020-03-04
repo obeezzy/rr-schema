@@ -96,8 +96,8 @@ BEGIN
     SELECT id AS income_transaction_id,
             purpose AS purpose,
             amount AS amount
-        FROM income
+        FROM income_transaction
         WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
                         AND IFNULL(iTo, CURRENT_TIMESTAMP())
-        AND income.archived = FALSE;
+        AND income_transaction.archived = FALSE;
 END;
