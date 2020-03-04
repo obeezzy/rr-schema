@@ -42,7 +42,7 @@ CREATE PROCEDURE ViewIncomeTransactions (
 BEGIN
 	SELECT id AS income_transaction_id,
             client_id AS client_id,
-            name AS client_name,
+            client_name AS client_name,
             amount AS amount
         FROM income_transaction
 		WHERE created BETWEEN iFrom
