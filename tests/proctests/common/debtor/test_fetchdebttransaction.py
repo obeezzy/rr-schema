@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class FetchDebtTransaction(StoredProcedureTestCase):
     def test_fetch_debt_transaction(self):

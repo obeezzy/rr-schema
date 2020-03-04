@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseClient, StoredProcedureTestCase
+from proctests.utils import StoredProcedureTestCase
 
 class ActivateUser(StoredProcedureTestCase):
     def test_activate_user(self):

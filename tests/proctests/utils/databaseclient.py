@@ -6,10 +6,11 @@ import re
 from .config import config
 from datetime import datetime
 
+class DatabaseErrorCodes:
+    USER_DEFINED_EXCEPTION = 1644
+    DUPLICATE_ENTRY_ERROR = 1136
+
 class DatabaseClient(object):
-    class ErrorCodes:
-        USER_DEFINED_EXCEPTION = 1644
-        DUPLICATE_ENTRY_ERROR = 1136
     DATABASE_NAME = "rr_test"
     INIT_SQL = Path(".").resolve().parent.joinpath("sql/mysql/common/init.sql")
     PROCEDURE_DIR = Path(".").resolve().parent.joinpath("sql/mysql/common/procedures")

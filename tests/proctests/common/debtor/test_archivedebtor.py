@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseClient, StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class ArchiveDebtor(StoredProcedureTestCase):
     def test_archive_debtor(self):
