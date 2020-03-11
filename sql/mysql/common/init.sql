@@ -313,10 +313,11 @@ CREATE TABLE purchased_product (
 CREATE TABLE purchase_payment (
     id INTEGER NOT NULL AUTO_INCREMENT,
     purchase_transaction_id INTEGER NOT NULL,
-    amount INTEGER NOT NULL,
-    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
+    amount DECIMAL(19,2) NOT NULL,
+    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL DEFAULT 'cash',
     currency VARCHAR(4) NOT NULL,
     note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     user_id INTEGER NOT NULL,
@@ -326,10 +327,10 @@ CREATE TABLE purchase_payment (
 -- Create purchase transaction table
 CREATE TABLE purchase_transaction (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL,
-    client_id INTEGER DEFAULT NULL,
-    discount DECIMAL(19,2) NOT NULL,
-    suspended BOOLEAN NOT NULL,
+    vendor_name VARCHAR(50) NOT NULL,
+    vendor_id INTEGER DEFAULT NULL,
+    discount DECIMAL(19,2) NOT NULL DEFAULT '0.00',
+    suspended BOOLEAN NOT NULL DEFAULT FALSE,
     note_id INTEGER DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
