@@ -102,27 +102,21 @@ CREATE PROCEDURE AddPurchasedProduct (
 BEGIN
 	INSERT INTO purchased_product (purchase_transaction_id,
                                     product_id,
-                                    unit_id,
+                                    product_unit_id,
                                     unit_price,
                                     quantity,
                                     cost,
                                     discount,
                                     currency,
-                                    archived,
-                                    created,
-                                    last_edited,
                                     user_id)
         VALUES (iPurchaseTransactionId,
                 iProductId,
-                iUnitId,
+                iProductUnitId,
                 iUnitPrice,
                 iQuantity,
                 iCost,
                 iDiscount,
                 iCurrency,
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
 
     SELECT LAST_INSERT_ID() AS purchased_product_id;
