@@ -21,7 +21,7 @@ END;
 
 CREATE PROCEDURE AddDebtPayment (
 	IN iDebtTransactionId INTEGER,
-    IN iTotalAmount DECIMAL(19,2),
+    IN iTotalDebt DECIMAL(19,2),
     IN iAmountPaid DECIMAL(19,2),
     IN iBalance DECIMAL(19,2),
     IN iCurrency VARCHAR(4),
@@ -39,7 +39,7 @@ BEGIN
 								note_id,
 								user_id)
 		VALUES (iDebtTransactionId,
-				iTotalAmount,
+				iTotalDebt,
 				iAmountPaid,
 				iBalance,
 				iCurrency,
@@ -314,7 +314,7 @@ BEGIN
 			debt_transaction.transaction_id AS related_transaction_id,
 			debt_transaction.created AS debt_transaction_created,
 			debt_payment.id AS debt_payment_id,
-			debt_payment.total_amount AS total_amount,
+			debt_payment.total_debt AS total_debt,
 			debt_payment.amount_paid AS amount_paid,
 			debt_payment.balance AS balance,
 			debt_payment.currency AS currency,
