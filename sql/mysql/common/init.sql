@@ -298,7 +298,7 @@ CREATE TABLE purchased_product (
     unit_price DECIMAL(19,2) NOT NULL,
     quantity DOUBLE NOT NULL,
     product_unit_id INTEGER NOT NULL,
-    cost DOUBLE NOT NULL,
+    cost DECIMAL(19,2) NOT NULL,
     discount DECIMAL(19,2) DEFAULT '0.00',
     currency VARCHAR(4) NOT NULL,
     note_id INTEGER DEFAULT NULL,
