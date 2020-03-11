@@ -75,17 +75,15 @@ BEGIN
                                     payment_method,
                                     currency,
                                     note_id,
-		                            created,
-                                    last_edited,
                                     user_id)
         VALUES (iPurchaseTransactionId,
                 iAmount,
                 iPaymentMethod,
                 iCurrency,
                 NULLIF(iNoteId, 0),
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
+
+    SELECT LAST_INSERT_ID() AS purchase_payment_id;
 END;
 
 ---
@@ -126,24 +124,26 @@ BEGIN
                 CURRENT_TIMESTAMP(),
                 CURRENT_TIMESTAMP(),
                 iUserId);
+
+    SELECT LAST_INSERT_ID() AS purchased_product_id;
 END;
 
 ---
 
 CREATE PROCEDURE IsPurchaseTransactionSuspended (
-	IN iTransactionId INTEGER
+	IN iPurchaseTransactionId INTEGER
 )
 BEGIN
 	SELECT suspended
         FROM purchase_transaction
-        WHERE archived = 0
-        AND id = iTransactionId;
+        WHERE archived = FALSE
+        AND id = iPurchaseTransactionId;
 END;
 
 ---
 
 CREATE PROCEDURE RevertPurchaseQuantityUpdate (
-	IN iTransactionId INTEGER,
+	IN iPurchaseTransactionId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
@@ -151,15 +151,14 @@ BEGIN
 		INNER JOIN purchased_product ON current_product_quantity.product_id = purchased_product.product_id
 		INNER JOIN purchase_transaction ON purchased_product.purchase_transaction_id = purchase_transaction.id
         SET current_product_quantity.quantity = current_product_quantity.quantity - purchased_product.quantity,
-            current_product_quantity.last_edited = CURRENT_TIMESTAMP(),
             current_product_quantity.user_id = iUserId
-		WHERE purchase_transaction.id = iTransactionId;
+		WHERE purchase_transaction.id = iPurchaseTransactionId;
 END;
 
 ---
 
 CREATE PROCEDURE ViewPurchaseTransactionProducts (
-	IN iTransactionId INTEGER,
+	IN iPurchaseTransactionId INTEGER,
     IN iSuspended BOOLEAN,
     IN iArchived BOOLEAN
 )
@@ -189,7 +188,7 @@ BEGIN
         INNER JOIN purchase_transaction ON purchase_transaction.id = purchased_product.purchase_transaction_id
 		LEFT JOIN rr_user ON purchased_product.user_id = rr_user.id
         LEFT JOIN note ON purchase_transaction.note_id = note.id
-        WHERE purchase_transaction_id = iTransactionId
+        WHERE purchase_transaction_id = iPurchaseTransactionId
         AND purchase_transaction.suspended = IFNULL(iSuspended, FALSE)
         AND purchase_transaction.archived = IFNULL(iArchived, FALSE);
 END;
@@ -237,7 +236,7 @@ BEGIN
         INNER JOIN product_category ON product.product_category_id = product_category.id
         LEFT JOIN client ON purchase_transaction.client_id = client.id
         LEFT JOIN note ON purchased_product.note_id = note.id
-        WHERE purchase_transaction.id = iTransactionId
+        WHERE purchase_transaction.id = iPurchaseTransactionId
         AND purchase_transaction.archived = iPurchaseTransactionArchived
         AND purchased_product.archived = iPurchasedProductArchived;
 END;
@@ -246,21 +245,20 @@ END;
 
 CREATE PROCEDURE ArchivePurchaseTransaction (
     IN iArchived BOOLEAN,
-	IN iTransactionId INTEGER,
+	IN iPurchaseTransactionId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
 	UPDATE purchase_transaction
         SET archived = IFNULL(iArchived, FALSE),
-            last_edited = CURRENT_TIMESTAMP(),
             user_id = iUserId
-        WHERE id = iTransactionId;
+        WHERE id = iPurchaseTransactionId;
 END;
 
 ---
 
 CREATE PROCEDURE UndoRevertPurchaseQuantityUpdate (
-	IN iTransactionId INTEGER,
+	IN iPurchaseTransactionId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
@@ -270,7 +268,7 @@ BEGIN
         SET current_product_quantity.quantity = current_product_quantity.quantity + purchase_item.quantity,
             current_product_quantity.last_edited = CURRENT_TIMESTAMP(),
             current_product_quantity.user_id = iUserId
-		WHERE purchase_transaction.id = iTransactionId;
+		WHERE purchase_transaction.id = iPurchaseTransactionId;
 END;
 
 ---
