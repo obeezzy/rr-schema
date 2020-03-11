@@ -3,30 +3,32 @@ USE ###DATABASENAME###;
 ---
 
 CREATE PROCEDURE ViewPurchaseTransactions (
-	IN iSuspended BOOLEAN,
-    IN iArchived BOOLEAN,
     IN iFrom DATETIME,
-    IN iTo DATETIME
+    IN iTo DATETIME,
+    IN iSuspended BOOLEAN,
+    IN iArchived BOOLEAN
 )
 BEGIN
-	SELECT purchase_transaction.id AS transaction_id,
-            purchase_transaction.name AS customer_name,
-            purchase_transaction.client_id,
-            balance,
-            discount,
-            suspended,
-            note_id,
-            note.note,
-            purchase_transaction.archived,
-            purchase_transaction.created,
-            purchase_transaction.last_edited,
-            purchase_transaction.user_id
-        FROM purchase_transaction
-        LEFT JOIN note ON purchase_transaction.note_id = note.id
-        WHERE purchase_transaction.suspended = IFNULL(iSuspended, FALSE)
-        AND purchase_transaction.archived = IFNULL(iArchived, FALSE)
-        AND purchase_transaction.created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
-									        AND IFNULL(iTo, CURRENT_TIMESTAMP())
+	SELECT pt.id AS purchase_transaction_id,
+            pt.vendor_name AS vendor_name,
+            pt.vendor_id AS vendor_id,
+            pt.discount AS discount,
+            pt.suspended AS suspended,
+            pt.note_id AS note_id,
+            (SELECT SUM(purchase_payment.amount)
+                FROM purchase_payment
+                WHERE purchase_transaction_id = pt.id) AS total_amount,
+            note.note AS note,
+            pt.archived AS archived,
+            pt.created AS created,
+            pt.last_edited AS last_edited,
+            pt.user_id AS user_id
+        FROM purchase_transaction pt
+        LEFT JOIN note ON pt.note_id = note.id
+        WHERE pt.suspended = IFNULL(iSuspended, FALSE)
+        AND pt.archived = IFNULL(iArchived, FALSE)
+        AND pt.created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+						AND IFNULL(iTo, CURRENT_TIMESTAMP())
         ORDER BY created ASC;
 END;
 
