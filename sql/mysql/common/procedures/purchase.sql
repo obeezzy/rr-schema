@@ -35,34 +35,25 @@ END;
 ---
 
 CREATE PROCEDURE AddPurchaseTransaction (
-	IN iClientName VARCHAR(100),
-    IN iClientId INTEGER,
-    IN iBalance DECIMAL(19,2),
+	IN iVendorName VARCHAR(100),
+    IN iVendorId INTEGER,
     IN iDiscount DECIMAL(19,2),
     IN iSuspended BOOLEAN,
     IN iNoteId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
-    INSERT INTO purchase_transaction (name,
-                                        client_id,
-                                        balance,
+    INSERT INTO purchase_transaction (vendor_name,
+                                        vendor_id,
                                         discount,
                                         suspended,
                                         note_id,
-                                        archived,
-		                                created,
-                                        last_edited,
                                         user_id)
-        VALUES (NULLIF(iClientName, ""),
-                NULLIF(iClientId, 0),
-                iBalance,
+        VALUES (NULLIF(iVendorName, ""),
+                NULLIF(iVendorId, 0),
                 iDiscount,
                 IFNULL(iSuspended, FALSE),
                 NULLIF(iNoteId, 0),
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
 
     SELECT LAST_INSERT_ID() AS purchase_transaction_id;
