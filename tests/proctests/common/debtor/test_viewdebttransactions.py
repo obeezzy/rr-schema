@@ -2,7 +2,6 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
 from datetime import datetime
-from decimal import Decimal
 
 class ViewDebtTransactions(StoredProcedureTestCase):
     def test_view_debt_transactions(self):
@@ -21,7 +20,6 @@ class ViewDebtTransactions(StoredProcedureTestCase):
                                         debtTransactionId=debtTransaction1["debt_transaction_id"],
                                         totalDebt=2399.23,
                                         amountPaid=302.03)
-
 
         debtTransaction2 = add_debt_transaction(db=self.db,
                                                 debtorId=debtor1["debtor_id"])
@@ -175,7 +173,7 @@ def add_debt_payment(db, debtTransactionId, totalDebt, amountPaid):
         "debt_transaction_id": debtTransactionId,
         "total_debt": totalDebt,
         "amount_paid": amountPaid,
-        "balance": totalDebt - amountPaid,
+        "balance": round(totalDebt - amountPaid, 2),
         "currency": "NGN",
         "due_date_time": DatabaseDateTime(datetime(2999, 3, 2)).iso_format,
         "user_id": 1
@@ -192,9 +190,6 @@ def add_debt_payment(db, debtTransactionId, totalDebt, amountPaid):
                                     .values(tuple(debtPayment.values())) \
                                     .execute()
     debtPayment.update(DatabaseResult(result).fetch_one("debt_payment_id"))
-    debtPayment["total_debt"] = Decimal(format(totalDebt, '.2f'))
-    debtPayment["amount_paid"] = Decimal(format(amountPaid, '.2f'))
-    debtPayment["balance"] = Decimal(format(totalDebt - amountPaid, '.2f'))
     return debtPayment
 
 def view_debt_transactions(db, debtorId, archived=None):

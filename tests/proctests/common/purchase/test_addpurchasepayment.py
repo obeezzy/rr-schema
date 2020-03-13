@@ -2,7 +2,6 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
 from datetime import datetime
-from decimal import Decimal
 
 class AddPurchasePayment(StoredProcedureTestCase):
     def test_add_purchase_payment(self):
@@ -44,7 +43,6 @@ def add_purchase_payment(db):
     sqlResult = db.call_procedure("AddPurchasePayment",
                                         tuple(purchasePayment.values()))
     purchasePayment.update(DatabaseResult(sqlResult).fetch_one())
-    purchasePayment["amount"] = Decimal(format(purchasePayment["amount"], '.2f'))
     return purchasePayment
 
 def fetch_purchase_payment(db):

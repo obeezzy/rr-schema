@@ -34,7 +34,7 @@ def add_purchase_transaction(db, vendorName, discount, suspended=False, noteId=N
     purchaseTransaction = {
         "vendor_name": vendorName,
         "vendor_id": None,
-        "discount": Decimal(format(discount, '.2f')),
+        "discount": discount,
         "suspended": suspended,
         "note_id": noteId,
         "user_id": 1

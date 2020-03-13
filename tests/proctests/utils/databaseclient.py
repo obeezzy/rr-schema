@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 from .config import config
 from datetime import datetime
+from decimal import Decimal
 
 class DatabaseErrorCodes:
     USER_DEFINED_EXCEPTION = 1644
@@ -136,6 +137,10 @@ class DatabaseResult(object):
                 for column in self.sqlResult.columns:
                     if isinstance(row[column.column_label], datetime):
                         rowAsDict[column.column_label] = DatabaseDateTime(row[column.column_label]).iso_format
+                    elif isinstance(row[column.column_label], tuple): # Doubles return as tuples for some reason
+                        rowAsDict[column.column_label] = row[column.column_label][0]
+                    elif isinstance(row[column.column_label], Decimal): # Decimal to float
+                        rowAsDict[column.column_label] = round(float(row[column.column_label]), 2)
                     else:
                         rowAsDict[column.column_label] = row[column.column_label]
 
@@ -151,6 +156,10 @@ class DatabaseResult(object):
             for column in self.rowResult.columns:
                 if isinstance(row[column.column_label], datetime):
                     rowAsDict[column.column_label] = DatabaseDateTime(row[column.column_label]).iso_format
+                elif isinstance(row[column.column_label], tuple): # Doubles return as tuples for some reason
+                    rowAsDict[column.column_label] = row[column.column_label][0]
+                elif isinstance(row[column.column_label], Decimal): # Decimal to float
+                    rowAsDict[column.column_label] = round(float(row[column.column_label]), 2)
                 else:
                     rowAsDict[column.column_label] = row[column.column_label]
 
@@ -165,6 +174,10 @@ class DatabaseResult(object):
             for column in self.sqlResult.columns:
                 if isinstance(row[column.column_label], datetime):
                     rowAsDict[column.column_label] = DatabaseDateTime(row[column.column_label]).iso_format
+                elif isinstance(row[column.column_label], tuple): # Doubles return as tuples for some reason
+                    rowAsDict[column.column_label] = row[column.column_label][0]
+                elif isinstance(row[column.column_label], Decimal): # Decimal to float
+                    rowAsDict[column.column_label] = round(float(row[column.column_label]), 2)
                 else:
                     rowAsDict[column.column_label] = row[column.column_label]
 
@@ -176,6 +189,10 @@ class DatabaseResult(object):
         for column in self.rowResult.columns:
             if isinstance(row[column.column_label], datetime):
                 rowAsDict[column.column_label] = DatabaseDateTime(row[column.column_label]).iso_format
+            elif isinstance(row[column.column_label], tuple): # Doubles return as tuples for some reason
+                rowAsDict[column.column_label] = row[column.column_label][0]
+            elif isinstance(row[column.column_label], Decimal): # Decimal to float
+                rowAsDict[column.column_label] = round(float(row[column.column_label]), 2)
             else:
                 rowAsDict[column.column_label] = row[column.column_label]
 
