@@ -158,23 +158,23 @@ CREATE PROCEDURE ViewPurchaseTransactionProducts (
 )
 BEGIN
 	SELECT product_category.id AS product_category_id,
-            product_category.category,
-            purchased_product.product_id,
-            product.product,
-		    purchased_product.unit_price,
-            purchased_product.quantity,
-            purchased_product.unit_id,
-		    product_unit.unit,
-            purchased_product.cost,
-            purchased_product.discount,
-            purchased_product.currency,
-            purchased_product.note_id,
-            note.note,
-            purchased_product.archived,
-            purchased_product.created,
-            purchased_product.last_edited,
-            purchased_product.user_id,
-            rr_user.user
+            product_category.category AS product_category,
+            purchased_product.product_id AS product_id,
+            product.product AS product,
+		    purchased_product.unit_price AS unit_price,
+            purchased_product.quantity AS quantity,
+            purchased_product.product_unit_id AS product_unit_id,
+		    product_unit.unit AS product_unit,
+            purchased_product.cost AS cost,
+            purchased_product.discount AS discount,
+            purchased_product.currency AS currency,
+            purchased_product.note_id AS note_id,
+            note.note AS note,
+            purchased_product.archived AS archived,
+            purchased_product.created AS created,
+            purchased_product.last_edited AS last_edited,
+            purchased_product.user_id AS user_id,
+            rr_user.user AS user
         FROM purchased_product
         INNER JOIN product ON purchased_product.product_id = product.id
         INNER JOIN product_category ON product_category.id = product.product_category_id
