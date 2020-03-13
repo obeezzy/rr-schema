@@ -2,14 +2,12 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
 from datetime import datetime
-from decimal import Decimal
 
 class AddPurchasedProduct(StoredProcedureTestCase):
     def test_add_purchased_product(self):
         addedPurchasedProduct = add_purchased_product(self.db)
         fetchedPurchasedProduct = fetch_purchased_product(self.db)
 
-        print("fetched=", fetchedPurchasedProduct)
         self.assertEqual(addedPurchasedProduct["purchased_product_id"],
                             fetchedPurchasedProduct["purchased_product_id"],
                             "Purchased product ID mismatch.")
@@ -57,10 +55,6 @@ def add_purchased_product(db):
     sqlResult = db.call_procedure("AddPurchasedProduct",
                                     tuple(purchasedProduct.values()))
     purchasedProduct.update(DatabaseResult(sqlResult).fetch_one())
-    purchasedProduct["unit_price"] = Decimal(format(purchasedProduct["unit_price"], '.2f'))
-    purchasedProduct["quantity"] = (purchasedProduct["quantity"],)
-    purchasedProduct["cost"] = Decimal(format(purchasedProduct["cost"], '.2f'))
-    purchasedProduct["discount"] = Decimal(format(purchasedProduct["discount"], '.2f'))
     return purchasedProduct
 
 def fetch_purchased_product(db):

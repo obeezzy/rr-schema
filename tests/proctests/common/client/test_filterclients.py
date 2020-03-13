@@ -5,7 +5,6 @@ from datetime import datetime
 
 class FilterClients(StoredProcedureTestCase):
     def test_filter_clients(self):
-        """Filter clients and return one result"""
         add_single_client(db=self.db,
                             clientId=1,
                             preferredName="First client",

@@ -95,7 +95,7 @@ def add_first_purchase_transaction(db):
         "vendor_name": purchaseTransaction["vendor_name"],
         "vendor_id": purchaseTransaction["vendor_id"],
         "purchase_transaction_id": purchaseTransaction["purchase_transaction_id"],
-        "total_amount": Decimal(format(purchasePayment1["amount"] + purchasePayment2["amount"] + purchasePayment3["amount"], '.2f')),
+        "total_amount": purchasePayment1["amount"] + purchasePayment2["amount"] + purchasePayment3["amount"],
         "discount": purchaseTransaction["discount"],
         "suspended": purchaseTransaction["suspended"]
     }
@@ -116,7 +116,7 @@ def add_second_purchase_transaction(db):
         "vendor_name": purchaseTransaction["vendor_name"],
         "vendor_id": purchaseTransaction["vendor_id"],
         "purchase_transaction_id": purchaseTransaction["purchase_transaction_id"],
-        "total_amount": Decimal(format(purchasePayment1["amount"] + purchasePayment2["amount"], '.2f')),
+        "total_amount": purchasePayment1["amount"] + purchasePayment2["amount"],
         "discount": purchaseTransaction["discount"],
         "suspended": purchaseTransaction["suspended"]
     }
@@ -145,7 +145,7 @@ def add_third_purchase_transaction(db):
         "vendor_name": purchaseTransaction["vendor_name"],
         "vendor_id": purchaseTransaction["vendor_id"],
         "purchase_transaction_id": purchaseTransaction["purchase_transaction_id"],
-        "total_amount": Decimal(format(purchasePayment1["amount"] + purchasePayment2["amount"] + purchasePayment3["amount"] + purchasePayment4["amount"], '.2f')),
+        "total_amount": purchasePayment1["amount"] + purchasePayment2["amount"] + purchasePayment3["amount"] + purchasePayment4["amount"],
         "discount": purchaseTransaction["discount"],
         "suspended": purchaseTransaction["suspended"]
     }
