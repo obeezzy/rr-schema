@@ -190,49 +190,47 @@ END;
 ---
 
 CREATE PROCEDURE ViewPurchaseCart (
-	IN iTransactionId INTEGER,
+	IN iPurchaseTransactionId INTEGER,
     IN iPurchaseTransactionArchived BOOLEAN,
     IN iPurchasedProductArchived BOOLEAN
 )
 BEGIN
-	SELECT purchase_transaction.id AS transaction_id,
-            purchase_transaction.name AS customer_name,
-            purchase_transaction.client_id AS client_id,
-            client.phone_number AS customer_phone_number,
-            (SELECT SUM(cost)
-                FROM purchased_product
-                WHERE purchase_transaction_id = iTransactionId) AS total_cost,
-            purchase_transaction.suspended,
-            purchase_transaction.note_id,
-            purchase_transaction.created,
-            purchase_transaction.last_edited,
-            purchase_transaction.user_id,
-            product_category.id AS category_id,
-            product_category.category,
-            purchased_product.product_id,
-            product.product,
+	SELECT purchase_transaction.id AS purchase_transaction_id,
+            purchase_transaction.vendor_name AS vendor_name,
+            purchase_transaction.vendor_id AS vendor_id,
+            client.phone_number AS vendor_phone_number,
+            purchase_transaction.suspended AS suspended,
+            purchase_transaction.note_id AS note_id,
+            note.note AS note,
+            product_category.id AS product_category_id,
+            product_category.category AS product_category,
+            purchased_product.product_id AS product_id,
+            product.product AS product,
             purchased_product.unit_price AS unit_price,
-            purchased_product.quantity,
+            purchased_product.quantity AS quantity,
             current_product_quantity.quantity AS available_quantity,
             product_unit.id AS product_unit_id,
-            product_unit.unit,
+            product_unit.unit AS product_unit,
             product_unit.cost_price AS cost_price,
             product_unit.retail_price AS retail_price,
-            purchased_product.cost,
-            purchased_product.discount,
-            purchased_product.currency,
-            note.note
-        FROM (purchased_product
+            purchased_product.cost AS cost,
+            purchased_product.discount AS discount,
+            purchased_product.currency AS currency,
+            purchase_transaction.created AS created,
+            purchase_transaction.last_edited AS last_edited,
+            purchase_transaction.user_id AS user_id
+        FROM purchased_product
         INNER JOIN purchase_transaction ON purchased_product.purchase_transaction_id = purchase_transaction.id
         INNER JOIN product ON purchased_product.product_id = product.id
         INNER JOIN product_unit ON purchased_product.product_id = product_unit.product_id
-        INNER JOIN current_product_quantity ON purchased_product.product_id = current_product_quantity.product_id)
+        INNER JOIN current_product_quantity ON purchased_product.product_id = current_product_quantity.product_id
         INNER JOIN product_category ON product.product_category_id = product_category.id
-        LEFT JOIN client ON purchase_transaction.client_id = client.id
-        LEFT JOIN note ON purchased_product.note_id = note.id
+        LEFT JOIN vendor ON purchase_transaction.vendor_id = vendor.id
+        LEFT JOIN client ON vendor.client_id = client.id
+        LEFT JOIN note ON purchase_transaction.note_id = note.id
         WHERE purchase_transaction.id = iPurchaseTransactionId
-        AND purchase_transaction.archived = iPurchaseTransactionArchived
-        AND purchased_product.archived = iPurchasedProductArchived;
+        AND purchase_transaction.archived = IFNULL(iPurchaseTransactionArchived, FALSE)
+        AND purchased_product.archived = IFNULL(iPurchasedProductArchived, FALSE);
 END;
 
 ---

@@ -2,8 +2,6 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
 from datetime import datetime, timedelta
-from decimal import Decimal
-import time
 
 class ViewPurchaseTransactions(StoredProcedureTestCase):
     def test_view_purchase_transactions(self):
