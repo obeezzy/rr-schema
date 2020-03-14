@@ -255,10 +255,9 @@ CREATE PROCEDURE UndoRevertPurchaseQuantityUpdate (
 )
 BEGIN
 	UPDATE current_product_quantity
-		INNER JOIN purchase_item ON current_product_quantity.item_id = purchase_item.item_id
-		INNER JOIN purchase_transaction ON purchase_item.purchase_transaction_id = purchase_transaction.id
-        SET current_product_quantity.quantity = current_product_quantity.quantity + purchase_item.quantity,
-            current_product_quantity.last_edited = CURRENT_TIMESTAMP(),
+		INNER JOIN purchased_product ON current_product_quantity.product_id = purchased_product.product_id
+		INNER JOIN purchase_transaction ON purchased_product.purchase_transaction_id = purchase_transaction.id
+        SET current_product_quantity.quantity = current_product_quantity.quantity + purchased_product.quantity,
             current_product_quantity.user_id = iUserId
 		WHERE purchase_transaction.id = iPurchaseTransactionId;
 END;
