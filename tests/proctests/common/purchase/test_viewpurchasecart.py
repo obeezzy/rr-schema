@@ -108,7 +108,7 @@ class ViewPurchaseCart(StoredProcedureTestCase):
                             "Vendor phone number mismatch.")
         self.assertEqual(viewedPurchaseCart[0]["suspended"],
                             purchaseTransaction["suspended"],
-                            "Quantity mismatch.")
+                            "Suspended flag mismatch.")
         self.assertEqual(viewedPurchaseCart[0]["note_id"],
                             note["note_id"],
                             "Note ID mismatch.")
@@ -172,7 +172,7 @@ class ViewPurchaseCart(StoredProcedureTestCase):
                             "Vendor phone number mismatch.")
         self.assertEqual(viewedPurchaseCart[1]["suspended"],
                             purchaseTransaction["suspended"],
-                            "Quantity mismatch.")
+                            "Suspended flag mismatch.")
         self.assertEqual(viewedPurchaseCart[1]["note_id"],
                             note["note_id"],
                             "Note ID mismatch.")
@@ -236,7 +236,7 @@ class ViewPurchaseCart(StoredProcedureTestCase):
                             "Vendor phone number mismatch.")
         self.assertEqual(viewedPurchaseCart[2]["suspended"],
                             purchaseTransaction["suspended"],
-                            "Quantity mismatch.")
+                            "Suspended flag mismatch.")
         self.assertEqual(viewedPurchaseCart[2]["note_id"],
                             note["note_id"],
                             "Note ID mismatch.")
