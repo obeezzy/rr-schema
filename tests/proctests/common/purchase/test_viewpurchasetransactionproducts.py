@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
-from datetime import datetime, timedelta
-from decimal import Decimal
-import time
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class ViewPurchaseTransactionProducts(StoredProcedureTestCase):
     def test_view_purchase_transaction_products(self):
