@@ -5,7 +5,7 @@ USE ###DATABASENAME###;
 CREATE PROCEDURE AddSoldProduct (
 	IN iSaleTransactionId INTEGER,
     IN iProductId INTEGER,
-    IN iUnitId INTEGER,
+    IN iProductUnitId INTEGER,
     IN iUnitPrice DECIMAL(19,2),
     IN iQuantity DOUBLE,
     IN iCost DECIMAL(19,2),
@@ -16,28 +16,23 @@ CREATE PROCEDURE AddSoldProduct (
 BEGIN
 	INSERT INTO sold_product (sale_transaction_id,
                                 product_id,
-                                unit_id,
+                                product_unit_id,
                                 unit_price,
                                 quantity,
                                 cost,
                                 discount,
                                 currency,
-                                archived,
-                                created,
-                                last_edited,
                                 user_id)
         VALUES (iSaleTransactionId,
                 iProductId,
-                iUnitId,
+                iProductUnitId,
                 iUnitPrice,
                 iQuantity,
                 iCost,
                 iDiscount,
                 iCurrency,
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
+    SELECT LAST_INSERT_ID() AS sold_product_id;
 END;
 
 ---
