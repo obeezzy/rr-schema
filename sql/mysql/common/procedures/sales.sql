@@ -198,36 +198,36 @@ BEGIN
             LEFT JOIN client ON customer.client_id = client.id
             LEFT JOIN note ON sold_product.note_id = note.id
             WHERE sale_transaction.id = iSaleTransactionId
-            AND sale_transaction.archived = iSaleTransactionArchived
-            AND sold_product.archived = iSoldProductArchived;
+            AND sale_transaction.archived = IFNULL(iSaleTransactionArchived, FALSE)
+            AND sold_product.archived = IFNULL(iSoldProductArchived, FALSE);
 END;
 
 ---
 
 CREATE PROCEDURE ViewSoldProducts (
-	IN iTransactionId INTEGER,
+	IN iSaleTransactionId INTEGER,
     IN iSuspended BOOLEAN,
     IN iArchived BOOLEAN
 )
 BEGIN
 	SELECT product_category.id AS product_category_id,
-            product_category.category,
-            sold_product.product_id,
-            sold_product.product,
-		    sold_product.unit_price,
-            sold_product.quantity,
-            sold_product.unit_id,
-		    product_unit.unit,
-            sold_product.cost,
-            sold_product.discount,
-            sold_product.currency,
-            sold_product.note_id,
-            note.note,
-            sold_product.archived,
-            sold_product.created,
-            sold_product.last_edited,
-            sold_product.user_id,
-            rr_user.user
+            product_category.category AS product_category,
+            sold_product.product_id AS product_id,
+            sold_product.product AS product,
+		    sold_product.unit_price AS unit_price,
+            sold_product.quantity AS quantity,
+            sold_product.unit_id AS product_unit_id,
+		    product_unit.unit AS product_unit,
+            sold_product.cost AS cost,
+            sold_product.discount AS discount,
+            sold_product.currency AS currency,
+            sold_product.note_id AS note_id,
+            note.note AS note,
+            sold_product.archived AS archived,
+            sold_product.created AS created,
+            sold_product.last_edited AS last_edited,
+            sold_product.user_id AS user_id,
+            rr_user.user AS user
         FROM sold_product
         INNER JOIN product ON sold_product.product_id = product.id
         INNER JOIN product_category ON product_category.id = product.product_category_id
@@ -235,7 +235,7 @@ BEGIN
         INNER JOIN sale_transaction ON sale_transaction.id = sold_product.sale_transaction_id
 		LEFT JOIN rr_user ON sold_product.user_id = rr_user.id
         LEFT JOIN note ON sale_transaction.note_id = note.id
-        WHERE sale_transaction_id = iTransactionId
+        WHERE sale_transaction_id = iSaleTransactionId
         AND sale_transaction.suspended = IFNULL(iSuspended, FALSE)
         AND sale_transaction.archived = IFNULL(iArchived, FALSE);
 END;
