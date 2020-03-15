@@ -51,16 +51,12 @@ BEGIN
                                 payment_method,
                                 currency,
                                 note_id,
-		                        created,
-                                last_edited,
                                 user_id)
         VALUES (iSaleTransactionId,
                 iAmount,
                 iPaymentMethod,
                 iCurrency,
                 NULLIF(iNoteId, 0),
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
 
     SELECT LAST_INSERT_ID() AS sale_payment_id;
