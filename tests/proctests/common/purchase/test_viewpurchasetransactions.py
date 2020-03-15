@@ -15,7 +15,7 @@ class ViewPurchaseTransactions(StoredProcedureTestCase):
                                                                 fromDateTime=beginningOfDay,
                                                                 toDateTime=minuteFromNow)
 
-        self.assertEqual(len(viewedPurchaseTransactions), 3, "Expected 2 transactions.")
+        self.assertEqual(len(viewedPurchaseTransactions), 3, "Expected 3 transactions.")
         self.assertEqual(viewedPurchaseTransactions[0]["purchase_transaction_id"],
                             purchaseTransaction1["purchase_transaction_id"],
                             "Purchase transaction ID mismatch.")
