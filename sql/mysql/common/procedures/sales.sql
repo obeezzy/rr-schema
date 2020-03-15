@@ -65,34 +65,25 @@ END;
 ---
 
 CREATE PROCEDURE AddSaleTransaction (
-	IN iClientName VARCHAR(100),
-    IN iClientId INTEGER,
-    IN iBalance DECIMAL(19,2),
+	IN iCustomerName VARCHAR(100),
+    IN iCustomerId INTEGER,
     IN iDiscount DECIMAL(19,2),
     IN iSuspended BOOLEAN,
     IN iNoteId INTEGER,
     IN iUserId INTEGER
     )
 BEGIN
-    INSERT INTO sale_transaction (name,
-                                    client_id,
-                                    balance,
+    INSERT INTO sale_transaction (customer_name,
+                                    customer_id,
                                     discount,
                                     suspended,
                                     note_id,
-                                    archived,
-		                            created,
-                                    last_edited,
                                     user_id)
-        VALUES (NULLIF(iClientName, ""),
-                NULLIF(iClientId, 0),
-                IFNULL(iBalance, 0),
+        VALUES (NULLIF(iCustomerName, ""),
+                NULLIF(iCustomerId, 0),
                 IFNULL(iDiscount, 0),
                 IFNULL(iSuspended, FALSE),
                 NULLIF(iNoteId, 0),
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
 
     SELECT LAST_INSERT_ID() AS sale_transaction_id;
