@@ -12,7 +12,6 @@ class ViewPurchaseTransactionProducts(StoredProcedureTestCase):
         productUnit1 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="unit(s)",
-                                        baseUnitEquivalent=1,
                                         costPrice=183.32,
                                         retailPrice=182.95)
         product2 = add_product(db=self.db,
@@ -21,7 +20,6 @@ class ViewPurchaseTransactionProducts(StoredProcedureTestCase):
         productUnit2 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="unit(s)",
-                                        baseUnitEquivalent=1,
                                         costPrice=183.32,
                                         retailPrice=182.95)
 
@@ -33,7 +31,6 @@ class ViewPurchaseTransactionProducts(StoredProcedureTestCase):
         productUnit3 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="unit(s)",
-                                        baseUnitEquivalent=1,
                                         costPrice=400.32,
                                         retailPrice=382.95)
         purchaseTransaction = add_purchase_transaction(self.db, vendorName="Carol Denvers")
@@ -210,11 +207,12 @@ def add_purchased_product(db, purchaseTransactionId, productId, unitPrice, quant
     purchasedProduct.update(DatabaseResult(result).fetch_one("purchased_product_id"))
     return purchasedProduct
 
-def add_product_unit(db, productId, unit, baseUnitEquivalent, costPrice, retailPrice):
+def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
     productUnit = {
         "product_id": productId,
         "unit": unit,
         "base_unit_equivalent": baseUnitEquivalent,
+        "preferred": preferred,
         "cost_price": costPrice,
         "retail_price": retailPrice,
         "currency": "NGN",
@@ -225,6 +223,7 @@ def add_product_unit(db, productId, unit, baseUnitEquivalent, costPrice, retailP
     result = productUnitTable.insert("product_id",
                                         "unit",
                                         "base_unit_equivalent",
+                                        "preferred",
                                         "cost_price",
                                         "retail_price",
                                         "currency",
