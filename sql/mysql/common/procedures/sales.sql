@@ -143,12 +143,10 @@ CREATE PROCEDURE ArchiveSaleTransaction (
 BEGIN
 	UPDATE sale_transaction
         SET archived = IFNULL(iArchived, FALSE),
-            last_edited = CURRENT_TIMESTAMP(),
             user_id = iUserId
         WHERE id = iSaleTransactionId;
     UPDATE sold_product
         SET archived = IFNULL(iArchived, FALSE),
-            last_edited = CURRENT_TIMESTAMP(),
             user_id = iUserId
         WHERE sale_transaction_id = iSaleTransactionId;
 END;
