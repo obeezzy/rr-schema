@@ -154,47 +154,50 @@ END;
 ---
 
 CREATE PROCEDURE ViewSaleCart (
-	IN iTransactionId INTEGER,
+	IN iSaleTransactionId INTEGER,
     IN iSaleTransactionArchived BOOLEAN,
     IN iSoldProductArchived BOOLEAN
 )
 BEGIN
-	SELECT sale_transaction.id AS transaction_id,
-            sale_transaction.name AS customer_name,
-            sale_transaction.client_id AS client_id,
+	SELECT sale_transaction.id AS sale_transaction_id,
+            sale_transaction.customer_name AS customer_name,
+            sale_transaction.customer_id AS customer_id,
 		    client.phone_number AS customer_phone_number,
 		    (SELECT SUM(cost)
                 FROM sold_product
-                WHERE sale_transaction_id = iTransactionId) AS total_cost,
-                sale_transaction.suspended,
-                sale_transaction.note_id,
-                sale_transaction.created,
-                sale_transaction.last_edited,
-                sale_transaction.user_id,
+                WHERE sale_transaction_id = iSaleTransactionId) AS total_cost,
+                sale_transaction.suspended AS suspended,
+                sale_transaction.note_id AS note_id,
+                sale_transaction.created AS created,
+                sale_transaction.last_edited AS created,
+                sale_transaction.user_id AS user_id,
                 product_category.id AS product_category_id,
-                product_category.category,
-                sold_product.product_id,
-                product.product,
+                product_category.category AS product_category,
+                sold_product.product_id AS product_id,
+                product.product AS product,
+                product_unit.id AS product_unit_id,
+                product_unit.unit AS product_unit,
                 sold_product.unit_price AS unit_price,
-                sold_product.quantity,
+                sold_product.quantity AS quantity,
                 current_product_quantity.quantity AS available_quantity,
                 product_unit.id AS unit_id,
-                product_unit.unit,
+                product_unit.unit AS product_unit,
                 product_unit.cost_price AS cost_price,
                 product_unit.retail_price AS retail_price,
-                sold_product.cost,
-                sold_product.discount,
-                sold_product.currency,
-                note.note
-            FROM (sold_product
-                INNER JOIN sale_transaction ON sold_product.sale_transaction_id = sale_transaction.id
-                INNER JOIN product ON sold_product.product_id = product.id
-                INNER JOIN product_unit ON sold_product.product_id = product_unit.product_id
-                INNER JOIN current_product_quantity ON sold_product.product_id = current_product_quantity.product_id)
+                sold_product.cost as cost,
+                sold_product.discount AS discount,
+                sold_product.currency AS currency,
+                note.note AS note
+            FROM sold_product
+            INNER JOIN sale_transaction ON sold_product.sale_transaction_id = sale_transaction.id
+            INNER JOIN product ON sold_product.product_id = product.id
+            INNER JOIN product_unit ON sold_product.product_id = product_unit.product_id
+            INNER JOIN current_product_quantity ON sold_product.product_id = current_product_quantity.product_id
             INNER JOIN product_category ON product.product_category_id = product_category.id
-            LEFT JOIN client ON sale_transaction.client_id = client.id
+            LEFT JOIN customer ON sale_transaction.customer_id = customer.id
+            LEFT JOIN client ON customer.client_id = client.id
             LEFT JOIN note ON sold_product.note_id = note.id
-            WHERE sale_transaction.id = iTransactionId
+            WHERE sale_transaction.id = iSaleTransactionId
             AND sale_transaction.archived = iSaleTransactionArchived
             AND sold_product.archived = iSoldProductArchived;
 END;
