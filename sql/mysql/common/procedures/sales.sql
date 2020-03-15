@@ -124,13 +124,13 @@ END;
 ---
 
 CREATE PROCEDURE IsSaleTransactionSuspended (
-	IN iTransactionId INTEGER
+	IN iSaleTransactionId INTEGER
 )
 BEGIN
 	SELECT suspended
         FROM sale_transaction
-        WHERE archived = 0
-        AND id = iTransactionId;
+        WHERE archived = FALSE
+        AND id = iSaleTransactionId;
 END;
 
 ---
