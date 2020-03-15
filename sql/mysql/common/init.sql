@@ -365,6 +365,7 @@ CREATE TABLE sale_payment (
     payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
     currency VARCHAR(4) NOT NULL,
     note_id INTEGER DEFAULT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     user_id INTEGER NOT NULL,

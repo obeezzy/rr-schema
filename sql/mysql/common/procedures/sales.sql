@@ -98,24 +98,27 @@ CREATE PROCEDURE ViewSaleTransactions (
     IN iArchived BOOLEAN
 )
 BEGIN
-	SELECT sale_transaction.id AS transaction_id,
-            sale_transaction.name AS customer_name,
-		    sale_transaction.client_id,
-            balance,
-            discount,
-            suspended,
-            note_id,
-            note.note,
-            sale_transaction.archived,
-            sale_transaction.created,
-            sale_transaction.last_edited,
-            sale_transaction.user_id
-        FROM sale_transaction
-        LEFT JOIN note ON sale_transaction.note_id = note.id
-        WHERE sale_transaction.suspended = IFNULL(iSuspended, FALSE)
-        AND sale_transaction.archived = IFNULL(iArchived, FALSE)
-        AND sale_transaction.created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
-									 AND IFNULL(iTo, CURRENT_TIMESTAMP()) ORDER BY created ASC;
+	SELECT st.id AS sale_transaction_id,
+            st.customer_name AS customer_name,
+            st.customer_id AS customer_id,
+            st.discount AS discount,
+            st.suspended AS suspended,
+            st.note_id AS note_id,
+            (SELECT SUM(sale_payment.amount)
+                FROM sale_payment
+                WHERE sale_transaction_id = st.id) AS total_amount,
+            note.note AS note,
+            st.archived AS archived,
+            st.created AS created,
+            st.last_edited AS last_edited,
+            st.user_id AS user_id
+        FROM sale_transaction st
+        LEFT JOIN note ON st.note_id = note.id
+        WHERE st.suspended = IFNULL(iSuspended, FALSE)
+        AND st.archived = IFNULL(iArchived, FALSE)
+        AND st.created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
+						AND IFNULL(iTo, CURRENT_TIMESTAMP())
+        ORDER BY created ASC;
 END;
 
 ---
