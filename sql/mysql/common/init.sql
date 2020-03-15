@@ -374,10 +374,10 @@ CREATE TABLE sale_payment (
 -- Create sale transaction table
 CREATE TABLE sale_transaction (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL,
-    client_id INTEGER DEFAULT NULL,
-    discount DECIMAL(19,2) NOT NULL,
-    suspended BOOLEAN NOT NULL,
+    customer_name VARCHAR(50) NOT NULL,
+    customer_id INTEGER DEFAULT NULL,
+    discount DECIMAL(19,2) NOT NULL DEFAULT '0.00',
+    suspended BOOLEAN NOT NULL DEFAULT FALSE,
     note_id INTEGER DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
