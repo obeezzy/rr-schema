@@ -282,17 +282,20 @@ CREATE PROCEDURE FetchMostSoldProducts (
 )
 BEGIN
 	SELECT product_category.id AS product_category_id,
-            product_category.category,
-            sold_product.product_id,
-            product.product,
+            product_category.category AS product_category,
+            sold_product.product_id AS product_id,
+            product.product AS product,
+            sold_product.product_unit_id AS product_unit_id,
+            product_unit.unit AS product_unit,
 		    SUM(sold_product.cost - sold_product.discount) AS total_revenue,
             SUM(sold_product.quantity) AS total_quantity
 		FROM sold_product
 		INNER JOIN product ON product.id = sold_product.product_id
 		INNER JOIN product_category ON product_category.id = product.product_category_id
+        INNER JOIN product_unit ON product_unit.id = sold_product.product_unit_id
 		WHERE sold_product.created BETWEEN iFrom
                                     AND iTo
-		GROUP BY sold_product.product_id
+		GROUP BY sold_product.product_id, sold_product.product_unit_id
 		ORDER BY SUM(sold_product.quantity) DESC
 		LIMIT iLimit;
 END;
