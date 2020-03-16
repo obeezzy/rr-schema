@@ -243,7 +243,7 @@ END;
 ---
 
 CREATE PROCEDURE RevertSaleQuantityUpdate (
-	IN iTransactionId INTEGER,
+	IN iSaleTransactionId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
@@ -251,9 +251,8 @@ BEGIN
 		INNER JOIN sold_product ON current_product_quantity.product_id = sold_product.product_id
 		INNER JOIN sale_transaction ON sold_product.sale_transaction_id = sale_transaction.id
         SET current_product_quantity.quantity = current_product_quantity.quantity + sold_product.quantity,
-            current_product_quantity.last_edited = CURRENT_TIMESTAMP(),
             current_product_quantity.user_id = iUserId
-		WHERE sale_transaction.id = iTransactionId;
+		WHERE sale_transaction.id = iSaleTransactionId;
 END;
 
 ---
