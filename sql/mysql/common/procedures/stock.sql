@@ -201,24 +201,17 @@ BEGIN
                                             quantity,
                                             product_unit_id,
                                             reason,
-                                            archived,
-                                            created,
-                                            last_edited,
                                             user_id)
-        SELECT iProductId,
+    SELECT iProductId,
                 quantity,
                 iProductUnitId,
                 iReason,
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId
         FROM current_product_quantity
         WHERE product_id = iProductId;
 
     UPDATE current_product_quantity 
         SET quantity = quantity + iQuantity,
-            last_edited = CURRENT_TIMESTAMP(),
             user_id = iUserId
 		WHERE product_id = iProductId;
 END;
