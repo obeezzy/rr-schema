@@ -68,15 +68,15 @@ CREATE PROCEDURE FilterStockProductCategories (
     IN iSortOrder VARCHAR(20)
 )
 BEGIN
-    SELECT id AS category_id,
-            category
+    SELECT id AS product_category_id,
+            category AS product_category
             FROM product_category
             WHERE product_category.category
             LIKE CONCAT('%', iFilterText, '%')
             ORDER BY (CASE WHEN LOWER(iSortOrder) = 'descending'
-                        THEN LOWER(category.category) END) DESC,
+                        THEN LOWER(product_category.category) END) DESC,
                     (CASE WHEN LOWER(iSortOrder) <> 'descending' OR iSortOrder IS NULL
-                        THEN LOWER(category.category) END) ASC;
+                        THEN LOWER(product_category.category) END) ASC;
 END;
 
 ---
