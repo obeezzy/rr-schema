@@ -103,48 +103,40 @@ END;
 ---
 
 CREATE PROCEDURE FilterStockProducts (
-    IN iProductCategoryId INTEGER,
     IN iFilterText VARCHAR(200),
-    IN iFilterColumn VARCHAR(50),
     IN iSortOrder VARCHAR(20),
-    IN iSortColumn VARCHAR(50)
+    IN iProductCategoryId INTEGER
 )
 BEGIN
     SELECT product.id AS product_id,
             product_category.id AS product_category_id,
-            product_category.category,
-            product.product,
-            product.description,
-            product.divisible,
-            product.image_data,
-            current_product_quantity.quantity,
+            product_category.category AS product_category,
+            product.product AS product,
+            product.description AS description,
+            product.divisible AS divisible,
+            product.image AS image,
+            current_product_quantity.quantity AS quantity,
             product_unit.id AS product_unit_id,
-            product_unit.unit,
-            product_unit.cost_price,
-            product_unit.retail_price,
-            product_unit.currency,
-            product.created,
-            product.last_edited,
-            product.user_id,
-            product.user_id AS user
+            product_unit.unit AS product_unit,
+            product_unit.cost_price AS cost_price,
+            product_unit.retail_price AS retail_price,
+            product_unit.currency AS currency,
+            product.created AS created,
+            product.last_edited AS last_edited,
+            product.user_id AS user_id,
+            rr_user.user AS user
         FROM product
-        INNER JOIN product_category ON product.category_id = iProductCategoryId
+        INNER JOIN product_category ON product.product_category_id = product_category.id
         INNER JOIN product_unit ON product.id = product_unit.product_id
         INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
         LEFT JOIN rr_user ON product.user_id = rr_user.id
-        WHERE product.archived = 0 AND product_unit.base_unit_equivalent = 1
+        WHERE product.archived = FALSE AND product_unit.base_unit_equivalent = 1
         AND product_category.id = iProductCategoryId
-        AND product.product LIKE (CASE WHEN LOWER(iFilterColumn) = 'product'
-                                THEN CONCAT('%', iFilterText, '%')
-                                ELSE '%'
-                                END)
+        AND product.product LIKE CONCAT('%', iFilterText, '%')
         ORDER BY (CASE WHEN LOWER(iSortOrder) = 'descending'
-                    AND LOWER(iSortColumn) = 'product'
                     THEN LOWER(product.product) END) DESC,
-                 (CASE WHEN (iSortOrder IS NULL
-                            AND iSortColumn IS NULL)
-                    OR (LOWER(iSortOrder) <> 'descending'
-                            AND LOWER(iSortColumn) = 'product')
+                 (CASE WHEN (iSortOrder IS NULL)
+                    OR (LOWER(iSortOrder) <> 'descending')
                     THEN LOWER(product.product) END) ASC;
 END;
 
