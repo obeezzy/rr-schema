@@ -362,7 +362,7 @@ CREATE TABLE sale_payment (
     id INTEGER NOT NULL AUTO_INCREMENT,
     sale_transaction_id INTEGER NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
-    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL,
+    payment_method ENUM('cash', 'credit_card', 'debit_card') NOT NULL DEFAULT 'cash',
     currency VARCHAR(4) NOT NULL,
     note_id INTEGER DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
