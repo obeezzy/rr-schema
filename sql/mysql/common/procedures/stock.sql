@@ -156,7 +156,7 @@ BEGIN
     ELSE
         SELECT COUNT(product.id) AS product_count
             FROM product
-            INNER JOIN product_category ON product.category_id = product_category.id
+            INNER JOIN product_category ON product.product_category_id = product_category.id
             LEFT JOIN rr_user ON product.user_id = rr_user.id
             WHERE product.archived = IFNULL(iArchived, FALSE)
             AND product_category.id = iProductCategoryId;
