@@ -166,8 +166,8 @@ END;
 ---
 
 CREATE PROCEDURE FilterStockProductCount (
-    IN iFilterText VARCHAR(200),
     IN iFilterColumn VARCHAR(50),
+    IN iFilterText VARCHAR(200),
     IN iArchived BOOLEAN
 )
 BEGIN
@@ -176,7 +176,7 @@ BEGIN
         INNER JOIN product_category ON product.product_category_id = product_category.id
         WHERE product.archived = IFNULL(iArchived, FALSE)
         AND product_category.category LIKE (CASE
-                                    WHEN LOWER(iFilterColumn) = 'category'
+                                    WHEN LOWER(iFilterColumn) = 'product_category'
                                     THEN CONCAT('%', iFilterText, '%')
                                     ELSE '%'
                                     END)
