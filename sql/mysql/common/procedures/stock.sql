@@ -9,13 +9,13 @@ CREATE PROCEDURE ViewStockProductCategories (
 BEGIN
     IF LOWER(iSortOrder) = "descending" THEN
         SELECT id AS product_category_id,
-                category
+                category AS product_category
                 FROM product_category
                 WHERE archived = IFNULL(iArchived, FALSE)
                 ORDER BY LOWER(category) DESC;
     ELSE
         SELECT id AS product_category_id,
-                category
+                category AS product_category
                 FROM product_category
                 WHERE archived = iArchived
                 ORDER BY LOWER(category) ASC;
