@@ -87,11 +87,11 @@ CREATE PROCEDURE FilterStockProductCategoriesByProduct (
 )
 BEGIN
     SELECT id AS product_category_id,
-            category
+            category AS product_category
             FROM product_category
             INNER JOIN (SELECT product_category_id FROM product
                         INNER JOIN product_category ON product.product_category_id = product_category.id
-                        WHERE product.archived = 0
+                        WHERE product.archived = FALSE
                         AND product.product LIKE CONCAT('%', iFilterText, '%')
                         ORDER BY (CASE WHEN LOWER(iSortOrder) = 'descending'
                                     THEN LOWER(product.product) END) DESC,
