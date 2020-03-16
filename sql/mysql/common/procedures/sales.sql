@@ -263,11 +263,11 @@ CREATE PROCEDURE FetchTotalRevenue (
 )
 BEGIN
 	SELECT DATE(sale_transaction.created) AS created,
-        SUM(sale_payment.amount) AS amount_paid
+        SUM(sale_payment.amount) AS total_revenue
         FROM sale_transaction
 		INNER JOIN sale_payment ON sale_payment.sale_transaction_id = sale_transaction.id
-		WHERE sale_transaction.suspended = 0
-        AND sale_transaction.archived = 0
+		WHERE sale_transaction.suspended = FALSE
+        AND sale_transaction.archived = FALSE
 		AND DATE(sale_transaction.created) BETWEEN DATE(iFrom)
                                             AND DATE(iTo)
 		GROUP BY DATE(sale_transaction.created);
