@@ -4,7 +4,7 @@ from proctests.utils import StoredProcedureTestCase, DatabaseResult
 from datetime import datetime, timedelta
 
 class FetchTotalRevenue(StoredProcedureTestCase):
-    def test_fetch_debtor(self):
+    def test_fetch_total_revenue(self):
         saleTransaction1 = add_sale_transaction(db=self.db,
                                                 customerName="Danny Phantom")
         salePayment1 = add_sale_payment(db=self.db,
@@ -68,40 +68,9 @@ def add_sale_payment(db, saleTransactionId, amount, paymentMethod):
     salePayment.update(DatabaseResult(result).fetch_one("sale_payment_id"))
     return salePayment
 
-def add_debtor(db, client, note):
-    debtor = {
-        "client_id": client["client_id"],
-        "note_id": note["note_id"],
-        "user_id": 1
-    }
-    debtorTable = db.schema.get_table("debtor")
-    result = debtorTable.insert("client_id",
-                                "note_id",
-                                "user_id") \
-                            .values(tuple(debtor.values())) \
-                            .execute()
-    del client["client_id"]
-    debtor.update(client)
-    debtor.update(DatabaseResult(result).fetch_one("debtor_id"))
-    debtor["note"] = note["note"]
-    return debtor
-
-def add_note(db):
-    note = {
-        "note": "His middle name is Gonzalo.",
-        "user_id": 1
-    }
-    noteTable = db.schema.get_table("note")
-    result = noteTable.insert("note",
-                                "user_id") \
-                            .values(tuple(note.values())) \
-                            .execute()
-    note.update(DatabaseResult(result).fetch_one("note_id"))
-    return note
-
 def fetch_total_revenue(db, fromDate, toDate, archived=False):
     sqlResult = db.call_procedure("FetchTotalRevenue", (fromDate, toDate))
-    return DatabaseResult(sqlResult).fetch_one("total_revenue")
+    return DatabaseResult(sqlResult).fetch_one()
 
 if __name__ == '__main__':
     unittest.main()
