@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult
-from datetime import datetime
-from decimal import Decimal
 
 class AddIncomeTransaction(StoredProcedureTestCase):
     def test_add_income_transaction(self):
@@ -20,7 +18,7 @@ def add_income_transaction(db, name, purpose, amount, paymentMethod):
         "client_id": None,
         "client_name": name,
         "purpose": purpose,
-        "amount": Decimal(format(amount, '.2f')),
+        "amount": amount,
         "payment_method": paymentMethod,
         "currency": "NGN",
         "note_id": None,

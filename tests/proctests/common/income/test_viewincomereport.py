@@ -18,11 +18,11 @@ class ViewIncomeReport(StoredProcedureTestCase):
                                                         purpose="Buy Facebook",
                                                         amount=190)
 
-        today = datetime.now()
+        today = datetime.date(datetime.now())
         tomorrow = today + timedelta(days=1)
         viewedIncomeReport = view_income_report(db=self.db,
-                                                        fromDateTime=today,
-                                                        toDateTime=tomorrow)
+                                                        fromDate=today,
+                                                        toDate=tomorrow)
 
         self.assertEqual(len(viewedIncomeReport), 3, "Expected 3 transactions.")
         self.assertEqual(viewedIncomeReport[0]["income_transaction_id"], incomeTransaction1["income_transaction_id"], "Income transaction ID mismatch")
@@ -59,10 +59,10 @@ def add_income_transaction(db, clientName, purpose, amount):
     incomeTransaction.update(DatabaseResult(result).fetch_one("income_transaction_id"))
     return incomeTransaction
 
-def view_income_report(db, fromDateTime, toDateTime):
+def view_income_report(db, fromDate, toDate):
     sqlResult = db.call_procedure("ViewIncomeReport", (
-                                    DatabaseDateTime(fromDateTime).iso_format,
-                                    DatabaseDateTime(toDateTime).iso_format))
+                                    fromDate,
+                                    toDate))
 
     return DatabaseResult(sqlResult).fetch_all()
 

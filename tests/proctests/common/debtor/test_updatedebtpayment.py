@@ -2,7 +2,6 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
 from datetime import datetime
-import time
 
 class UpdateDebtPayment(StoredProcedureTestCase):
     def test_update_debt_payment(self):

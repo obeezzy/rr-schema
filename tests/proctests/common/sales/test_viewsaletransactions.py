@@ -9,11 +9,11 @@ class ViewSaleTransactions(StoredProcedureTestCase):
         saleTransaction2 = add_second_sale_transaction(self.db)
         saleTransaction3 = add_third_sale_transaction(self.db)
 
-        beginningOfDay = datetime(datetime.now().year, datetime.now().month, datetime.now().day)
-        minuteFromNow = datetime.now() + timedelta(minutes=1)
+        today = datetime.date(datetime.now())
+        tomorrow = today + timedelta(days=1)
         viewedSaleTransactions = view_sale_transactions(db=self.db,
-                                                                fromDateTime=beginningOfDay,
-                                                                toDateTime=minuteFromNow)
+                                                                fromDate=today,
+                                                                toDate=tomorrow)
 
         self.assertEqual(len(viewedSaleTransactions), 3, "Expected 3 transactions.")
         self.assertEqual(viewedSaleTransactions[0]["sale_transaction_id"],
@@ -190,14 +190,12 @@ def add_sale_payment(db, saleTransactionId, amount, paymentMethod, archived=Fals
     salePayment.update(DatabaseResult(result).fetch_one("sale_payment_id"))
     return salePayment
 
-def view_sale_transactions(db, fromDateTime, toDateTime, suspended=None, archived=None):
-    args = {
-        "from": DatabaseDateTime(fromDateTime).iso_format,
-        "to": DatabaseDateTime(toDateTime).iso_format,
-        "suspended": suspended,
-        "archived": archived
-    }
-    sqlResult = db.call_procedure("ViewSaleTransactions", tuple(args.values()))
+def view_sale_transactions(db, fromDate, toDate, suspended=None, archived=None):
+    sqlResult = db.call_procedure("ViewSaleTransactions", (
+                                    fromDate,
+                                    toDate,
+                                    suspended,
+                                    archived))
     return DatabaseResult(sqlResult).fetch_all()
 
 if __name__ == '__main__':

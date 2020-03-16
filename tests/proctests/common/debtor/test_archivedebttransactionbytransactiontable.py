@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult
-from datetime import datetime
 
 class ArchiveDebtTransactionByTransactionTable(StoredProcedureTestCase):
     def test_archive_debt_transaction(self):

@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
-from datetime import datetime
-from decimal import Decimal
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class IsPurchaseTransactionSuspended(StoredProcedureTestCase):
     def test_is_purchase_transaction_suspended_when_true(self):

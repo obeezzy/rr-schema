@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 from datetime import datetime, timedelta
 
 class FilterIncomeReport(StoredProcedureTestCase):
@@ -18,15 +18,15 @@ class FilterIncomeReport(StoredProcedureTestCase):
                                                         purpose="Buy Facebook",
                                                         amount=190)
 
-        today = datetime.now()
+        today = datetime.date(datetime.now())
         tomorrow = today + timedelta(days=1)
         filteredIncomeReport = filter_income_report(db=self.db,
                                                         filterColumn="purpose",
                                                         filterText=incomeTransaction1["purpose"][0:6],
                                                         sortColumn="purpose",
                                                         sortOrder="ascending",
-                                                        fromDateTime=today,
-                                                        toDateTime=tomorrow)
+                                                        fromDate=today,
+                                                        toDate=tomorrow)
         fetchedIncomeTransactions = fetch_income_transactions(self.db)
 
         self.assertEqual(len(fetchedIncomeTransactions), 3, "Expected 3 transactions.")
@@ -40,8 +40,8 @@ class FilterIncomeReport(StoredProcedureTestCase):
                                                         filterText=incomeTransaction2["purpose"][0:6],
                                                         sortColumn="purpose",
                                                         sortOrder="ascending",
-                                                        fromDateTime=today,
-                                                        toDateTime=tomorrow)
+                                                        fromDate=today,
+                                                        toDate=tomorrow)
         self.assertEqual(len(fetchedIncomeTransactions), 3, "Expected 3 transactions.")
         self.assertEqual(len(filteredIncomeReport), 1, "Expected 1 transaction.")
         self.assertEqual(filteredIncomeReport[0]["income_transaction_id"], incomeTransaction2["income_transaction_id"], "Income transaction ID mismatch")
@@ -53,8 +53,8 @@ class FilterIncomeReport(StoredProcedureTestCase):
                                                         filterText=incomeTransaction3["purpose"][0:6],
                                                         sortColumn="purpose",
                                                         sortOrder="ascending",
-                                                        fromDateTime=today,
-                                                        toDateTime=tomorrow)
+                                                        fromDate=today,
+                                                        toDate=tomorrow)
         self.assertEqual(len(fetchedIncomeTransactions), 3, "Expected 3 transactions.")
         self.assertEqual(len(filteredIncomeReport), 1, "Expected 1 transaction.")
         self.assertEqual(filteredIncomeReport[0]["income_transaction_id"], incomeTransaction3["income_transaction_id"], "Income transaction ID mismatch")
@@ -83,14 +83,14 @@ def add_income_transaction(db, clientName, purpose, amount):
     incomeTransaction.update(DatabaseResult(result).fetch_one("income_transaction_id"))
     return incomeTransaction
 
-def filter_income_report(db, filterColumn, filterText, sortColumn, sortOrder, fromDateTime, toDateTime):
+def filter_income_report(db, filterColumn, filterText, sortColumn, sortOrder, fromDate, toDate):
     sqlResult = db.call_procedure("FilterIncomeReport", (
                                     filterColumn,
                                     filterText,
                                     sortColumn,
                                     sortOrder,
-                                    DatabaseDateTime(fromDateTime).iso_format,
-                                    DatabaseDateTime(toDateTime).iso_format))
+                                    fromDate,
+                                    toDate))
 
     return DatabaseResult(sqlResult).fetch_all()
 

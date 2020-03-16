@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
-from datetime import datetime
 import time
 
 class TouchDebtTransaction(StoredProcedureTestCase):
     @unittest.skip("TouchDebtTransaction works through mysql client, but not through this test. Fix later.")
     def test_touch_debt_transaction(self):
         add_debt_transaction(self.db)
-        time.sleep(1)
+        time.sleep(3)
         touch_debt_transaction(self.db)
         fetchedDebtTransaction = fetch_debt_transaction(self.db)
 
@@ -25,13 +24,15 @@ def add_debt_transaction(db):
         "user_id": 1
     }
     debtTransactionTable = db.schema.get_table("debt_transaction")
-    rowResult = debtTransactionTable.insert("debtor_id",
+    result = debtTransactionTable.insert("debtor_id",
                                             "transaction_table",
                                             "transaction_id",
                                             "note_id",
                                             "user_id") \
                                         .values(tuple(debtTransaction.values())) \
                                         .execute()
+    debtTransaction.update(DatabaseResult(result).fetch_one("debt_transaction_id"))
+    return debtTransaction
 
 def touch_debt_transaction(db):
     debtTransaction = {

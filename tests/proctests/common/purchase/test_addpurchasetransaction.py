@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult
-from datetime import datetime
-from decimal import Decimal
 
 class AddPurchaseTransaction(StoredProcedureTestCase):
     def test_add_purchase_transaction(self):
