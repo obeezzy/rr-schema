@@ -53,7 +53,7 @@ def add_purchase_transaction(db, vendorName, suspended=False):
     return purchaseTransaction
 
 def add_product(db, product):
-    product = {
+    productDict = {
         "product_category_id": 1,
         "product": product,
         "user_id": 1
@@ -62,10 +62,10 @@ def add_product(db, product):
     result = productTable.insert("product_category_id",
                                     "product",
                                     "user_id") \
-                                .values(tuple(product.values())) \
+                                .values(tuple(productDict.values())) \
                                 .execute()
-    product.update(DatabaseResult(result).fetch_one("product_id"))
-    return product
+    productDict.update(DatabaseResult(result).fetch_one("product_id"))
+    return productDict
 
 def add_purchased_product(db, purchaseTransactionId):
     purchasedProduct = {
