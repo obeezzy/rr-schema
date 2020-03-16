@@ -107,9 +107,9 @@ class FilterPurchaseReport(StoredProcedureTestCase):
         self.assertEqual(filteredPurchaseReport[0]["quantity_bought"],
                             purchasedProduct2["quantity"] + purchasedProduct3["quantity"],
                             "Quantity mismatch")
-        self.assertEqual(filteredPurchaseReport[0]["total_cost"],
+        self.assertEqual(filteredPurchaseReport[0]["total_expenditure"],
                             purchasedProduct2["cost"] + purchasedProduct3["cost"],
-                            "Total cost mismatch")
+                            "Total expenditure mismatch")
 
         self.assertEqual(filteredPurchaseReport[1]["product_category_id"],
                             productCategory1["product_category_id"],
@@ -126,9 +126,9 @@ class FilterPurchaseReport(StoredProcedureTestCase):
         self.assertEqual(filteredPurchaseReport[1]["quantity_bought"],
                             purchasedProduct1["quantity"],
                             "Quantity mismatch")
-        self.assertEqual(filteredPurchaseReport[1]["total_cost"],
+        self.assertEqual(filteredPurchaseReport[1]["total_expenditure"],
                             purchasedProduct1["cost"],
-                            "Total cost mismatch")
+                            "Total expenditure mismatch")
 
         filteredPurchaseReport = filter_purchase_report(db=self.db,
                                                         filterColumn="product_category",
@@ -154,9 +154,9 @@ class FilterPurchaseReport(StoredProcedureTestCase):
         self.assertEqual(filteredPurchaseReport[0]["quantity_bought"],
                             purchasedProduct4["quantity"],
                             "Quantity mismatch")
-        self.assertEqual(filteredPurchaseReport[0]["total_cost"],
+        self.assertEqual(filteredPurchaseReport[0]["total_expenditure"],
                             purchasedProduct4["cost"],
-                            "Total cost mismatch")
+                            "Total expenditure mismatch")
 
 def add_product_category(db, category):
     productCategory = {

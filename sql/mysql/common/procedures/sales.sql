@@ -309,25 +309,25 @@ CREATE PROCEDURE ViewSaleReport (
 BEGIN
     SELECT p.id AS product_id,
             product_category.id AS product_category_id,
-            product_category.category,
-            p.product,
+            product_category.category AS product_category,
+            p.product AS product,
             (SELECT IFNULL(SUM(quantity), 0)
                 FROM sold_product
                 WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
                                 AND IFNULL(iTo, CURRENT_TIMESTAMP())
-                AND sold_product.product_id = p.product_id) AS quantity_sold,
+                AND sold_product.product_id = p.id) AS quantity_sold,
             product_unit.id AS product_unit_id, product_unit.unit,
             (SELECT IFNULL(SUM(cost), 0)
                 FROM sold_product
                 WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
                                 AND IFNULL(iTo, CURRENT_TIMESTAMP())
-                AND sold_product.product_id = p.id) AS total_amount
+                AND sold_product.product_id = p.id) AS total_revenue
         FROM product p
         INNER JOIN product_category ON p.product_category_id = product_category.id
         INNER JOIN product_unit ON p.id = product_unit.product_id
         INNER JOIN current_product_quantity ON p.id = current_product_quantity.product_id
         LEFT JOIN rr_user ON p.user_id = rr_user.id
-        WHERE p.archived = 0
+        WHERE p.archived = FALSE
         AND product_unit.base_unit_equivalent = 1;
 END;
 

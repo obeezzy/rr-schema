@@ -284,7 +284,7 @@ BEGIN
             FROM purchased_product
             WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
                             AND IFNULL(iTo, CURRENT_TIMESTAMP())
-            AND purchased_product.product_id = p.id) AS total_cost
+            AND purchased_product.product_id = p.id) AS total_expenditure
         FROM product p
         INNER JOIN product_category ON p.product_category_id = product_category.id
         INNER JOIN product_unit ON p.id = product_unit.product_id
@@ -320,7 +320,7 @@ BEGIN
                 FROM purchased_product
                 WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
                                 AND IFNULL(iTo, CURRENT_TIMESTAMP())
-                AND purchased_product.product_id = p.id) AS total_cost
+                AND purchased_product.product_id = p.id) AS total_expenditure
         FROM product p
         INNER JOIN product_category ON p.product_category_id = product_category.id
         INNER JOIN product_unit ON p.id = product_unit.product_id
