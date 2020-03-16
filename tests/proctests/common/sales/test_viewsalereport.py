@@ -3,8 +3,8 @@ import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
 from datetime import datetime, timedelta
 
-class ViewPurchaseReport(StoredProcedureTestCase):
-    def test_view_purchase_report(self):
+class ViewSaleReport(StoredProcedureTestCase):
+    def test_view_sale_report(self):
         productCategory1 = add_product_category(db=self.db,
                                                 category="Weapons")
         product1 = add_product(db=self.db,
@@ -44,106 +44,106 @@ class ViewPurchaseReport(StoredProcedureTestCase):
                                                                 productId=product3["product_id"],
                                                                 quantity=78.90)
 
-        purchaseTransaction1 = add_purchase_transaction(db=self.db,
-                                                        vendorName="Selena Kyle")
-        purchasedProduct1 = add_purchased_product(db=self.db,
-                                                    purchaseTransactionId=purchaseTransaction1["purchase_transaction_id"],
-                                                    productId=product1["product_id"],
-                                                    unitPrice=38.27,
-                                                    quantity=583.5,
-                                                    productUnitId=productUnit1["product_unit_id"],
-                                                    cost=378.28,
-                                                    discount=8.28)
-        purchasedProduct2 = add_purchased_product(db=self.db,
-                                                    purchaseTransactionId=purchaseTransaction1["purchase_transaction_id"],
-                                                    productId=product2["product_id"],
-                                                    unitPrice=38.27,
-                                                    quantity=583.5,
-                                                    productUnitId=productUnit2["product_unit_id"],
-                                                    cost=378.28,
-                                                    discount=8.28)
-        purchasedProduct3 = add_purchased_product(db=self.db,
-                                                    purchaseTransactionId=purchaseTransaction1["purchase_transaction_id"],
-                                                    productId=product2["product_id"],
-                                                    unitPrice=38.27,
-                                                    quantity=583.5,
-                                                    productUnitId=productUnit2["product_unit_id"],
-                                                    cost=378.28,
-                                                    discount=8.28)
+        saleTransaction1 = add_sale_transaction(db=self.db,
+                                                    customerName="Selena Kyle")
+        soldProduct1 = add_sold_product(db=self.db,
+                                            saleTransactionId=saleTransaction1["sale_transaction_id"],
+                                            productId=product1["product_id"],
+                                            unitPrice=38.27,
+                                            quantity=583.5,
+                                            productUnitId=productUnit1["product_unit_id"],
+                                            cost=378.28,
+                                            discount=8.28)
+        soldProduct2 = add_sold_product(db=self.db,
+                                            saleTransactionId=saleTransaction1["sale_transaction_id"],
+                                            productId=product2["product_id"],
+                                            unitPrice=38.27,
+                                            quantity=583.5,
+                                            productUnitId=productUnit2["product_unit_id"],
+                                            cost=378.28,
+                                            discount=8.28)
+        soldProduct3 = add_sold_product(db=self.db,
+                                            saleTransactionId=saleTransaction1["sale_transaction_id"],
+                                            productId=product2["product_id"],
+                                            unitPrice=38.27,
+                                            quantity=583.5,
+                                            productUnitId=productUnit2["product_unit_id"],
+                                            cost=378.28,
+                                            discount=8.28)
 
-        purchaseTransaction2 = add_purchase_transaction(db=self.db,
-                                                        vendorName="Harley Quinn")
-        purchasedProduct4 = add_purchased_product(db=self.db,
-                                                    purchaseTransactionId=purchaseTransaction2["purchase_transaction_id"],
-                                                    productId=product3["product_id"],
-                                                    unitPrice=38.27,
-                                                    quantity=583.5,
-                                                    productUnitId=productUnit3["product_unit_id"],
-                                                    cost=378.28,
-                                                    discount=8.28)
+        saleTransaction2 = add_sale_transaction(db=self.db,
+                                                    customerName="Harley Quinn")
+        soldProduct4 = add_sold_product(db=self.db,
+                                            saleTransactionId=saleTransaction2["sale_transaction_id"],
+                                            productId=product3["product_id"],
+                                            unitPrice=38.27,
+                                            quantity=583.5,
+                                            productUnitId=productUnit3["product_unit_id"],
+                                            cost=378.28,
+                                            discount=8.28)
         today = datetime.date(datetime.now())
         tomorrow = today + timedelta(days=1)
-        viewedPurchaseReport = view_purchase_report(db=self.db,
-                                                        fromDate=today,
-                                                        toDate=tomorrow)
+        viewedSaleReport = view_sale_report(db=self.db,
+                                                fromDate=today,
+                                                toDate=tomorrow)
 
-        self.assertEqual(len(viewedPurchaseReport), 3, "Expected 3 transactions.")
-        self.assertEqual(viewedPurchaseReport[0]["product_category_id"],
+        self.assertEqual(len(viewedSaleReport), 3, "Expected 3 transactions.")
+        self.assertEqual(viewedSaleReport[0]["product_category_id"],
                             productCategory1["product_category_id"],
                             "Product category ID mismatch")
-        self.assertEqual(viewedPurchaseReport[0]["product_category"],
+        self.assertEqual(viewedSaleReport[0]["product_category"],
                             productCategory1["category"],
                             "Product category mismatch")
-        self.assertEqual(viewedPurchaseReport[0]["product_id"],
+        self.assertEqual(viewedSaleReport[0]["product_id"],
                             product1["product_id"],
                             "Product ID mismatch")
-        self.assertEqual(viewedPurchaseReport[0]["product"],
+        self.assertEqual(viewedSaleReport[0]["product"],
                             product1["product"],
                             "Product mismatch")
-        self.assertEqual(viewedPurchaseReport[0]["quantity_bought"],
-                            purchasedProduct1["quantity"],
+        self.assertEqual(viewedSaleReport[0]["quantity_sold"],
+                            soldProduct1["quantity"],
                             "Quantity mismatch")
-        self.assertEqual(viewedPurchaseReport[0]["total_expenditure"],
-                            purchasedProduct1["cost"],
-                            "Total expenditure mismatch")
+        self.assertEqual(viewedSaleReport[0]["total_revenue"],
+                            soldProduct1["cost"],
+                            "Total revenue mismatch")
 
-        self.assertEqual(viewedPurchaseReport[1]["product_category_id"],
+        self.assertEqual(viewedSaleReport[1]["product_category_id"],
                             productCategory1["product_category_id"],
                             "Product category ID mismatch")
-        self.assertEqual(viewedPurchaseReport[1]["product_category"],
+        self.assertEqual(viewedSaleReport[1]["product_category"],
                             productCategory1["category"],
                             "Product category mismatch")
-        self.assertEqual(viewedPurchaseReport[1]["product_id"],
+        self.assertEqual(viewedSaleReport[1]["product_id"],
                             product2["product_id"],
                             "Product ID mismatch")
-        self.assertEqual(viewedPurchaseReport[1]["product"],
+        self.assertEqual(viewedSaleReport[1]["product"],
                             product2["product"],
                             "Product mismatch")
-        self.assertEqual(viewedPurchaseReport[1]["quantity_bought"],
-                            purchasedProduct2["quantity"] + purchasedProduct3["quantity"],
+        self.assertEqual(viewedSaleReport[1]["quantity_sold"],
+                            soldProduct2["quantity"] + soldProduct3["quantity"],
                             "Quantity mismatch")
-        self.assertEqual(viewedPurchaseReport[1]["total_expenditure"],
-                            purchasedProduct2["cost"] + purchasedProduct3["cost"],
-                            "Total expenditure mismatch")
+        self.assertEqual(viewedSaleReport[1]["total_revenue"],
+                            soldProduct2["cost"] + soldProduct3["cost"],
+                            "Total revenue mismatch")
 
-        self.assertEqual(viewedPurchaseReport[2]["product_category_id"],
+        self.assertEqual(viewedSaleReport[2]["product_category_id"],
                             productCategory2["product_category_id"],
                             "Product category ID mismatch")
-        self.assertEqual(viewedPurchaseReport[2]["product_category"],
+        self.assertEqual(viewedSaleReport[2]["product_category"],
                             productCategory2["category"],
                             "Product category mismatch")
-        self.assertEqual(viewedPurchaseReport[2]["product_id"],
+        self.assertEqual(viewedSaleReport[2]["product_id"],
                             product3["product_id"],
                             "Product ID mismatch")
-        self.assertEqual(viewedPurchaseReport[2]["product"],
+        self.assertEqual(viewedSaleReport[2]["product"],
                             product3["product"],
                             "Product mismatch")
-        self.assertEqual(viewedPurchaseReport[2]["quantity_bought"],
-                            purchasedProduct4["quantity"],
+        self.assertEqual(viewedSaleReport[2]["quantity_sold"],
+                            soldProduct4["quantity"],
                             "Quantity mismatch")
-        self.assertEqual(viewedPurchaseReport[2]["total_expenditure"],
-                            purchasedProduct4["cost"],
-                            "Total expenditure mismatch")
+        self.assertEqual(viewedSaleReport[2]["total_revenue"],
+                            soldProduct4["cost"],
+                            "Total revenue mismatch")
 
 def add_product_category(db, category):
     productCategory = {
@@ -175,9 +175,9 @@ def add_product(db, productCategoryId, product):
     productDict.update(DatabaseResult(result).fetch_one("product_id"))
     return productDict
 
-def add_purchased_product(db, purchaseTransactionId, productId, unitPrice, quantity, productUnitId, cost, discount=0):
-    purchasedProduct = {
-        "purchase_transaction_id": purchaseTransactionId,
+def add_sold_product(db, saleTransactionId, productId, unitPrice, quantity, productUnitId, cost, discount=0):
+    soldProduct = {
+        "sale_transaction_id": saleTransactionId,
         "product_id": productId,
         "unit_price": unitPrice,
         "quantity": quantity,
@@ -188,8 +188,8 @@ def add_purchased_product(db, purchaseTransactionId, productId, unitPrice, quant
         "user_id": 1
     }
 
-    purchasedProductTable = db.schema.get_table("purchased_product")
-    result = purchasedProductTable.insert("purchase_transaction_id",
+    soldProductTable = db.schema.get_table("sold_product")
+    result = soldProductTable.insert("sale_transaction_id",
                                             "product_id",
                                             "unit_price",
                                             "quantity",
@@ -198,10 +198,10 @@ def add_purchased_product(db, purchaseTransactionId, productId, unitPrice, quant
                                             "cost",
                                             "discount",
                                             "user_id") \
-                                    .values(tuple(purchasedProduct.values())) \
+                                    .values(tuple(soldProduct.values())) \
                                     .execute()
-    purchasedProduct.update(DatabaseResult(result).fetch_one("purchased_product_id"))
-    return purchasedProduct
+    soldProduct.update(DatabaseResult(result).fetch_one("sold_product_id"))
+    return soldProduct
 
 def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
     productUnit = {
@@ -229,19 +229,19 @@ def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquiva
     productUnit.update(DatabaseResult(result).fetch_one("product_unit_id"))
     return productUnit
 
-def add_purchase_transaction(db, vendorName):
-    purchaseTransaction = {
-        "vendor_name": vendorName,
+def add_sale_transaction(db, customerName):
+    saleTransaction = {
+        "customer_name": customerName,
         "user_id": 1
     }
 
-    purchaseTransactionTable = db.schema.get_table("purchase_transaction")
-    result = purchaseTransactionTable.insert("vendor_name",
+    saleTransactionTable = db.schema.get_table("sale_transaction")
+    result = saleTransactionTable.insert("customer_name",
                                             "user_id") \
-                                    .values(tuple(purchaseTransaction.values())) \
+                                    .values(tuple(saleTransaction.values())) \
                                     .execute()
-    purchaseTransaction.update(DatabaseResult(result).fetch_one("purchase_transaction_id"))
-    return purchaseTransaction
+    saleTransaction.update(DatabaseResult(result).fetch_one("sale_transaction_id"))
+    return saleTransaction
 
 def add_current_product_quantity(db, productId, quantity):
     currentProductQuantity = {
@@ -259,8 +259,10 @@ def add_current_product_quantity(db, productId, quantity):
     currentProductQuantity.update(DatabaseResult(result).fetch_one("current_product_quantity_id"))
     return currentProductQuantity
 
-def view_purchase_report(db, fromDate, toDate):
-    sqlResult = db.call_procedure("ViewPurchaseReport", (fromDate, toDate))
+def view_sale_report(db, fromDate, toDate):
+    sqlResult = db.call_procedure("ViewSaleReport", (
+                                    fromDate,
+                                    toDate))
     return DatabaseResult(sqlResult).fetch_all()
 
 if __name__ == '__main__':
