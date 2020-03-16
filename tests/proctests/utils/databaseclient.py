@@ -1,11 +1,11 @@
 import mysqlx
 from mysqlx.result import SqlResult, RowResult, Result
-import os
 from pathlib import Path
 import re
 from .config import config
 from datetime import datetime
 from decimal import Decimal
+import logging
 
 class DatabaseErrorCodes:
     USER_DEFINED_EXCEPTION = 1644
@@ -51,7 +51,7 @@ class DatabaseClient(object):
                 argsAsString += ", "
 
         effectiveProcedureCall = f"CALL {procedure}({argsAsString})"
-        #print("Effective procedure call:", effectiveProcedureCall)
+        logging.debug(f"Effective procedure call: {effectiveProcedureCall}")
         sqlResult = self.session.sql(effectiveProcedureCall) \
                                 .execute()
         return sqlResult

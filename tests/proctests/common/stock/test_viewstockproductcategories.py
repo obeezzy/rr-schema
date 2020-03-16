@@ -14,7 +14,7 @@ class ViewStockProductCategories(StoredProcedureTestCase):
         fetchedProductCategories = view_stock_product_categories(db=self.db,
                                                                     sortOrder="ascending",
                                                                     archived=False)
-        self.assertEqual(len(fetchedProductCategories), 3, "Expected 4 product categories.")
+        self.assertEqual(len(fetchedProductCategories), 3, "Expected 3 product categories.")
         self.assertEqual(fetchedProductCategories[0]["product_category_id"],
                             productCategory3["product_category_id"],
                             "Product category ID mismatch.")
