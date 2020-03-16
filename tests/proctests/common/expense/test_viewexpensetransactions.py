@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 from datetime import datetime, timedelta
-from decimal import Decimal
 
 class ViewExpenseTransactions(StoredProcedureTestCase):
-    @unittest.skip("OperationError(1265): Data truncated for column 'payment_method' at row 1.")
     def test_view_expense_transactions(self):
         add_expense_transaction(self.db,
                                 clientName="Miles Morales",
@@ -23,9 +21,11 @@ class ViewExpenseTransactions(StoredProcedureTestCase):
                                 amount=777,
                                 paymentMethod="cash")
 
+        today = datetime.date(datetime.now())
+        tomorrow = today + timedelta(days=1)
         viewedExpenseTransactions = view_expense_transactions(db=self.db,
-                                                                fromDateTime=datetime.now(),
-                                                                toDateTime=datetime.now() + timedelta(days=1))
+                                                                fromDate=today,
+                                                                toDate=tomorrow)
 
         fetchedExpenseTransactions = fetch_expense_transactions(self.db)
 
@@ -37,7 +37,7 @@ def add_expense_transaction(db, clientName, purpose, amount, paymentMethod):
         "client_name": clientName,
         "purpose": purpose,
         "amount": amount,
-        "payment_method": paymentMethod,
+        #"payment_method": paymentMethod,
         "currency": "NGN",
         "note_id": None,
         "user_id": 1
@@ -48,20 +48,18 @@ def add_expense_transaction(db, clientName, purpose, amount, paymentMethod):
                                     "client_name",
                                     "purpose",
                                     "amount",
-                                    "payment_method",
+                                    #"payment_method",
                                     "currency",
                                     "note_id",
                                     "user_id") \
                             .values(tuple(expenseTransaction.values())) \
                             .execute()
 
-def view_expense_transactions(db, fromDateTime, toDateTime, archived=None):
-    args = {
-        "from": DatabaseDateTime(fromDateTime).iso_format,
-        "to": DatabaseDateTime(toDateTime).iso_format,
-        "archived": archived
-    }
-    sqlResult = db.call_procedure("ViewExpenseTransactions", tuple(args.values()))
+def view_expense_transactions(db, fromDate, toDate, archived=None):
+    sqlResult = db.call_procedure("ViewExpenseTransactions", (
+                                    fromDate,
+                                    toDate,
+                                    archived))
     return DatabaseResult(sqlResult).fetch_all()
 
 def fetch_expense_transactions(db, archived=False):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 from datetime import datetime, timedelta
 
 class ViewExpenseReport(StoredProcedureTestCase):
@@ -18,11 +18,11 @@ class ViewExpenseReport(StoredProcedureTestCase):
                                                         purpose="Buy Facebook",
                                                         amount=190)
 
-        today = datetime.now()
+        today = datetime.date(datetime.now())
         tomorrow = today + timedelta(days=1)
         viewedExpenseReport = view_expense_report(db=self.db,
-                                                        fromDateTime=today,
-                                                        toDateTime=tomorrow)
+                                                    fromDate=today,
+                                                    toDate=tomorrow)
 
         self.assertEqual(len(viewedExpenseReport), 3, "Expected 3 transactions.")
         self.assertEqual(viewedExpenseReport[0]["expense_transaction_id"], expenseTransaction1["expense_transaction_id"], "Expense transaction ID mismatch")
@@ -59,10 +59,10 @@ def add_expense_transaction(db, clientName, purpose, amount):
     expenseTransaction.update(DatabaseResult(result).fetch_one("expense_transaction_id"))
     return expenseTransaction
 
-def view_expense_report(db, fromDateTime, toDateTime):
+def view_expense_report(db, fromDate, toDate):
     sqlResult = db.call_procedure("ViewExpenseReport", (
-                                    DatabaseDateTime(fromDateTime).iso_format,
-                                    DatabaseDateTime(toDateTime).iso_format))
+                                    fromDate,
+                                    toDate))
 
     return DatabaseResult(sqlResult).fetch_all()
 

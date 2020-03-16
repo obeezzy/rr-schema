@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
-from datetime import datetime
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class FilterClients(StoredProcedureTestCase):
     def test_filter_clients(self):
@@ -30,8 +29,6 @@ def add_single_client(db, clientId, preferredName, phoneNumber):
         "last_name": "Last name",
         "preferred_name": preferredName,
         "phone_number": phoneNumber,
-        "created": DatabaseDateTime(datetime.now()).iso_format,
-        "last_edited": DatabaseDateTime(datetime.now()).iso_format,
         "user_id": 1
     }
 
@@ -41,8 +38,6 @@ def add_single_client(db, clientId, preferredName, phoneNumber):
                         "last_name",
                         "preferred_name",
                         "phone_number",
-                        "created",
-                        "last_edited",
                         "user_id") \
                 .values(tuple(client.values())) \
                 .execute()

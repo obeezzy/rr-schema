@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 from datetime import datetime, timedelta
 
 class FilterPurchaseReport(StoredProcedureTestCase):
@@ -81,15 +81,15 @@ class FilterPurchaseReport(StoredProcedureTestCase):
                                                     productUnitId=productUnit3["product_unit_id"],
                                                     cost=378.28,
                                                     discount=8.28)
-        today = datetime.now()
-        tomorrow = today + timedelta(days=1, hours=4)
+        today = datetime.date(datetime.now())
+        tomorrow = today + timedelta(days=1)
         filteredPurchaseReport = filter_purchase_report(db=self.db,
                                                         filterColumn="product_category",
                                                         filterText="powerful",
                                                         sortColumn="product_category",
                                                         sortOrder="ascending",
-                                                        fromDateTime=today,
-                                                        toDateTime=tomorrow)
+                                                        fromDate=today,
+                                                        toDate=tomorrow)
 
         self.assertEqual(len(filteredPurchaseReport), 2, "Expected 2 transactions.")
         self.assertEqual(filteredPurchaseReport[0]["product_category_id"],
@@ -135,8 +135,8 @@ class FilterPurchaseReport(StoredProcedureTestCase):
                                                         filterText="weak",
                                                         sortColumn="product_category",
                                                         sortOrder="ascending",
-                                                        fromDateTime=today,
-                                                        toDateTime=tomorrow)
+                                                        fromDate=today,
+                                                        toDate=tomorrow)
 
         self.assertEqual(len(filteredPurchaseReport), 1, "Expected 1 transaction.")
         self.assertEqual(filteredPurchaseReport[0]["product_category_id"],
@@ -272,14 +272,14 @@ def add_current_product_quantity(db, productId, quantity):
     currentProductQuantity.update(DatabaseResult(result).fetch_one("current_product_quantity_id"))
     return currentProductQuantity
 
-def filter_purchase_report(db, filterColumn, filterText, sortColumn, sortOrder, fromDateTime, toDateTime):
+def filter_purchase_report(db, filterColumn, filterText, sortColumn, sortOrder, fromDate, toDate):
     sqlResult = db.call_procedure("FilterPurchaseReport", (
                                     filterColumn,
                                     filterText,
                                     sortColumn,
                                     sortOrder,
-                                    DatabaseDateTime(fromDateTime).iso_format,
-                                    DatabaseDateTime(toDateTime).iso_format))
+                                    fromDate,
+                                    toDate))
 
     return DatabaseResult(sqlResult).fetch_all()
 

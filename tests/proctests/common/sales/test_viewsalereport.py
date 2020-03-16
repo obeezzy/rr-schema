@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 from datetime import datetime, timedelta
 
 class ViewSaleReport(StoredProcedureTestCase):

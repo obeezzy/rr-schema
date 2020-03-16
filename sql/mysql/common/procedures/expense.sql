@@ -63,7 +63,7 @@ CREATE PROCEDURE FilterExpenseReport (
 BEGIN
     SELECT id AS expense_transaction_id,
             purpose AS purpose,
-            amount AS purpose
+            amount AS amount
         FROM expense_transaction
         WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
                         AND IFNULL(iTo, CURRENT_TIMESTAMP())

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 from datetime import datetime, timedelta
 
 class ViewPurchaseTransactions(StoredProcedureTestCase):
@@ -9,11 +9,11 @@ class ViewPurchaseTransactions(StoredProcedureTestCase):
         purchaseTransaction2 = add_second_purchase_transaction(self.db)
         purchaseTransaction3 = add_third_purchase_transaction(self.db)
 
-        beginningOfDay = datetime(datetime.now().year, datetime.now().month, datetime.now().day)
-        minuteFromNow = datetime.now() + timedelta(minutes=1)
+        today = datetime.date(datetime.now())
+        tomorrow = today + timedelta(days=1)
         viewedPurchaseTransactions = view_purchase_transactions(db=self.db,
-                                                                fromDateTime=beginningOfDay,
-                                                                toDateTime=minuteFromNow)
+                                                                fromDate=today,
+                                                                toDate=tomorrow)
 
         self.assertEqual(len(viewedPurchaseTransactions), 3, "Expected 3 transactions.")
         self.assertEqual(viewedPurchaseTransactions[0]["purchase_transaction_id"],
@@ -190,14 +190,12 @@ def add_purchase_payment(db, purchaseTransactionId, amount, paymentMethod, archi
     purchasePayment.update(DatabaseResult(result).fetch_one("purchase_payment_id"))
     return purchasePayment
 
-def view_purchase_transactions(db, fromDateTime, toDateTime, suspended=None, archived=None):
-    args = {
-        "from": DatabaseDateTime(fromDateTime).iso_format,
-        "to": DatabaseDateTime(toDateTime).iso_format,
-        "suspended": suspended,
-        "archived": archived
-    }
-    sqlResult = db.call_procedure("ViewPurchaseTransactions", tuple(args.values()))
+def view_purchase_transactions(db, fromDate, toDate, suspended=None, archived=None):
+    sqlResult = db.call_procedure("ViewPurchaseTransactions", (
+                                    fromDate,
+                                    toDate,
+                                    suspended,
+                                    archived))
     return DatabaseResult(sqlResult).fetch_all()
 
 if __name__ == '__main__':

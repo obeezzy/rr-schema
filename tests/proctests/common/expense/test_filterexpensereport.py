@@ -18,15 +18,15 @@ class FilterExpenseReport(StoredProcedureTestCase):
                                                         purpose="Buy Facebook",
                                                         amount=190)
 
-        today = datetime.now()
+        today = datetime.date(datetime.now())
         tomorrow = today + timedelta(days=1)
         filteredExpenseReport = filter_expense_report(db=self.db,
                                                         filterColumn="purpose",
                                                         filterText=expenseTransaction1["purpose"][0:6],
                                                         sortColumn="purpose",
                                                         sortOrder="ascending",
-                                                        fromDateTime=today,
-                                                        toDateTime=tomorrow)
+                                                        fromDate=today,
+                                                        toDate=tomorrow)
         fetchedExpenseTransactions = fetch_expense_transactions(self.db)
 
         self.assertEqual(len(fetchedExpenseTransactions), 3, "Expected 3 transactions.")
@@ -40,8 +40,8 @@ class FilterExpenseReport(StoredProcedureTestCase):
                                                         filterText=expenseTransaction2["purpose"][0:6],
                                                         sortColumn="purpose",
                                                         sortOrder="ascending",
-                                                        fromDateTime=today,
-                                                        toDateTime=tomorrow)
+                                                        fromDate=today,
+                                                        toDate=tomorrow)
         self.assertEqual(len(fetchedExpenseTransactions), 3, "Expected 3 transactions.")
         self.assertEqual(len(filteredExpenseReport), 1, "Expected 1 transaction.")
         self.assertEqual(filteredExpenseReport[0]["expense_transaction_id"], expenseTransaction2["expense_transaction_id"], "Expense transaction ID mismatch")
@@ -53,8 +53,8 @@ class FilterExpenseReport(StoredProcedureTestCase):
                                                         filterText=expenseTransaction3["purpose"][0:6],
                                                         sortColumn="purpose",
                                                         sortOrder="ascending",
-                                                        fromDateTime=today,
-                                                        toDateTime=tomorrow)
+                                                        fromDate=today,
+                                                        toDate=tomorrow)
         self.assertEqual(len(fetchedExpenseTransactions), 3, "Expected 3 transactions.")
         self.assertEqual(len(filteredExpenseReport), 1, "Expected 1 transaction.")
         self.assertEqual(filteredExpenseReport[0]["expense_transaction_id"], expenseTransaction3["expense_transaction_id"], "Expense transaction ID mismatch")
@@ -83,15 +83,14 @@ def add_expense_transaction(db, clientName, purpose, amount):
     expenseTransaction.update(DatabaseResult(result).fetch_one("expense_transaction_id"))
     return expenseTransaction
 
-def filter_expense_report(db, filterColumn, filterText, sortColumn, sortOrder, fromDateTime, toDateTime):
+def filter_expense_report(db, filterColumn, filterText, sortColumn, sortOrder, fromDate, toDate):
     sqlResult = db.call_procedure("FilterExpenseReport", (
                                     filterColumn,
                                     filterText,
                                     sortColumn,
                                     sortOrder,
-                                    DatabaseDateTime(fromDateTime).iso_format,
-                                    DatabaseDateTime(toDateTime).iso_format))
-
+                                    fromDate,
+                                    toDate))
     return DatabaseResult(sqlResult).fetch_all()
 
 def fetch_expense_transactions(db):

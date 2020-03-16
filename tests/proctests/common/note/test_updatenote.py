@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
-from datetime import datetime
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class UpdateNote(StoredProcedureTestCase):
     def test_update_note(self):
@@ -35,9 +34,7 @@ def update_note(db):
         "user_id": 1
     }
 
-    db.call_procedure("UpdateNote",
-                        tuple(note.values()))
-
+    db.call_procedure("UpdateNote", tuple(note.values()))
     return note
 
 def fetch_note(db):
@@ -47,7 +44,6 @@ def fetch_note(db):
                                     "table_name AS table_name",
                                     "user_id AS user_id") \
                             .execute()
-
     return DatabaseResult(rowResult).fetch_one()
 
 if __name__ == '__main__':

@@ -16,10 +16,8 @@ def add_note(db):
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("AddNote",
-                                    tuple(note.values()))
+    sqlResult = db.call_procedure("AddNote", tuple(note.values()))
     note.update(DatabaseResult(sqlResult).fetch_one("note_id"))
-
     return note
 
 def fetch_note(db):

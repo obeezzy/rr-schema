@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult
-from datetime import datetime
 
 class AddCreditTransaction(StoredProcedureTestCase):
     def test_add_credit_transaction(self):

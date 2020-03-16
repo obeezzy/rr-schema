@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
-from datetime import datetime
+from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class RevertPurchaseQuantityUpdate(StoredProcedureTestCase):
     def test_revert_purchase_quantity_update(self):
