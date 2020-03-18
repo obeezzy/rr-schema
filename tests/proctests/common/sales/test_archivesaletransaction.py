@@ -29,7 +29,7 @@ class ArchiveSaleTransaction(StoredProcedureTestCase):
                                     saleTransactionId=saleTransaction2["sale_transaction_id"])
         fetchedSaleTransactions = fetch_sale_transactions(db=self.db)
 
-        self.assertEqual(len(fetchedSaleTransactions), 2, "Expected 3 transactions.")
+        self.assertEqual(len(fetchedSaleTransactions), 2, "Expected 2 transactions.")
         self.assertEqual(fetchedSaleTransactions[0]["sale_transaction_id"],
                             saleTransaction1["sale_transaction_id"],
                             "Sale transaction ID mismatch.")

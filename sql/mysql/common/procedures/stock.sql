@@ -522,42 +522,39 @@ END;
 ---
 
 CREATE PROCEDURE ArchiveStockProduct (
+    IN iArchived INTEGER,
     IN iProductId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
     UPDATE product
-        SET archived = 1,
-            last_edited = CURRENT_TIMESTAMP(),
+        SET archived = iArchived,
             user_id = iUserId
             WHERE id = iProductId;
-        SET @productCategoryId = (SELECT category_id
-                                    FROM product
-                                    WHERE id = iProductId);
-        SET @productExistsUnderCategory = (SELECT EXISTS(SELECT product_category_id
-                                                        FROM product
-                                                        WHERE archived = 0
-                                                        AND product_category_id = @productCategoryId LIMIT 1)
-                                        );
-    IF @productExistsUnderCategory = FALSE THEN
-        UPDATE category
-            SET archived = 1,
-                last_edited = CURRENT_TIMESTAMP(),
-                user_id = iUserId
-            WHERE id = @productCategoryId;
-    END IF;
+
+    SET @productCategoryId = (SELECT product_category_id
+                                FROM product
+                                WHERE id = iProductId);
+
+    UPDATE product_category
+        SET archived = IFNULL((SELECT archived
+                            FROM product
+                            WHERE product_category_id = @productCategoryId
+                            AND archived = FALSE
+                            LIMIT 1), TRUE),
+            user_id = iUserId
+        WHERE id = @productCategoryId;
 END;
 
 ---
 
-CREATE PROCEDURE UndoArchiveStockItem (
+CREATE PROCEDURE UndoArchiveStockProduct (
     IN iProductId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
 	UPDATE product
-        SET archived = 0,
-            last_edited = CURRENT_TIMESTAMP(),
+        SET archived = FALSE,
             user_id = iUserId
         WHERE id = iProductId;
 
@@ -595,7 +592,7 @@ BEGIN
 		INNER JOIN product_unit ON product.id = product_unit.product_id
 		INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
 		LEFT JOIN rr_user ON product.user_id = iUserId
-		WHERE product.archived = 0
+		WHERE product.archived = FALSE
         AND product_unit.base_unit_equivalent = 1
 		AND product.id = iProductId;
 
@@ -605,9 +602,8 @@ BEGIN
                         LIMIT 1);
     IF @productCategoryId IS NOT NULL THEN
         UPDATE category
-        SET archived = 0,
-            last_edited = CURRENT_TIMESTAMP(),
-            user_id = iUserId
+            SET archived = FALSE,
+                user_id = iUserId
             WHERE id = @productCategoryId;
     END IF;
 END;
