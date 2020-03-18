@@ -473,7 +473,7 @@ CREATE PROCEDURE UpdateStockProduct (
     IN iDescription VARCHAR(200),
     IN iBarcode VARCHAR(50),
     IN iDivisible BOOLEAN,
-    IN iImageData BLOB,
+    IN iImage BLOB,
     IN iNoteId INTEGER,
     IN iUserId INTEGER
 )
@@ -485,10 +485,8 @@ BEGIN
             description = iDescription,
 		    barcode = iBarcode,
             divisible = iDivisible,
-            image_data = iImageData,
+            image = iImage,
             note_id = NULLIF(iNoteId, 0),
-            archived = FALSE,
-		    last_edited = CURRENT_TIMESTAMP(),
             user_id = iUserId
 		    WHERE product.id = iProductId;
 END;
