@@ -460,7 +460,7 @@ CREATE PROCEDURE FetchStockProductCategoryId (
 BEGIN
 	SELECT (SELECT product_category_id
             FROM product
-            WHERE product.id = iProductId) AS category_id;
+            WHERE product.id = iProductId) AS product_category_id;
 END;
 
 ---
