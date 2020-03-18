@@ -392,9 +392,6 @@ BEGIN
                                 preferred,
                                 currency,
                                 note_id,
-                                archived,
-                                created,
-                                last_edited,
                                 user_id)
 		VALUES (iProductId,
                 iUnit,
@@ -405,15 +402,12 @@ BEGIN
                 IFNULL(iPreferred, FALSE),
                 iCurrency,
                 NULLIF(iNoteId, 0),
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
 
 	IF LAST_INSERT_ID() > 0 THEN
-		SELECT LAST_INSERT_ID() AS id;
+		SELECT LAST_INSERT_ID() AS product_unit_id;
 	ELSE
-		SELECT id
+		SELECT id AS product_unit_id
             FROM product_unit
             WHERE unit = iUnit;
     END IF;
