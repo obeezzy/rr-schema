@@ -348,9 +348,6 @@ BEGIN
                         divisible,
                         image,
                         note_id,
-                        archived,
-                        created,
-                        last_edited,
                         user_id)
 		VALUES (iProductCategoryId,
                 iProduct,
@@ -360,9 +357,6 @@ BEGIN
                 IFNULL(iDivisible, FALSE),
                 iImage,
                 NULLIF(iNoteId, 0),
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
 
 	    IF LAST_INSERT_ID() > 0 THEN
