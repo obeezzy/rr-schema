@@ -488,7 +488,7 @@ BEGIN
             image = iImage,
             note_id = NULLIF(iNoteId, 0),
             user_id = iUserId
-		    WHERE product.id = iProductId;
+		WHERE product.id = iProductId;
 END;
 
 ---
@@ -515,8 +515,6 @@ BEGIN
             preferred = iPreferred,
             currency = iCurrency,
             note_id = iNoteId,
-            archived = FALSE,
-            last_edited = CURRENT_TIMESTAMP(),
             user_id = iUserId
         WHERE product_id = iProductId;
 END;
