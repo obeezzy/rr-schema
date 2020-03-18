@@ -85,7 +85,7 @@ CREATE TABLE credit_transaction (
 -- Create current product quantity table
 CREATE TABLE current_product_quantity (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    product_id INTEGER DEFAULT NULL,
+    product_id INTEGER NOT NULL,
     quantity DOUBLE NOT NULL,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_edited DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -210,7 +210,6 @@ CREATE TABLE initial_product_quantity (
     id INTEGER NOT NULL AUTO_INCREMENT,
     product_id INTEGER NOT NULL,
     quantity DOUBLE NOT NULL,
-    product_unit_id INTEGER NOT NULL,
     reason VARCHAR(30) NOT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

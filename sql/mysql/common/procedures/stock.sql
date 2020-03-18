@@ -418,21 +418,20 @@ END;
 CREATE PROCEDURE AddInitialProductQuantity (
     IN iProductId INTEGER,
     IN iQuantity DOUBLE,
-    IN iProductUnitId INTEGER,
-    IN iReason VARCHAR(20),
+    IN iReason VARCHAR(50),
     IN iUserId INTEGER
 )
 BEGIN
 	INSERT INTO initial_product_quantity (product_id,
                                             quantity,
-                                            product_unit_id,
                                             reason,
                                             user_id)
 		VALUES (iProductId,
                 iQuantity,
-                iProductUnitId,
                 iReason,
                 iUserId);
+
+    SELECT LAST_INSERT_ID() AS initial_product_quantity_id;
 END;
 
 ---
@@ -440,22 +439,17 @@ END;
 CREATE PROCEDURE AddCurrentProductQuantity (
     IN iProductId INTEGER,
     IN iQuantity DOUBLE,
-    IN iProductUnitId INTEGER,
     IN iUserId INTEGER
 )
 BEGIN
 	INSERT INTO current_product_quantity (product_id,
                                             quantity,
-                                            product_unit_id,
-                                            created,
-                                            last_edited,
                                             user_id)
 		VALUES (iProductId,
                 iQuantity,
-                iProductUnitId,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
+
+    SELECT LAST_INSERT_ID() AS current_product_quantity_id;
 END;
 
 ---
