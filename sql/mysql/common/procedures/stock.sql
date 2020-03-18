@@ -299,16 +299,10 @@ BEGIN
 	INSERT IGNORE INTO product_category (category,
                                         short_form,
                                         note_id,
-                                        archived,
-                                        created,
-                                        last_edited,
                                         user_id)
 		VALUES (iCategory,
                 iShortForm,
                 NULLIF(iNoteId, 0),
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
 
 	IF LAST_INSERT_ID() > 0 THEN
@@ -316,7 +310,7 @@ BEGIN
             WHERE id = LAST_INSERT_ID();
 		SELECT LAST_INSERT_ID() AS product_category_id;
 	ELSE
-		SELECT id
+		SELECT id AS product_category_id
             FROM product_category
             WHERE category = iCategory;
     END IF;
