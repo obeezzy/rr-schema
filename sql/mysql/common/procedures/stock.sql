@@ -223,8 +223,7 @@ CREATE PROCEDURE DeductStockProductQuantity (
     IN iQuantity DOUBLE,
     IN iProductUnitId INTEGER,
     IN iReason VARCHAR(200),
-    IN iUserId INTEGER,
-    OUT oInitialQuantityId INTEGER
+    IN iUserId INTEGER
 )
 BEGIN
 	SET @availableQuantity := 0.0;
@@ -237,30 +236,23 @@ BEGIN
             SET MESSAGE_TEXT = 'Available quantity is too low to make deduction.';
     END IF;
 
+    UPDATE current_product_quantity
+            SET quantity = @availableQuantity - iQuantity,
+                user_id = iUserId
+		WHERE product_id = iProductId;
+
     INSERT INTO initial_product_quantity (product_id,
                                             quantity,
                                             product_unit_id,
                                             reason,
-                                            archived,
-                                            created,
-                                            last_edited,
                                             user_id)
 		VALUES (iProductId,
                 @availableQuantity,
                 iProductUnitId,
                 iReason,
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
 
-    SELECT LAST_INSERT_ID() INTO oInitialQuantityId;
-
-    UPDATE current_product_quantity
-            SET quantity = @availableQuantity - iQuantity,
-                last_edited = CURRENT_TIMESTAMP(),
-                user_id = iUserId
-		WHERE product_id = iProductId;
+    SELECT LAST_INSERT_ID() AS initial_product_quantity_id;
 END;
 
 ---
