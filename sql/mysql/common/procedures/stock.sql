@@ -427,17 +427,11 @@ BEGIN
                                             quantity,
                                             product_unit_id,
                                             reason,
-                                            archived,
-                                            created,
-                                            last_edited,
                                             user_id)
 		VALUES (iProductId,
                 iQuantity,
                 iProductUnitId,
                 iReason,
-                FALSE,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
 END;
 
