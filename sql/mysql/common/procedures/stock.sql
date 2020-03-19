@@ -537,75 +537,13 @@ BEGIN
                                 WHERE id = iProductId);
 
     UPDATE product_category
-        SET archived = IFNULL((SELECT archived
-                            FROM product
-                            WHERE product_category_id = @productCategoryId
-                            AND archived = FALSE
-                            LIMIT 1), TRUE),
+        SET archived = NOT EXISTS(SELECT archived
+                                    FROM product
+                                    WHERE product_category_id = @productCategoryId
+                                    AND archived = FALSE
+                                    LIMIT 1),
             user_id = iUserId
         WHERE id = @productCategoryId;
-END;
-
----
-
-CREATE PROCEDURE UndoArchiveStockProduct (
-    IN iProductId INTEGER,
-    IN iUserId INTEGER
-)
-BEGIN
-	UPDATE product
-        SET archived = FALSE,
-            user_id = iUserId
-        WHERE id = iProductId;
-
-    SET @productCategoryId := 0;
-    SELECT product_category_id INTO @productCategoryId
-        FROM product
-        INNER JOIN product_category ON product_category.id = product.product_category_id
-        WHERE product.id = iProductId;
-
-    UPDATE product_category
-        SET archived = 0,
-            last_edited = CURRENT_TIMESTAMP(),
-            user_id = iUserId
-        WHERE id = @productCategoryId;
-
-	SELECT product.id AS product,
-            product_category.id AS product_category_id,
-            product_category.category,
-            product.product,
-            product.description,
-            product.divisible,
-            product.image_data,
-            current_product_quantity.quantity,
-            product_unit.id AS product_unit_id,
-            product_unit.unit,
-            product_unit.cost_price,
-            product_unit.retail_price,
-            product_unit.currency,
-            product.created,
-            product.last_edited,
-            product.user_id,
-            product.user_id AS user
-        FROM product
-		INNER JOIN product_category ON product.product_category_id = product_category.id
-		INNER JOIN product_unit ON product.id = product_unit.product_id
-		INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
-		LEFT JOIN rr_user ON product.user_id = iUserId
-		WHERE product.archived = FALSE
-        AND product_unit.base_unit_equivalent = 1
-		AND product.id = iProductId;
-
-    SET @productCategoryId = (SELECT id
-                        FROM product
-                        WHERE archived = 0
-                        LIMIT 1);
-    IF @productCategoryId IS NOT NULL THEN
-        UPDATE category
-            SET archived = FALSE,
-                user_id = iUserId
-            WHERE id = @productCategoryId;
-    END IF;
 END;
 
 ---
@@ -616,9 +554,9 @@ CREATE PROCEDURE ViewStockReport (
 )
 BEGIN
     SELECT p.id AS product_id,
-        category.id AS category_id,
-        product_category.category,
-        p.product,
+        product_category.id AS product_category_id,
+        product_category.category AS product_category,
+        p.product AS product,
         (SELECT IFNULL(quantity, 0)
             FROM initial_product_quantity
             WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
@@ -638,12 +576,12 @@ BEGIN
             AND purchased_product.product_id = p.id) AS quantity_bought,
             current_product_quantity.quantity AS quantity_in_stock,
             product_unit.id AS product_unit_id,
-            product_unit.unit
+            product_unit.unit AS unit
         FROM product p
         INNER JOIN product_category ON p.product_category_id = product_category.id
-        INNER JOIN product_unit ON product.id = product_unit.product_id
-        INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
-        LEFT JOIN rr_user ON product.user_id = rr_user.id
+        INNER JOIN product_unit ON p.id = product_unit.product_id
+        INNER JOIN current_product_quantity ON p.id = current_product_quantity.product_id
+        LEFT JOIN rr_user ON p.user_id = rr_user.id
         WHERE p.archived = FALSE AND product_unit.base_unit_equivalent = 1;
 END;
 
@@ -686,7 +624,7 @@ BEGIN
         INNER JOIN product_category ON p.product_category_id = product_category.id
         INNER JOIN product_unit ON product.id = product_unit.product_id
         INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
-        LEFT JOIN rr_user ON product.user_id = rr_user.id
+        LEFT JOIN rr_user ON p.user_id = rr_user.id
         WHERE p.archived = FALSE AND product_unit.base_unit_equivalent = 1
         AND product_category.category LIKE (CASE
                                         WHEN LOWER(iFilterColumn) = 'category'
