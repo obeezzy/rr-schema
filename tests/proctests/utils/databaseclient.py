@@ -2,10 +2,21 @@ import mysqlx
 from mysqlx.result import SqlResult, RowResult, Result
 from pathlib import Path
 import re
-from .config import config
 from datetime import datetime
 from decimal import Decimal
 import logging
+import os
+
+try:
+    from .config import config
+except ImportError:
+    config = {
+        "user": os.environ["MYSQL_USER"],
+        "password": os.environ["MYSQL_PASSWORD"],
+        "host": "localhost",
+        "port": 33060,
+        "ssl-mode": mysqlx.SSLMode.DISABLED
+    }
 
 class DatabaseErrorCodes:
     USER_DEFINED_EXCEPTION = 1644

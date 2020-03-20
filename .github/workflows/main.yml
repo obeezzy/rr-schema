@@ -29,12 +29,9 @@ jobs:
         MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
     # Runs a single command using the runners shell
-    - name: Prepare test script
+    - name: Run tests
       run: |
         pushd tests
         export PYTHONPATH=.
         chmod +x ./runtests.sh
-
-    # Runs a set of commands using the runners shell
-    - name: Run tests!
-      run: ./runtests
+	./runtests
