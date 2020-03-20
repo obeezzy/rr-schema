@@ -44,15 +44,12 @@ BEGIN
     END IF;
 
     INSERT INTO rr_user (user,
-                        password,
                         first_name,
                         last_name,
                         photo,
                         phone_number,
                         email_address,
                         note_id,
-                        created,
-                        last_edited,
                         user_id)
         VALUES (iUser,
                 iFirstName,
@@ -61,8 +58,6 @@ BEGIN
                 iPhoneNumber,
                 iEmailAddress,
                 NULLIF(iNoteId, 0),
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP(),
                 iUserId);
     SELECT LAST_INSERT_ID() AS user_id;
 END;
