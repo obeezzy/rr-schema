@@ -34,4 +34,4 @@ jobs:
         pushd tests
         export PYTHONPATH=.
         chmod +x ./runtests.sh
-        ./runtests
+        ./runtests.sh
