@@ -152,7 +152,7 @@ CREATE PROCEDURE RevokeSqlPrivilege (
 BEGIN
     DECLARE _HOST CHAR(14) DEFAULT '@\'localhost\'';
     SET iUser := CONCAT('\'', REPLACE(TRIM(iUser), CHAR(39), CONCAT(CHAR(92), CHAR(39))), '\'');
-    SET @sql := CONCAT('REVOKE ', iPrivilege, ' ON *.* TO ', iUser, _HOST);
+    SET @sql := CONCAT('REVOKE ', iPrivilege, ' ON *.* FROM ', iUser, _HOST);
     PREPARE stmt FROM @sql;
     EXECUTE stmt;
     DEALLOCATE PREPARE stmt;
