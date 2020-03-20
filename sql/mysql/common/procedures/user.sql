@@ -91,15 +91,15 @@ END
 ---
 
 CREATE PROCEDURE FetchUserByName (
-	iUserName VARCHAR(50)
+	iUser VARCHAR(50)
 )
 BEGIN
 	SELECT rr_user.id AS user_id,
-            rr_user.user,
+            rr_user.user AS user,
             user_privilege.privileges AS user_privileges
         FROM rr_user
 		LEFT JOIN user_privilege ON rr_user.id = user_privilege.user_id
-        WHERE user = iUserName;
+        WHERE user = iUser;
 END
 
 ---
