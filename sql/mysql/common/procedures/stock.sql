@@ -192,19 +192,16 @@ END;
 CREATE PROCEDURE AddStockProductQuantity (
     IN iProductId INTEGER,
     IN iQuantity DOUBLE,
-    IN iProductUnitId INTEGER,
     IN iReason VARCHAR(200),
     IN iUserId INTEGER
 )
 BEGIN
     INSERT INTO initial_product_quantity (product_id,
                                             quantity,
-                                            product_unit_id,
                                             reason,
                                             user_id)
     SELECT iProductId,
                 quantity,
-                iProductUnitId,
                 iReason,
                 iUserId
         FROM current_product_quantity
@@ -221,7 +218,6 @@ END;
 CREATE PROCEDURE DeductStockProductQuantity (
     IN iProductId INTEGER,
     IN iQuantity DOUBLE,
-    IN iProductUnitId INTEGER,
     IN iReason VARCHAR(200),
     IN iUserId INTEGER
 )
@@ -243,12 +239,10 @@ BEGIN
 
     INSERT INTO initial_product_quantity (product_id,
                                             quantity,
-                                            product_unit_id,
                                             reason,
                                             user_id)
 		VALUES (iProductId,
                 @availableQuantity,
-                iProductUnitId,
                 iReason,
                 iUserId);
 
@@ -597,9 +591,9 @@ CREATE PROCEDURE FilterStockReport (
 )
 BEGIN
     SELECT p.id AS product_id,
-        category.id AS category_id,
-        product_category.category,
-        p.product,
+        product_category.id AS product_category_id,
+        product_category.category AS product_category,
+        p.product AS product,
         (SELECT IFNULL(quantity, 0)
             FROM initial_product_quantity
             WHERE created BETWEEN IFNULL(iFrom, '1970-01-01 00:00:00')
@@ -619,15 +613,15 @@ BEGIN
             AND purchased_product.product_id = p.id) AS quantity_bought,
             current_product_quantity.quantity AS quantity_in_stock,
             product_unit.id AS product_unit_id,
-            product_unit.unit
+            product_unit.unit AS product_unit
         FROM product p
         INNER JOIN product_category ON p.product_category_id = product_category.id
-        INNER JOIN product_unit ON product.id = product_unit.product_id
-        INNER JOIN current_product_quantity ON product.id = current_product_quantity.product_id
+        INNER JOIN product_unit ON p.id = product_unit.product_id
+        INNER JOIN current_product_quantity ON p.id = current_product_quantity.product_id
         LEFT JOIN rr_user ON p.user_id = rr_user.id
         WHERE p.archived = FALSE AND product_unit.base_unit_equivalent = 1
         AND product_category.category LIKE (CASE
-                                        WHEN LOWER(iFilterColumn) = 'category'
+                                        WHEN LOWER(iFilterColumn) = 'product_category'
                                         THEN CONCAT('%', iFilterText, '%')
                                         ELSE '%'
                                         END)
@@ -638,12 +632,12 @@ BEGIN
                             END)
         ORDER BY (CASE
                     WHEN LOWER(iSortOrder) = 'descending'
-                    AND LOWER(iSortColumn) = 'category'
+                    AND LOWER(iSortColumn) = 'product_category'
                     THEN LOWER(product_category.category) END) DESC,
                  (CASE
                     WHEN (iSortOrder IS NULL AND iSortColumn IS NULL)
                             OR (LOWER(iSortOrder) <> 'descending'
-                            AND LOWER(iSortColumn) = 'category')
+                            AND LOWER(iSortColumn) = 'product_category')
                     THEN LOWER(product_category.category) END) ASC,
         LOWER(p.product) ASC;
 END;
