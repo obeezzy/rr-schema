@@ -226,7 +226,7 @@ END;
 
 ---
 
-CREATE PROCEDURE RemoveUser (
+CREATE PROCEDURE RemoveSqlUser (
     iUser VARCHAR(40)
 )
 BEGIN
