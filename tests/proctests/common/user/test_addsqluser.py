@@ -25,8 +25,7 @@ def add_sql_user(db, user, password):
     }
 
     sqlResult = db.call_procedure("AddSqlUser",
-                                    tuple(user.values())
-    )
+                                    tuple(user.values()))
 
     user.update(DatabaseResult(sqlResult).fetch_one())
     return user
