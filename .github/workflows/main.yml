@@ -32,6 +32,7 @@ jobs:
     - name: Upgrade Python
       run: |
         sudo apt-get install python3-venv
+        sudo pip install protobuf
 
     # Runs a single command using the runners shell
     - name: Run tests
