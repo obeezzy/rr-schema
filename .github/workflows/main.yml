@@ -32,6 +32,7 @@ jobs:
     - name: Upgrade Python
       run: |
         sudo apt install python3.7
+        sudo apt-get install python3-venv
 
     # Runs a single command using the runners shell
     - name: Run tests
