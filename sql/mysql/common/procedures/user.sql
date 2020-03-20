@@ -108,7 +108,9 @@ CREATE PROCEDURE ViewUsers (
     iArchived BOOLEAN
 )
 BEGIN
-	SELECT id AS user_id, user, active
+	SELECT id AS user_id,
+        user AS user,
+        active AS active
         FROM rr_user
         WHERE archived = IFNULL(iArchived, FALSE)
         AND id > 1;
