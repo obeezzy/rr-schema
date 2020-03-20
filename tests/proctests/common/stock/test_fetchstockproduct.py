@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
-from datetime import datetime
+from datetime import datetime, date
 
 class FetchStockProduct(StoredProcedureTestCase):
     def test_fetch_stock_product(self):
@@ -58,11 +58,11 @@ class FetchStockProduct(StoredProcedureTestCase):
         self.assertEqual(fetchedStockProduct["currency"], 
                             productUnit["currency"],
                             "Currency mismatch.")
-        self.assertLess(DatabaseDateTime(fetchedStockProduct["created"]), 
-                            datetime.now(),
+        self.assertEqual(DatabaseDateTime(fetchedStockProduct["created"]).date(),
+                            date.today(),
                             "Created date/time mismatch.")
-        self.assertLess(DatabaseDateTime(fetchedStockProduct["last_edited"]), 
-                            datetime.now(),
+        self.assertEqual(DatabaseDateTime(fetchedStockProduct["last_edited"]).date(),
+                            date.today(),
                             "Last edited date/time flag mismatch.")
         self.assertEqual(fetchedStockProduct["user_id"], 
                             1,

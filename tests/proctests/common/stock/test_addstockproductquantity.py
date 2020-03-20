@@ -21,7 +21,6 @@ class AddStockProductQuantity(StoredProcedureTestCase):
         add_stock_product_quantity(db=self.db,
                                     productId=product["product_id"],
                                     quantity=newQuantity,
-                                    productUnitId=productUnit["product_unit_id"],
                                     reason="sale_transaction")
         fetchedInitialProductQuantity = fetch_initial_product_quantity(db=self.db, productId=product["product_id"])
         fetchedCurrentProductQuantity = fetch_current_product_quantity(db=self.db, productId=product["product_id"])
@@ -104,11 +103,10 @@ def add_current_product_quantity(db, productId, quantity):
     currentProductQuantity.update(DatabaseResult(result).fetch_one("current_product_quantity_id"))
     return currentProductQuantity
 
-def add_stock_product_quantity(db, productId, quantity, productUnitId, reason, userId=1):
+def add_stock_product_quantity(db, productId, quantity, reason, userId=1):
     sqlResult = db.call_procedure("AddStockProductQuantity", (
                                     productId,
                                     quantity,
-                                    productUnitId,
                                     reason,
                                     userId))
     return DatabaseResult(sqlResult).fetch_one()
