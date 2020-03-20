@@ -29,10 +29,13 @@ jobs:
         MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
     # Runs a single command using the runners shell
+    - name: Upgrade Python
+      run: |
+        sudo apt-get python3.7
+
+    # Runs a single command using the runners shell
     - name: Run tests
       run: |
-        sudo apt-get update
-        sudo apt-get upgrade
         pushd tests
         python3 -m venv env
         . env/bin/activate
