@@ -167,13 +167,9 @@ CREATE PROCEDURE AddUserPrivileges (
 )
 BEGIN
     INSERT INTO user_privilege (user_id,
-                                privileges,
-                                created,
-                                last_edited)
+                                privileges)
         VALUES (iUserId,
-                iPrivileges,
-                CURRENT_TIMESTAMP(),
-                CURRENT_TIMESTAMP());
+                iPrivileges);
 END;
 
 ---
