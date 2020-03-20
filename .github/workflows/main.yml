@@ -31,7 +31,7 @@ jobs:
     # Runs a single command using the runners shell
     - name: Upgrade Python
       run: |
-        sudo apt-get python3.7
+        sudo apt install python3.7
 
     # Runs a single command using the runners shell
     - name: Run tests
