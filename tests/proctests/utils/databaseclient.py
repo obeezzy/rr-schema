@@ -135,7 +135,9 @@ class DatabaseResult(object):
             for row in fetchedRows:
                 rowAsDict = {}
                 for column in self.sqlResult.columns:
-                    if isinstance(row[column.column_label], datetime):
+                    if row is None:
+                        rowAsDict[column.column_label] = None
+                    elif isinstance(row[column.column_label], datetime):
                         rowAsDict[column.column_label] = DatabaseDateTime(row[column.column_label]).iso_format
                     elif isinstance(row[column.column_label], tuple): # Doubles return as tuples for some reason
                         rowAsDict[column.column_label] = row[column.column_label][0]
@@ -154,7 +156,9 @@ class DatabaseResult(object):
         for row in fetchedRows:
             rowAsDict = {}
             for column in self.rowResult.columns:
-                if isinstance(row[column.column_label], datetime):
+                if row is None:
+                    rowAsDict[column.column_label] = None
+                elif isinstance(row[column.column_label], datetime):
                     rowAsDict[column.column_label] = DatabaseDateTime(row[column.column_label]).iso_format
                 elif isinstance(row[column.column_label], tuple): # Doubles return as tuples for some reason
                     rowAsDict[column.column_label] = row[column.column_label][0]
@@ -172,7 +176,9 @@ class DatabaseResult(object):
         if self.sqlResult.has_data():
             row = self.sqlResult.fetch_one()
             for column in self.sqlResult.columns:
-                if isinstance(row[column.column_label], datetime):
+                if row is None:
+                    rowAsDict[column.column_label] = None
+                elif isinstance(row[column.column_label], datetime):
                     rowAsDict[column.column_label] = DatabaseDateTime(row[column.column_label]).iso_format
                 elif isinstance(row[column.column_label], tuple): # Doubles return as tuples for some reason
                     rowAsDict[column.column_label] = row[column.column_label][0]
@@ -187,7 +193,9 @@ class DatabaseResult(object):
         rowAsDict = {}
         row = self.rowResult.fetch_one()
         for column in self.rowResult.columns:
-            if isinstance(row[column.column_label], datetime):
+            if row is None:
+                rowAsDict[column.column_label] = None
+            elif isinstance(row[column.column_label], datetime):
                 rowAsDict[column.column_label] = DatabaseDateTime(row[column.column_label]).iso_format
             elif isinstance(row[column.column_label], tuple): # Doubles return as tuples for some reason
                 rowAsDict[column.column_label] = row[column.column_label][0]

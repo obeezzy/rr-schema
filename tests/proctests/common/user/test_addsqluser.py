@@ -12,7 +12,7 @@ class AddSqlUser(StoredProcedureTestCase):
                                     user=self.userName)
 
         self.assertEqual(addedUser["user"], fetchedUser["user"], "User field mismatch.")
-        self.assertEqual(addedUser["host"], fetchedUser["host"], "host field mismatch.")
+        self.assertEqual("localhost", fetchedUser["host"], "Host field mismatch.")
 
     def tearDown(self):
         drop_user(db=self.db, user=self.userName)
