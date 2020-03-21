@@ -28,7 +28,7 @@ jobs:
         MYSQL_USER: ${{ secrets.MYSQL_USER }}
         MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
-    - name:
+    - name: Set up Python
       uses: actions/setup-python@v1
       with:
         python-version: 3.7
@@ -65,13 +65,12 @@ jobs:
     # Runs a single command using the runners shell
     - name: Install required Python packages
       run: |
-        sudo pip install protobuf
+        pip install protobuf
 
     # Runs a single command using the runners shell
     - name: Run tests
       run: |
         pushd tests
-        pip install -r requirements.txt
         chmod +x ./runtests.sh
         export PYTHONPATH=.
         ./runtests.sh
