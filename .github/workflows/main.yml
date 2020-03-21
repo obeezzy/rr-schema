@@ -27,6 +27,7 @@ jobs:
       env:
         MYSQL_USER: ${{ secrets.MYSQL_USER }}
         MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
     - name: Start MySQL service
       run: sudo service mysql restart
