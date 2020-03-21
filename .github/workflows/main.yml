@@ -33,6 +33,9 @@ jobs:
         mysql root password: ${{ secrets.MYSQL_PASSWORD }}
         mysql database: 'rr_test'
 
+    - name: Start up Ubuntu MySQL (SUDO)
+      run: sudo service mysql start
+
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
