@@ -41,6 +41,9 @@ jobs:
     - name: Check MySQL version
       run: mysql --version
 
+    - name: Check if XDevAPI is listening on port 33060
+      run: telnet localhost 33060
+
     - name: Run tests
       env:
         MYSQL_USER: ${{ secrets.MYSQL_USER }}
