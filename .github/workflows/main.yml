@@ -34,6 +34,9 @@ jobs:
         python-version: 3.7
 
     - name: Run tests
+      env:
+        MYSQL_USER: ${{ secrets.MYSQL_USER }}
+        MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
       run: |
         pushd tests
         echo -e "Default \e[92mSetup virtual environment"
