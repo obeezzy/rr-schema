@@ -31,7 +31,7 @@ jobs:
         mysql user: ${{ secrets.MYSQL_USER }}
         mysql password: ${{ secrets.MYSQL_PASSWORD }}
         mysql root password: ${{ secrets.MYSQL_PASSWORD }}
-        mysql database: 'rr_test'
+        mysql database: rr_test
         mysql version: 8.0
 
     - name: Set up Python
@@ -42,8 +42,8 @@ jobs:
     - name: Check MySQL version
       run: mysql --version
 
-    - name: Check if XDevAPI is listening on port 33060
-      run: mysql -u ${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} -e "SHOW plugins" | grep -i mysqlx
+    # - name: Check if XDevAPI is listening on port 33060
+    #   run: mysql -u ${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} -e "SHOW plugins" | grep -i mysqlx
 
     - name: Run tests
       env:
