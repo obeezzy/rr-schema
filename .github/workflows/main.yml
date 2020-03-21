@@ -35,6 +35,12 @@ jobs:
       with:
         python-version: 3.7
 
+    - name: Check MySQL version
+    - run: mysql --version
+
+    - name: Check if MySQL server is running
+    - run: telnet localhost 3306
+
     - name: Run tests
       env:
         MYSQL_USER: ${{ secrets.MYSQL_USER }}
