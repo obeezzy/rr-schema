@@ -35,10 +35,7 @@ jobs:
 
     - name: Start up Ubuntu MySQL (SUDO)
       run: |
-        sudo service mysql status
         sudo service mysql restart
-        # Why i MySQL failing to start
-        sudo systemctl status mysql.service
 
     - name: Set up Python
       uses: actions/setup-python@v1
