@@ -34,10 +34,6 @@ jobs:
         mysql database: 'rr_test'
         mysql version: 8.0
 
-    - name: Start up Ubuntu MySQL (SUDO)
-      run: |
-        sudo service mysql restart
-
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
