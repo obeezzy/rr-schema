@@ -22,13 +22,16 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
+    - name: Shutdown Ubuntu MySQL (SUDO)
+      run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+
     - name: Start MySQL
-      uses: samin/mysql-action@v1.3
+      uses: mirromutth/mysql-action@v1.1
       with:
         mysql user: ${{ secrets.MYSQL_USER }}
         mysql password: ${{ secrets.MYSQL_PASSWORD }}
         mysql root password: ${{ secrets.MYSQL_PASSWORD }}
-        mysql database: rr_test
+        mysql database: 'rr_test'
 
     - name: Set up Python
       uses: actions/setup-python@v1
@@ -37,9 +40,6 @@ jobs:
 
     - name: Check MySQL version
       run: mysql --version
-
-    - name: Check if MySQL server is running
-      run: telnet localhost 3306
 
     - name: Run tests
       env:
