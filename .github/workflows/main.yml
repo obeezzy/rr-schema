@@ -34,7 +34,11 @@ jobs:
         mysql database: 'rr_test'
 
     - name: Start up Ubuntu MySQL (SUDO)
-      run: sudo service mysql start
+      run: |
+        sudo systemctl status mysql.service
+        sudo service mysql start
+        # Why i MySQL failing to start
+        sudo systemctl status mysql.service
 
     - name: Set up Python
       uses: actions/setup-python@v1
