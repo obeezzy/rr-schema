@@ -28,6 +28,9 @@ jobs:
         MYSQL_USER: ${{ secrets.MYSQL_USER }}
         MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
+    - name: Start MySQL service
+      run: service mysql restart
+
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
@@ -39,14 +42,14 @@ jobs:
         MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
       run: |
         pushd tests
-        echo -e "Default \e[92mSetup virtual environment"
+        echo -e "\e[92mSetup virtual environment"
         sudo apt-get install python3-venv
         python3 -m venv env
         . env/bin/activate
-        echo -e "Default \e[92mUpgrade pip and install dependencies"
+        echo -e "\e[92mUpgrade pip and install dependencies"
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        echo -e "Default \e[92mRun all tests"
+        echo -e "\e[92mRun all tests"
         chmod +x ./runtests.sh
         export PYTHONPATH=.
         ./runtests.sh
