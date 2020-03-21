@@ -28,18 +28,22 @@ jobs:
         MYSQL_USER: ${{ secrets.MYSQL_USER }}
         MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
-    # Runs a single command using the runners shell
+    - name:
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+
     - name: Set up virtual environment
       run: |
         pushd tests
         sudo apt-get install python3-venv
         python3 -m venv env
         . env/bin/activate
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
 
     - name: Install protobuf
       run: |
-        #! /bin/bash
         # Make sure you grab the latest version
         curl -OL https://github.com/google/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip
 
