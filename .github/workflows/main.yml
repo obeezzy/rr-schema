@@ -29,7 +29,7 @@ jobs:
         MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
     - name: Start MySQL service
-      run: service mysql restart
+      run: sudo service mysql restart
 
     - name: Set up Python
       uses: actions/setup-python@v1
