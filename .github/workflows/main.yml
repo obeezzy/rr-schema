@@ -35,8 +35,8 @@ jobs:
 
     - name: Start up Ubuntu MySQL (SUDO)
       run: |
-        sudo systemctl status mysql.service
-        sudo service mysql start
+        sudo service mysql status
+        sudo service mysql restart
         # Why i MySQL failing to start
         sudo systemctl status mysql.service
 
