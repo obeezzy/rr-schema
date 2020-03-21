@@ -28,8 +28,6 @@ jobs:
     - name: Start MySQL
       uses: mirromutth/mysql-action@v1.1
       with:
-        mysql user: ${{ secrets.MYSQL_USER }}
-        mysql password: ${{ secrets.MYSQL_PASSWORD }}
         mysql root password: ${{ secrets.MYSQL_PASSWORD }}
         mysql database: rr_test
         mysql version: 8.0
