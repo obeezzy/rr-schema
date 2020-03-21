@@ -24,13 +24,11 @@ jobs:
 
     - name: Start MySQL
       uses: samin/mysql-action@v1.3
-      env:
-        MYSQL_USER: ${{ secrets.MYSQL_USER }}
-        MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-        MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-
-    - name: Start MySQL service
-      run: sudo service mysql restart
+      with:
+        mysql user: ${{ secrets.MYSQL_USER }}
+        mysql password: ${{ secrets.MYSQL_PASSWORD }}
+        mysql root password: ${{ secrets.MYSQL_PASSWORD }}
+        mysql database: rr_test
 
     - name: Set up Python
       uses: actions/setup-python@v1
