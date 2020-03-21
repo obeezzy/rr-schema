@@ -33,19 +33,18 @@ jobs:
       with:
         python-version: 3.7
 
-    - name: Set up virtual environment
-      run: |
-        pushd tests
-        sudo apt-get install python3-venv
-        python3 -m venv env
-        . env/bin/activate
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    # Runs a single command using the runners shell
     - name: Run tests
       run: |
         pushd tests
+        echo -e "Default \e[92mSetup virtual environment"
+        sudo apt-get install python3-venv
+        python3 -m venv env
+        . env/bin/activate
+        echo -e "Default \e[92mUpgrade pip and install dependencies"
+        python -m pip install --upgrade pip
+        pip install python3.7
+        pip install -r requirements.txt
+        echo -e "Default \e[92mRun all tests"
         chmod +x ./runtests.sh
         export PYTHONPATH=.
         ./runtests.sh
