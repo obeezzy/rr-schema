@@ -39,8 +39,8 @@ jobs:
 
     - name: Check MySQL version
       run: |
-        echo "Check ufw status"
-        docker ps
+        echo "Attempt to connect to server with client"
+        docker exec -it heuristic_elion mysql -uroot -p${{ secrets.MYSQL_PASSWORD }}
         mysql --version
 
     # - name: Check if XDevAPI is listening on port 33060
