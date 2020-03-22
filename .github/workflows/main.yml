@@ -41,6 +41,7 @@ jobs:
       run: |
         echo "Attempt to connect to server with client"
         docker ps
+        docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps --format "{{.ID}}"`
         docker exec `docker ps --format "{{.ID}}"` mysql -h 127.0.0.1 -uroot -p${{ secrets.MYSQL_PASSWORD }}
         mysql --version
 
