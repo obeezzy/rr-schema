@@ -28,6 +28,7 @@ class DatabaseClient(object):
     PROCEDURE_DIR = Path(".").resolve().parent.joinpath("sql/mysql/common/procedures")
 
     def __init__(self):
+        print("Config:", config)
         self.session = mysqlx.get_session(**config)
         self.__drop_database()
         self.__create_database()
