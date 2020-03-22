@@ -40,7 +40,10 @@ jobs:
         python-version: 3.7
 
     - name: Check MySQL version
-      run: mysql --version
+      run: |
+        echo "Check ufw status"
+        sudo ufw status
+        mysql --version
 
     # - name: Check if XDevAPI is listening on port 33060
     #   run: mysql -u ${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} -e "SHOW plugins" | grep -i mysqlx
