@@ -44,7 +44,7 @@ jobs:
         docker ps
         docker logs `docker ps --format "{{.ID}}"`
         MYSQL_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps --format "{{.ID}}"`)
-        docker run -it --link `docker ps --format "{{.ID}}"` --rm -e MYSQL_HOST=`docker ps --format "{{.ID}}"` mysql/shell init
+        docker run --link `docker ps --format "{{.ID}}"` --rm -e MYSQL_HOST=`docker ps --format "{{.ID}}"` mysql/shell init
         sudo ss -tulwn
         #docker exec `docker ps --format "{{.ID}}"` mysql -uroot -p${{ secrets.MYSQL_PASSWORD }}
         docker exec `docker ps --format "{{.ID}}"` mysql --version
