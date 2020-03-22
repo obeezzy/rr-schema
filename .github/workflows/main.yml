@@ -44,7 +44,7 @@ jobs:
         docker ps
         docker logs `docker ps --format "{{.ID}}"`
         MYSQL_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps --format "{{.ID}}"`)
-        # docker exec `docker ps --format "{{.ID}}"` mysql -h 127.0.0.1 -uroot -p${{ secrets.MYSQL_PASSWORD }}
+        docker exec `docker ps --format "{{.ID}}"` mysql -h `docker ps --format "{{.Names}}"` -uroot -p${{ secrets.MYSQL_PASSWORD }}
         docker exec `docker ps --format "{{.ID}}"` mysql --version
 
     # - name: Check if XDevAPI is listening on port 33060
