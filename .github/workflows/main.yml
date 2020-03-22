@@ -26,7 +26,7 @@ jobs:
       run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
 
     - name: Start MySQL
-      uses: mirromutth/mysql-action@v1.1
+      uses: obeezzy/mysql-action@v1.1
       with:
         mysql root password: ${{ secrets.MYSQL_PASSWORD }}
         mysql database: rr_test
