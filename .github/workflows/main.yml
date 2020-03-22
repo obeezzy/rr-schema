@@ -31,7 +31,6 @@ jobs:
         mysql root password: ${{ secrets.MYSQL_PASSWORD }}
         mysql database: rr_test
         mysql version: latest
-        collation server: utf8mb4_0900_ai_ci
 
     - name: Set up Python
       uses: actions/setup-python@v1
@@ -45,7 +44,7 @@ jobs:
         docker ps
         docker logs `docker ps --format "{{.ID}}"`
         MYSQL_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps --format "{{.ID}}"`)
-        docker exec `docker ps --format "{{.ID}}"` mysql -uroot -p${{ secrets.MYSQL_PASSWORD }}
+        docker exec `docker ps --format "{{.ID}}"` mysql --host=0.0.0.0 --port=3306 -uroot -p${{ secrets.MYSQL_PASSWORD }}
         docker exec `docker ps --format "{{.ID}}"` mysql --version
 
     # - name: Check if XDevAPI is listening on port 33060
