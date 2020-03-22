@@ -41,7 +41,7 @@ jobs:
       run: |
         echo "Attempt to connect to server with client"
         docker ps
-        docker exec `docker ps --format "{{.ID}}"` mysql -uroot -p${{ secrets.MYSQL_PASSWORD }}
+        docker exec `docker ps --format "{{.ID}}"` mysql -h 127.0.0.1 -uroot -p${{ secrets.MYSQL_PASSWORD }}
         mysql --version
 
     # - name: Check if XDevAPI is listening on port 33060
