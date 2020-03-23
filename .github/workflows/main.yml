@@ -42,6 +42,10 @@ jobs:
         echo "Attempt to connect to server with client"
         docker ps
         CONTAINER_ID=`docker ps --format "{{.ID}}"`
+        echo "docker network inspect host"
+        docker network inspect host
+        echo "docker network inspect bridge"
+        docker network inspect bridge
         echo "docker network ls"
         docker network ls
         docker logs $CONTAINER_ID
