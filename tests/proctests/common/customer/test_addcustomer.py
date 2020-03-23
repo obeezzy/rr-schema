@@ -2,7 +2,7 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
-class AddCreditor(StoredProcedureTestCase):
+class AddCustomer(StoredProcedureTestCase):
     def test_add_customer(self):
         addedCustomer = add_customer(self.db)
         fetchedCustomer = fetch_customer(self.db)
@@ -17,7 +17,7 @@ def add_customer(db):
     }
 
     sqlResult = db.call_procedure("AddCustomer",
-                                        tuple(customer.values()))
+                                    tuple(customer.values()))
     customer.update(DatabaseResult(sqlResult).fetch_one())
     return customer
 
