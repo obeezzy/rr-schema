@@ -263,7 +263,7 @@ CREATE PROCEDURE FetchUserName (
 )
 BEGIN
     SELECT id AS user_id,
-            user
+            user AS user
         FROM rr_user
         WHERE email_address = iEmailAddress;
 END;
