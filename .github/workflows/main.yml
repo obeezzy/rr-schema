@@ -22,7 +22,6 @@ jobs:
         image: mysql:latest
         env:
           MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: rr_test
         ports:
         - 3306:3306
         - 33060:33060
