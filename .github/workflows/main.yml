@@ -25,9 +25,9 @@ jobs:
     #     mysql version: latest
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:latest
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: rr_test
         ports:
         - 3306:3306
@@ -41,6 +41,14 @@ jobs:
 
     # - name: Shutdown Ubuntu MySQL (SUDO)
     #   run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+
+    - name: Verify MySQL connection
+      env:
+        PORT: ${{ job.services.mysql.ports[3306] }}
+      run: |
+        while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
+          sleep 1
+        done
 
     - name: Set up Python
       uses: actions/setup-python@v1
