@@ -5,7 +5,6 @@ import re
 from datetime import datetime
 from decimal import Decimal
 import logging
-import os
 
 try:
     from .__config import config # Use personal config if available

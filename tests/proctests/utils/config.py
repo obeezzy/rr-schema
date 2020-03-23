@@ -1,4 +1,5 @@
 import mysqlx
+import os
 
 config = {
     "user": os.environ["MYSQL_USER"],
