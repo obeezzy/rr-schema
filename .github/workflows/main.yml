@@ -41,7 +41,9 @@ jobs:
       run: |
         echo "Attempt to connect to server with client"
         docker ps
-        docker logs `docker ps --format "{{.ID}}"`
+        CONTAINER_ID=`docker ps --format "{{.ID}}"`
+        docker logs $CONTAINER_ID
+        docker run --network mysql-network --rm mysql mysql -h$CONTAINER_ID -u${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} -e "install plugin mysqlx soname 'mysqlx.so';"
         sudo ss -tulwn
         mysql --version
 
