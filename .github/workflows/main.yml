@@ -80,7 +80,7 @@ jobs:
     - name: Run tests
       env:
         MYSQL_USER: ${{ secrets.MYSQL_USER }}
-        MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        MYSQL_PASSWORD: password
       run: |
         pushd tests
         echo -e "\e[92mSetup virtual environment"
