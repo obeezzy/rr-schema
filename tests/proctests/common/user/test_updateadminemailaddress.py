@@ -2,8 +2,8 @@
 import unittest
 from proctests.utils import DatabaseErrorCodes, StoredProcedureTestCase, DatabaseResult
 
-class FetchUserName(StoredProcedureTestCase):
-    def test_fetch_user_name(self):
+class UpdateAdminEmailAddress(StoredProcedureTestCase):
+    def test_update_admin_email_address(self):
         addedUser = add_rr_user(db=self.db,
                                     user="superman2004",
                                     firstName="Christopher",
@@ -11,11 +11,13 @@ class FetchUserName(StoredProcedureTestCase):
                                     photo=None,
                                     phoneNumber="198389493",
                                     emailAddress="a@b.com")
-        fetchedEmailAddress = fetch_user_name(db=self.db,
-                                                emailAddress=addedUser["email_address"])
+        newEmailAddress = "b@a.com"
+        update_admin_email_address(db=self.db,
+                                    emailAddress=newEmailAddress)
 
-        self.assertEqual(addedUser["user"], fetchedEmailAddress["user"], "User field mismatch.")
-        self.assertEqual(addedUser["user_id"], fetchedEmailAddress["user_id"], "User ID field mismatch.")
+        fetchedAdminUser = fetch_admin_user(db=self.db)
+        self.assertEqual(newEmailAddress, fetchedAdminUser["email_address"], "User field mismatch.")
+        self.assertEqual(1, fetchedAdminUser["user_id"], "User ID field mismatch.")
 
 def add_rr_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
     userDict = {
@@ -41,9 +43,15 @@ def add_rr_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress)
     userDict.update(DatabaseResult(result).fetch_one("user_id"))
     return userDict
 
-def fetch_user_name(db, emailAddress):
-    sqlResult = db.call_procedure("FetchUserName", (emailAddress,))
-    return DatabaseResult(sqlResult).fetch_one()
+def fetch_admin_user(db):
+    userTable = db.schema.get_table("rr_user")
+    rowResult = userTable.select("id AS user_id",
+                                    "email_address AS email_address") \
+                .execute()
+    return DatabaseResult(rowResult).fetch_one()
+
+def update_admin_email_address(db, emailAddress):
+    sqlResult = db.call_procedure("UpdateAdminEmailAddress", (emailAddress,))
 
 if __name__ == '__main__':
     unittest.main()
