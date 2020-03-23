@@ -14,7 +14,7 @@ class StoredProcedureTestCase(unittest.TestCase):
         self.db = DatabaseClient()
 
     def tearDown(self):
-        print(f"({round(self.elapsed, 2)}s)")
+        self.logger.info(f"({round(self.elapsed, 2)}s)")
 
     @property
     def elapsed(self):
