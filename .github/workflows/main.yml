@@ -42,7 +42,7 @@ jobs:
         wget -c https://repo.mysql.com//mysql-apt-config_0.8.13-1_all.deb
         sudo dpkg -i mysql-apt-config_0.8.13-1_all.deb
         sudo apt update
-        sudo apt-get install libmysqlclient18 -y
+        sudo apt-get install libmysqlclient21 -y
 
     - name: Check MySQL version
       run: |
