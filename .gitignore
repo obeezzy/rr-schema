@@ -1,7 +1,7 @@
 *.pyc
 tests/env
 tests/.env/*
-tests/proctests/utils/config.py
+tests/proctests/utils/__config.py
 tests/proctests/__pycache__
 tests/proctests/utils/__pycache__
 .vscode
