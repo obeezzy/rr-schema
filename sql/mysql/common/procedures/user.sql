@@ -276,5 +276,5 @@ CREATE PROCEDURE UpdateAdminEmailAddress (
 BEGIN
     UPDATE rr_user
         SET email_address = iEmailAddress
-        WHERE user = 'admin';
+        WHERE user_id = 1;
 END;
