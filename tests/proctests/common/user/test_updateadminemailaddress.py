@@ -4,7 +4,7 @@ from proctests.utils import DatabaseErrorCodes, StoredProcedureTestCase, Databas
 
 class UpdateAdminEmailAddress(StoredProcedureTestCase):
     def test_update_admin_email_address(self):
-        addedUser = add_rr_user(db=self.db,
+        addedUser = add_user(db=self.db,
                                     user="superman2004",
                                     firstName="Christopher",
                                     lastName="Reeves",
@@ -19,7 +19,7 @@ class UpdateAdminEmailAddress(StoredProcedureTestCase):
         self.assertEqual(newEmailAddress, fetchedAdminUser["email_address"], "User field mismatch.")
         self.assertEqual(1, fetchedAdminUser["user_id"], "User ID field mismatch.")
 
-def add_rr_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
+def add_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
     userDict = {
         "user": user,
         "first_name": firstName,
@@ -30,8 +30,8 @@ def add_rr_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress)
         "user_id": 1
     }
 
-    rrUserTable = db.schema.get_table("rr_user")
-    result = rrUserTable.insert("user",
+    userTable = db.schema.get_table("rr_user")
+    result = userTable.insert("user",
                                 "first_name",
                                 "last_name",
                                 "photo",

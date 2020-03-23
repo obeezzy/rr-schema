@@ -5,17 +5,17 @@ from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class ViewUsers(StoredProcedureTestCase):
     def test_view_users(self):
-        user1 = add_rr_user(db=self.db,
+        user1 = add_user(db=self.db,
                             user="Spider-Man",
                             firstName="Miles",
                             lastName="Morales",
                             active=True)
-        user2 = add_rr_user(db=self.db,
+        user2 = add_user(db=self.db,
                             user="Spider-Gwen",
                             firstName="Gwen",
                             lastName="Stacy",
                             active=False)
-        user3 = add_rr_user(db=self.db,
+        user3 = add_user(db=self.db,
                             user="Silk",
                             firstName="Cindy",
                             lastName="Moon",
@@ -69,7 +69,7 @@ class ViewUsers(StoredProcedureTestCase):
                             viewedUsers[0]["user"],
                             "User field mismatch.")
 
-def add_rr_user(db, user, firstName, lastName, active, archived=False):
+def add_user(db, user, firstName, lastName, active, archived=False):
     user = {
         "user": user,
         "first_name": firstName,
@@ -79,8 +79,8 @@ def add_rr_user(db, user, firstName, lastName, active, archived=False):
         "user_id": 1
     }
 
-    rrUserTable = db.schema.get_table("rr_user")
-    result = rrUserTable.insert("user",
+    userTable = db.schema.get_table("rr_user")
+    result = userTable.insert("user",
                                 "first_name",
                                 "last_name",
                                 "active",

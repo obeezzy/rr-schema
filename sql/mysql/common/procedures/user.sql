@@ -22,7 +22,7 @@ END;
 
 ---
 
-CREATE PROCEDURE AddRRUser (
+CREATE PROCEDURE AddUser (
     IN iUser VARCHAR(100),
     IN iFirstName VARCHAR(100),
     IN iLastName VARCHAR(100),
