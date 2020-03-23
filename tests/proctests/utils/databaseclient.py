@@ -8,8 +8,8 @@ import logging
 import os
 
 try:
-    from .__config import config
-except ImportError:
+    from .__config import config # Use personal config if available
+except:
     from .config import config
 
 class DatabaseErrorCodes:
