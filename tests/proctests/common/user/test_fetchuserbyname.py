@@ -5,25 +5,25 @@ from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class FetchUserByName(StoredProcedureTestCase):
     def test_fetch_user_by_name(self):
-        addedRRUser = add_rr_user(db=self.db,
+        addedUser = add_user(db=self.db,
                                     user="Spider-Man",
                                     firstName="Miles",
                                     lastName="Morales")
         addedUserPrivilege = add_user_privilege(db=self.db,
-                                                userId=addedRRUser["user_id"],
+                                                userId=addedUser["user_id"],
                                                 userPrivilege={
                                                     "type": "sales"
                                                 })
         fetchedUser = fetch_user_by_name(db=self.db,
-                                            user=addedRRUser["user"])
+                                            user=addedUser["user"])
 
-        self.assertEqual(addedRRUser["user"], fetchedUser["user"], "User field mismatch.")
+        self.assertEqual(addedUser["user"], fetchedUser["user"], "User field mismatch.")
         self.assertEqual(addedUserPrivilege["user_privileges"],
                             json.loads(fetchedUser["user_privileges"]),
                             "User privileges field mismatch.")
-        self.assertEqual(addedRRUser["user_id"], fetchedUser["user_id"], "User ID mismatch.")
+        self.assertEqual(addedUser["user_id"], fetchedUser["user_id"], "User ID mismatch.")
 
-def add_rr_user(db, user, firstName, lastName):
+def add_user(db, user, firstName, lastName):
     user = {
         "user": user,
         "first_name": firstName,
@@ -31,8 +31,8 @@ def add_rr_user(db, user, firstName, lastName):
         "user_id": 1
     }
 
-    rrUserTable = db.schema.get_table("rr_user")
-    result = rrUserTable.insert("user",
+    userTable = db.schema.get_table("rr_user")
+    result = userTable.insert("user",
                                 "first_name",
                                 "last_name",
                                 "user_id") \

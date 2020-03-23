@@ -2,16 +2,16 @@
 import unittest
 from proctests.utils import DatabaseErrorCodes, StoredProcedureTestCase, DatabaseResult
 
-class AddRRUser(StoredProcedureTestCase):
-    def test_add_rr_user(self):
-        addedUser = add_rr_user(db=self.db,
-                                    user="superman2004",
-                                    firstName="Christopher",
-                                    lastName="Reeves",
-                                    photo=None,
-                                    phoneNumber="198389493",
-                                    emailAddress="a@b.com")
-        fetchedUser = fetch_rr_user(db=self.db,
+class AddUser(StoredProcedureTestCase):
+    def test_add_user(self):
+        addedUser = add_user(db=self.db,
+                                user="superman2004",
+                                firstName="Christopher",
+                                lastName="Reeves",
+                                photo=None,
+                                phoneNumber="198389493",
+                                emailAddress="a@b.com")
+        fetchedUser = fetch_user(db=self.db,
                                     userId=addedUser["user_id"])
 
         self.assertEqual(addedUser["user"], fetchedUser["user"], "User field mismatch.")
@@ -23,7 +23,7 @@ class AddRRUser(StoredProcedureTestCase):
         self.assertEqual(addedUser["note_id"], fetchedUser["note_id"], "Note ID field mismatch.")
         self.assertEqual(addedUser["user_id"], fetchedUser["user_id"], "User ID field mismatch.")
 
-def add_rr_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
+def add_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
     user = {
         "user": user,
         "first_name": firstName,
@@ -35,16 +35,16 @@ def add_rr_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress)
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("AddRRUser",
+    sqlResult = db.call_procedure("AddUser",
                                     tuple(user.values())
     )
 
     user.update(DatabaseResult(sqlResult).fetch_one())
     return user
 
-def fetch_rr_user(db, userId):
-    rrUserTable = db.schema.get_table("rr_user")
-    rowResult = rrUserTable.select("user AS user",
+def fetch_user(db, userId):
+    userTable = db.schema.get_table("rr_user")
+    rowResult = userTable.select("user AS user",
                                     "first_name AS first_name",
                                     "last_name AS last_name",
                                     "photo AS photo",

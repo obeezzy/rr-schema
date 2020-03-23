@@ -5,23 +5,23 @@ from proctests.utils import StoredProcedureTestCase, DatabaseResult
 
 class AddUserPrivileges(StoredProcedureTestCase):
     def test_add_user_privileges(self):
-        addedRRUser = add_rr_user(db=self.db,
-                                    user="Spider-Man",
-                                    firstName="Miles",
-                                    lastName="Morales")
+        addedUser = add_user(db=self.db,
+                                user="Spider-Man",
+                                firstName="Miles",
+                                lastName="Morales")
         addedUserPrivileges = add_user_privileges(db=self.db,
                                                     userPrivileges={
                                                         "type": "sales"
                                                     },
-                                                    userId=addedRRUser["user_id"])
+                                                    userId=addedUser["user_id"])
         fetchedUserPrivileges = fetch_user_privileges(db=self.db,
-                                                        userId=addedRRUser["user_id"])
+                                                        userId=addedUser["user_id"])
 
         self.assertEqual(addedUserPrivileges["user_privileges"],
                             json.loads(fetchedUserPrivileges["user_privileges"]),
                             "User privileges field mismatch.")
 
-def add_rr_user(db, user, firstName, lastName):
+def add_user(db, user, firstName, lastName):
     user = {
         "user": user,
         "first_name": firstName,
@@ -29,8 +29,8 @@ def add_rr_user(db, user, firstName, lastName):
         "user_id": 1
     }
 
-    rrUserTable = db.schema.get_table("rr_user")
-    result = rrUserTable.insert("user",
+    userTable = db.schema.get_table("rr_user")
+    result = userTable.insert("user",
                                 "first_name",
                                 "last_name",
                                 "user_id") \

@@ -31,7 +31,7 @@ def add_sql_user(db, user, password):
     user.update(DatabaseResult(sqlResult).fetch_one())
     return user
 
-def add_rr_user(db, user, firstName, lastName):
+def add_user(db, user, firstName, lastName):
     user = {
         "user": user,
         "first_name": firstName,
@@ -39,8 +39,8 @@ def add_rr_user(db, user, firstName, lastName):
         "user_id": 1
     }
 
-    rrUserTable = db.schema.get_table("rr_user")
-    result = rrUserTable.insert("user",
+    userTable = db.schema.get_table("rr_user")
+    result = userTable.insert("user",
                                 "first_name",
                                 "last_name",
                                 "user_id") \
