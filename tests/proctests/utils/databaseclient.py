@@ -2,10 +2,14 @@ import mysqlx
 from mysqlx.result import SqlResult, RowResult, Result
 from pathlib import Path
 import re
-from .config import config
 from datetime import datetime
 from decimal import Decimal
 import logging
+
+try:
+    from .__config import config # Use personal config if available
+except:
+    from .config import config
 
 class DatabaseErrorCodes:
     USER_DEFINED_EXCEPTION = 1644
