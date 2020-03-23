@@ -45,7 +45,6 @@ def add_rr_user(db, user, firstName, lastName):
     return user
 
 def fetch_user_privileges(db, userId):
-    print("UserId=", userId)
     userPrivilegeTable = db.schema.get_table("user_privilege")
     rowResult = userPrivilegeTable.select("user_id AS user_id",
                                             "privileges AS user_privileges") \

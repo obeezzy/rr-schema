@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
-from datetime import datetime
+from datetime import datetime, date
 
 class ViewStockProducts(StoredProcedureTestCase):
     def test_view_stock_products(self):
@@ -87,11 +87,11 @@ class ViewStockProducts(StoredProcedureTestCase):
         self.assertEqual(fetchedProducts[0]["retail_price"],
                             productUnit2["retail_price"],
                             "Retail price mismatch.")
-        self.assertLess(DatabaseDateTime(fetchedProducts[0]["created"]),
-                            datetime.now().replace(microsecond=0),
+        self.assertEqual(DatabaseDateTime(fetchedProducts[0]["created"]).date(),
+                            date.today(),
                             "Time created mismatch.")
-        self.assertLess(DatabaseDateTime(fetchedProducts[0]["last_edited"]),
-                            datetime.now().replace(microsecond=0),
+        self.assertEqual(DatabaseDateTime(fetchedProducts[0]["last_edited"]).date(),
+                            date.today(),
                             "Time modified mismatch.")
         self.assertEqual(fetchedProducts[0]["user_id"],
                             product2["user_id"],
@@ -130,11 +130,11 @@ class ViewStockProducts(StoredProcedureTestCase):
         self.assertEqual(fetchedProducts[1]["retail_price"],
                             productUnit1["retail_price"],
                             "Retail price mismatch.")
-        self.assertLess(DatabaseDateTime(fetchedProducts[1]["created"]),
-                            datetime.now().replace(microsecond=0),
+        self.assertEqual(DatabaseDateTime(fetchedProducts[1]["created"]).date(),
+                            date.today(),
                             "Time created mismatch.")
-        self.assertLess(DatabaseDateTime(fetchedProducts[1]["last_edited"]),
-                            datetime.now().replace(microsecond=0),
+        self.assertEqual(DatabaseDateTime(fetchedProducts[1]["last_edited"]).date(),
+                            date.today(),
                             "Time modified mismatch.")
         self.assertEqual(fetchedProducts[1]["user_id"],
                             product1["user_id"],

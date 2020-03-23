@@ -8,7 +8,30 @@ class AddCreditPayment(StoredProcedureTestCase):
         addedCreditPayment = add_credit_payment(self.db)
         fetchedCreditPayment = fetch_credit_payment(self.db)
 
-        self.assertEqual(addedCreditPayment, fetchedCreditPayment, "Credit payment mismatch.")
+        self.assertEqual(addedCreditPayment["credit_transaction_id"],
+                            fetchedCreditPayment["credit_transaction_id"],
+                            "Credit transaction ID mismatch.")
+        self.assertEqual(addedCreditPayment["total_credit"],
+                            fetchedCreditPayment["total_credit"],
+                            "Total credit mismatch.")
+        self.assertEqual(addedCreditPayment["amount_paid"],
+                            fetchedCreditPayment["amount_paid"],
+                            "Amount paid mismatch.")
+        self.assertEqual(addedCreditPayment["balance"],
+                            fetchedCreditPayment["balance"],
+                            "Balance mismatch.")
+        self.assertEqual(addedCreditPayment["currency"],
+                            fetchedCreditPayment["currency"],
+                            "Currency mismatch.")
+        self.assertEqual(addedCreditPayment["due_date_time"],
+                            fetchedCreditPayment["due_date_time"],
+                            "Due date/time mismatch.")
+        self.assertEqual(addedCreditPayment["note_id"],
+                            fetchedCreditPayment["note_id"],
+                            "Note ID mismatch.")
+        self.assertEqual(addedCreditPayment["user_id"],
+                            fetchedCreditPayment["user_id"],
+                            "User ID mismatch.")
 
 def add_credit_payment(db):
     creditPayment = {

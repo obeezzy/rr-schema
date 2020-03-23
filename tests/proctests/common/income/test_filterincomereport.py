@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 class FilterIncomeReport(StoredProcedureTestCase):
     def test_filter_income_report(self):
@@ -18,7 +18,7 @@ class FilterIncomeReport(StoredProcedureTestCase):
                                                         purpose="Buy Facebook",
                                                         amount=190)
 
-        today = datetime.date(datetime.now())
+        today = date.today()
         tomorrow = today + timedelta(days=1)
         filteredIncomeReport = filter_income_report(db=self.db,
                                                         filterColumn="purpose",
