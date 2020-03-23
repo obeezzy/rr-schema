@@ -25,12 +25,22 @@ jobs:
     - name: Shutdown Ubuntu MySQL (SUDO)
       run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
 
-    - name: Start MySQL
-      uses: obeezzy/mysql-action@v1.1
-      with:
-        mysql root password: ${{ secrets.MYSQL_PASSWORD }}
-        mysql database: rr_test
-        mysql version: latest
+    # - name: Start MySQL
+    #   uses: obeezzy/mysql-action@v1.1
+    #   with:
+    #     mysql root password: ${{ secrets.MYSQL_PASSWORD }}
+    #     mysql database: rr_test
+    #     mysql version: latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_DATABASE: rr_test
+        ports:
+        - 3306:3306
+        - 33060:33060
+        options: --health-cmd "mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
 
     - name: Set up Python
       uses: actions/setup-python@v1
