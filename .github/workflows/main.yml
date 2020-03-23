@@ -37,6 +37,13 @@ jobs:
       with:
         python-version: 3.7
 
+    - name: Install MySQL 8 client (SUDO)
+      run:
+        wget -c https://repo.mysql.com//mysql-apt-config_0.8.13-1_all.deb
+        sudo dpkg -i mysql-apt-config_0.8.13-1_all.deb
+        sudo apt update
+        sudo apt-get install libmysqlclient18 -y
+
     - name: Check MySQL version
       run: |
         echo "Attempt to connect to server with client"
@@ -44,7 +51,7 @@ jobs:
         docker logs `docker ps --format "{{.ID}}"`
         MYSQL_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' `docker ps --format "{{.ID}}"`)
         #docker exec `docker ps --format "{{.ID}}"` mysql -uroot -p${{ secrets.MYSQL_PASSWORD }}
-        docker exec `docker ps --format "{{.ID}}"` mysqld --plugin-load="mysqlx=mysqlx.so"
+        docker exec `docker ps --format "{{.ID}}"` mysql -uroot -p${{ secrets.MYSQL_PASSWORD }} -e "install plugin mysqlx soname 'mysqlx.so';"
         sudo ss -tulwn
         docker exec `docker ps --format "{{.ID}}"` mysql --version
 
