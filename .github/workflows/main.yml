@@ -75,7 +75,7 @@ jobs:
     #     mysql --version
 
     - name: Check if XDevAPI is listening on port 33060
-      run: mysql -u ${{ secrets.MYSQL_USER }} -ppassword -e "SHOW plugins" | grep -i mysqlx
+      run: mysql -u ${{ secrets.MYSQL_USER }} -ppassword --protocol=tcp -e "SHOW plugins" | grep -i mysqlx
 
     - name: Run tests
       env:
