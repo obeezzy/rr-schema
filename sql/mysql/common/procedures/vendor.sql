@@ -10,15 +10,9 @@ CREATE PROCEDURE AddVendor (
 BEGIN
 	INSERT INTO vendor (client_id,
 						note_id,
-						archived,
-						created,
-						last_edited,
 						user_id)
 		VALUES (iClientId,
-				iNoteId,
-				FALSE,
-				CURRENT_TIMESTAMP(),
-				CURRENT_TIMESTAMP(),
+				NULLIF(iNoteId, 0),
 				iUserId);
 	SELECT LAST_INSERT_ID() AS vendor_id;
 END;
