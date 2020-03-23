@@ -38,7 +38,7 @@ jobs:
         python-version: 3.7
 
     - name: Install MySQL 8 client (SUDO)
-      run:
+      run: |
         wget -c https://repo.mysql.com//mysql-apt-config_0.8.13-1_all.deb
         sudo dpkg -i mysql-apt-config_0.8.13-1_all.deb
         sudo apt update
