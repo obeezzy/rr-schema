@@ -87,10 +87,10 @@ class ViewStockProducts(StoredProcedureTestCase):
         self.assertEqual(fetchedProducts[0]["retail_price"],
                             productUnit2["retail_price"],
                             "Retail price mismatch.")
-        self.assertLess(DatabaseDateTime(fetchedProducts[0]["created"]).date(),
+        self.assertEqual(DatabaseDateTime(fetchedProducts[0]["created"]).date(),
                             date.today(),
                             "Time created mismatch.")
-        self.assertLess(DatabaseDateTime(fetchedProducts[0]["last_edited"]).date(),
+        self.assertEqual(DatabaseDateTime(fetchedProducts[0]["last_edited"]).date(),
                             date.today(),
                             "Time modified mismatch.")
         self.assertEqual(fetchedProducts[0]["user_id"],
@@ -130,10 +130,10 @@ class ViewStockProducts(StoredProcedureTestCase):
         self.assertEqual(fetchedProducts[1]["retail_price"],
                             productUnit1["retail_price"],
                             "Retail price mismatch.")
-        self.assertEqual(DatabaseDateTime(fetchedProducts[1]["created"]),
+        self.assertEqual(DatabaseDateTime(fetchedProducts[1]["created"]).date(),
                             date.today(),
                             "Time created mismatch.")
-        self.assertLess(DatabaseDateTime(fetchedProducts[1]["last_edited"]),
+        self.assertEqual(DatabaseDateTime(fetchedProducts[1]["last_edited"]).date(),
                             date.today(),
                             "Time modified mismatch.")
         self.assertEqual(fetchedProducts[1]["user_id"],
