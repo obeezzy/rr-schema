@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 class FilterStockReport(StoredProcedureTestCase):
     def setUp(self):
@@ -116,7 +116,7 @@ class FilterStockReport(StoredProcedureTestCase):
                                 newQuantity=self.newQuantity3)
 
     def test_filter_stock_report(self):
-        today = datetime.date(datetime.now())
+        today = date.today()
         tomorrow = today + timedelta(days=1)
         filteredStockReport = filter_stock_report(db=self.db,
                                                     filterColumn="product_category",
@@ -194,7 +194,7 @@ class FilterStockReport(StoredProcedureTestCase):
                             "Quantity in stock mismatch")
 
     def test_apply_filter(self):
-        today = datetime.date(datetime.now())
+        today = date.today()
         tomorrow = today + timedelta(days=1)
         filteredStockReport = filter_stock_report(db=self.db,
                                                     filterColumn="product_category",
@@ -212,7 +212,7 @@ class FilterStockReport(StoredProcedureTestCase):
                             "Product ID mismatch")
 
     def test_apply_sort(self):
-        today = datetime.date(datetime.now())
+        today = date.today()
         tomorrow = today + timedelta(days=1)
         filteredStockReport = filter_stock_report(db=self.db,
                                                     filterColumn=None,

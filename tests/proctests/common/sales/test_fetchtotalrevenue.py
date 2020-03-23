@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 class FetchTotalRevenue(StoredProcedureTestCase):
     def test_fetch_total_revenue(self):
@@ -23,8 +23,8 @@ class FetchTotalRevenue(StoredProcedureTestCase):
                                         amount=82.14,
                                         paymentMethod="debit-card")
 
-        today = datetime.date(datetime.now())
-        tomorrow = datetime.date(datetime.now() + timedelta(days=1))
+        today = date.today()
+        tomorrow = today + timedelta(days=1)
         fetchedTotalRevenue = fetch_total_revenue(db=self.db,
                                                     fromDate=today,
                                                     toDate=tomorrow)

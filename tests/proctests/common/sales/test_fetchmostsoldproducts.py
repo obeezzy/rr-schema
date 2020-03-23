@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 class FetchMostSoldProducts(StoredProcedureTestCase):
     def test_fetch_most_sold_products(self):
@@ -60,8 +60,8 @@ class FetchMostSoldProducts(StoredProcedureTestCase):
                                         productUnitId=productUnit3["product_unit_id"],
                                         cost=77.32)
 
-        today = datetime.date(datetime.now())
-        tomorrow = datetime.date(datetime.now() + timedelta(days=1))
+        today = date.today()
+        tomorrow = today + timedelta(days=1)
         fetchedMostSoldProducts = fetch_most_sold_products(db=self.db,
                                                             fromDate=today,
                                                             toDate=tomorrow,

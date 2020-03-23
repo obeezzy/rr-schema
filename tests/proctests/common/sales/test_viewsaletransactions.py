@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 class ViewSaleTransactions(StoredProcedureTestCase):
     def test_view_sale_transactions(self):
@@ -9,7 +9,7 @@ class ViewSaleTransactions(StoredProcedureTestCase):
         saleTransaction2 = add_second_sale_transaction(self.db)
         saleTransaction3 = add_third_sale_transaction(self.db)
 
-        today = datetime.date(datetime.now())
+        today = date.today()
         tomorrow = today + timedelta(days=1)
         viewedSaleTransactions = view_sale_transactions(db=self.db,
                                                                 fromDate=today,
