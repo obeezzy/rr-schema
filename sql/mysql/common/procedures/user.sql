@@ -247,12 +247,13 @@ END;
 ---
 
 CREATE PROCEDURE FetchEmailAddress (
-    iUserName VARCHAR(40)
+    iUser VARCHAR(40)
 )
 BEGIN
-    SELECT id, email_address
+    SELECT id AS user_id,
+            email_address AS email_address
         FROM rr_user
-        WHERE user = iUserName;
+        WHERE user = iUser;
 END;
 
 ---
