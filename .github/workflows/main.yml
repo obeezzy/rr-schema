@@ -50,6 +50,8 @@ jobs:
         docker network ls
         docker logs $CONTAINER_ID
         sudo ss -tulwn
+        sleep 5
+        docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" $CONTAINER_ID
         docker run --network bridge --rm mysql mysql -h $CONTAINER_ID -P 3306 --protocol=tcp -u${{ secrets.MYSQL_USER }} -p${{ secrets.MYSQL_PASSWORD }} -e "install plugin mysqlx soname 'mysqlx.so';"
         sudo ss -tulwn
         mysql --version
