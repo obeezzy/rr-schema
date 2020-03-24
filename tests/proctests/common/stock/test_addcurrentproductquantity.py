@@ -6,8 +6,7 @@ class AddCurrentProductQuantity(StoredProcedureTestCase):
     def test_add_current_product_quantity(self):
         addedCurrentProductQuantity = add_current_product_quantity(db=self.db,
                                                                     productId=1,
-                                                                    quantity=200.125,
-                                                                    productUnitId=1)
+                                                                    quantity=200.125)
         fetchedCurrentProductQuantity = fetch_current_product_quantity(db=self.db,
                                                                         productId=addedCurrentProductQuantity["product_id"])
 
@@ -24,7 +23,7 @@ class AddCurrentProductQuantity(StoredProcedureTestCase):
                             addedCurrentProductQuantity["user_id"],
                             "User ID mismatch.")
 
-def add_current_product_quantity(db, productId, quantity, productUnitId):
+def add_current_product_quantity(db, productId, quantity):
     currentProductQuantity = {
         "product_id": productId,
         "quantity": quantity,
