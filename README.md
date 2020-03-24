@@ -1,3 +1,4 @@
+
+<div style="text-align: right">![](https://github.com/obeezzy/rr-schema/workflows/CI/badge.svg)</div>
 # rr-schema
-![](https://github.com/obeezzy/rr-schema/workflows/CI/badge.svg)
 Schema for RR
