@@ -40,8 +40,8 @@ CREATE PROCEDURE ViewClients (
 )
 BEGIN
     SELECT id AS client_id,
-                preferred_name,
-                phone_number
+                preferred_name AS preferred_name,
+                phone_number AS phone_number
             FROM client
             WHERE client.archived = IFNULL(iArchived, FALSE);
 END;
