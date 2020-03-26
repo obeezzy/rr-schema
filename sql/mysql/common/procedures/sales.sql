@@ -213,10 +213,10 @@ BEGIN
 	SELECT product_category.id AS product_category_id,
             product_category.category AS product_category,
             sold_product.product_id AS product_id,
-            sold_product.product AS product,
+            product.product AS product,
 		    sold_product.unit_price AS unit_price,
             sold_product.quantity AS quantity,
-            sold_product.unit_id AS product_unit_id,
+            product_unit.id AS product_unit_id,
 		    product_unit.unit AS product_unit,
             sold_product.cost AS cost,
             sold_product.discount AS discount,
@@ -231,10 +231,11 @@ BEGIN
         FROM sold_product
         INNER JOIN product ON sold_product.product_id = product.id
         INNER JOIN product_category ON product_category.id = product.product_category_id
-        INNER JOIN product_unit ON sold_product.unit_id = product_unit.id
+        INNER JOIN product_unit ON sold_product.product_id = product_unit.product_id
+                                AND product_unit.preferred = TRUE
         INNER JOIN sale_transaction ON sale_transaction.id = sold_product.sale_transaction_id
 		LEFT JOIN rr_user ON sold_product.user_id = rr_user.id
-        LEFT JOIN note ON sale_transaction.note_id = note.id
+        LEFT JOIN note ON sold_product.note_id = note.id
         WHERE sale_transaction_id = iSaleTransactionId
         AND sale_transaction.suspended = IFNULL(iSuspended, FALSE)
         AND sale_transaction.archived = IFNULL(iArchived, FALSE);
