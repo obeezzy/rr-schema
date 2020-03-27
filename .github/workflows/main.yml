@@ -16,7 +16,7 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: password
         ports:
-        - 3306:3307
+        - 3307:3307
         - 33060:33060
         options: --health-cmd "mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
 
@@ -25,7 +25,7 @@ jobs:
 
     - name: Verify MySQL connection
       env:
-        PORT: ${{ job.services.mysql.ports[3306] }}
+        PORT: ${{ job.services.mysql.ports[3307] }}
       run: |
         while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
           sleep 1
