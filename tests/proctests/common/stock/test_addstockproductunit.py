@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+import locale
+from proctests.utils import StoredProcedureTestCase
 
 class AddStockProductUnit(StoredProcedureTestCase):
     def test_add_stock_product_unit(self):
@@ -8,8 +9,8 @@ class AddStockProductUnit(StoredProcedureTestCase):
                                                     productId=1,
                                                     unit="G-Unit",
                                                     shortForm="50cent",
-                                                    costPrice=832.38,
-                                                    retailPrice=943.28)
+                                                    costPrice=locale.currency(832.38),
+                                                    retailPrice=locale.currency(943.28))
         fetchedProductUnit = fetch_product_unit(db=self.db,
                                                 productId=addedProductUnit["product_id"])
 
@@ -53,29 +54,45 @@ def add_product_category(db, category):
         "user_id": 1
     }
 
-    categoryTable = db.schema.get_table("product_category")
-    result = categoryTable.insert("category",
-                                    "user_id") \
-                            .values(tuple(productCategory.values())) \
-                            .execute()
-    productCategory.update(DatabaseResult(result).fetch_one("product_category_id"))
-    return productCategory
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id,
+                    category,
+                    user_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"],
+            "category": row["category"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product(db, productCategoryId, product):
-    productDict = {
+    product = {
         "product_category_id": productCategoryId,
         "product": product,
         "user_id": 1
     }
 
-    productTable = db.schema.get_table("product")
-    result = productTable.insert("product_category_id",
-                                    "product",
-                                    "user_id") \
-                            .values(tuple(productDict.values())) \
-                            .execute()
-    productDict.update(DatabaseResult(result).fetch_one("product_id"))
-    return productDict
+    db.execute("""INSERT INTO product (product_category_id,
+                                        product,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS product_id,
+                    product_category_id,
+                    product,
+                    user_id""", tuple(product.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"],
+            "product_category_id": row["product_category_id"],
+            "prodcut": row["product"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_stock_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
     productUnit = {
@@ -90,28 +107,46 @@ def add_stock_product_unit(db, productId, unit, shortForm, costPrice, retailPric
         "note_id": 1,
         "user_id": 1
     }
-    sqlResult = db.call_procedure("AddStockProductUnit",
-                                    tuple(productUnit.values()))
-    productUnit.update(DatabaseResult(sqlResult).fetch_one())
-    return productUnit
+    db.call_procedure("AddStockProductUnit",
+                        tuple(productUnit.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_unit_id": row[0]
+        }
+    result.update(productUnit)
+    return result
 
 def fetch_product_unit(db, productId):
-    productUnitTable = db.schema.get_table("product_unit")
-    rowResult = productUnitTable.select("id AS product_unit_id",
-                                        "product_id AS product_id",
-                                        "unit AS unit",
-                                        "short_form AS short_form",
-                                        "base_unit_equivalent AS base_unit_equivalent",
-                                        "cost_price AS cost_price",
-                                        "retail_price AS retail_price",
-                                        "preferred AS preferred",
-                                        "currency AS currency",
-                                        "note_id AS note_id",
-                                        "user_id AS user_id") \
-                                .where("product_id = :productId") \
-                                .bind("productId", productId) \
-                                .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS product_unit_id,
+                            product_id,
+                            unit,
+                            short_form,
+                            base_unit_equivalent,
+                            cost_price,
+                            retail_price,
+                            preferred,
+                            currency,
+                            note_id,
+                            user_id
+                FROM product_unit
+                WHERE product_id = %s""", [productId])
+    result = {}
+    for row in db:
+        result = {
+            "product_unit_id": row["product_unit_id"],
+            "product_id": row["product_id"],
+            "unit": row["unit"],
+            "short_form": row["short_form"],
+            "base_unit_equivalent": row["base_unit_equivalent"],
+            "cost_price": row["cost_price"],
+            "retail_price": row["retail_price"],
+            "preferred": row["preferred"],
+            "currency": row["currency"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

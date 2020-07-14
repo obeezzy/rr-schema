@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class ArchiveDebtTransactionByTransactionTable(StoredProcedureTestCase):
     def test_archive_debt_transaction(self):
@@ -38,14 +38,12 @@ def add_single_debt_transaction(db, debtorId, transactionTable, transactionId):
         "user_id": 1
     }
 
-    debtTransactionTable = db.schema.get_table("debt_transaction")
-    debtTransactionTable.insert("debtor_id",
-                                    "transaction_table",
-                                    "transaction_id",
-                                    "note_id ",
-                                    "user_id") \
-                            .values(tuple(debtTransaction.values())) \
-                            .execute()
+    db.execute("""INSERT INTO debt_transaction (debtor_id,
+                                                transaction_table,
+                                                transaction_id,
+                                                note_id,
+                                                user_id)
+                VALUES (%s, %s, %s, %s, %s)""", tuple(debtTransaction.values()))
 
 def archive_debt_transaction(db, archived, transactionTable, transactionId):
     debtTransaction = {
@@ -55,23 +53,20 @@ def archive_debt_transaction(db, archived, transactionTable, transactionId):
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("ArchiveDebtTransactionByTransactionTable",
-                                        tuple(debtTransaction.values()))
-    debtTransaction.update(DatabaseResult(sqlResult).fetch_one())
-    return debtTransaction
+    db.call_procedure("ArchiveDebtTransactionByTransactionTable",
+                        tuple(debtTransaction.values()))
 
-def fetch_debt_transactions(db, archived=None):
-    debtTransactionTable = db.schema.get_table("debt_transaction")
-    rowResult = debtTransactionTable.select("id AS debt_transaction_id",
-                                                "debtor_id AS debtor_id",
-                                                "transaction_table AS transaction_table",
-                                                "transaction_id AS transaction_id",
-                                                "note_id AS note_id",
-                                                "user_id AS user_id") \
-                                        .where("archived = IFNULL(:archived, FALSE)") \
-                                        .bind("archived", archived) \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_all()
+def fetch_debt_transactions(db, archived=False):
+    db.execute("""SELECT id AS debt_transaction_id
+                FROM debt_transaction
+                WHERE archived = %s""", [archived])
+    results = []
+    for row in db:
+        result = {
+            "debt_transaction_id": row["debt_transaction_id"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

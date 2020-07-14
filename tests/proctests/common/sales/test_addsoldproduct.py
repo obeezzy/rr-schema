@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+import locale
+from proctests.utils import StoredProcedureTestCase
 
 class AddSoldProduct(StoredProcedureTestCase):
     def test_add_sold_product(self):
@@ -43,33 +44,51 @@ def add_sold_product(db):
         "sale_transaction_id": 1,
         "product_id": 1,
         "product_unit_id": 1,
-        "unit_price": 1038.39,
+        "unit_price": locale.currency(1038.39),
         "quantity": 183.25,
-        "cost": 1832.28,
-        "discount": 138.23,
+        "cost": locale.currency(1832.28),
+        "discount": locale.currency(138.23),
         "currency": "NGN",
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("AddSoldProduct",
-                                    tuple(soldProduct.values()))
-    soldProduct.update(DatabaseResult(sqlResult).fetch_one())
-    return soldProduct
+    db.call_procedure("AddSoldProduct",
+                        tuple(soldProduct.values()))
+    result = {}
+    for row in db:
+        result = {
+            "sold_product_id": row[0]
+        }
+    result.update(soldProduct)
+    return result
 
 def fetch_sold_product(db):
-    soldProductTable = db.schema.get_table("sold_product")
-    rowResult = soldProductTable.select("id AS sold_product_id",
-                                            "sale_transaction_id AS sale_transaction_id",
-                                            "product_id AS product_id",
-                                            "product_unit_id AS product_unit_id",
-                                            "unit_price AS unit_price",
-                                            "quantity AS quantity",
-                                            "cost AS cost",
-                                            "discount AS discount",
-                                            "currency AS currency",
-                                            "user_id AS user_id") \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS sold_product_id,
+                    sale_transaction_id,
+                    product_id,
+                    product_unit_id,
+                    unit_price,
+                    quantity,
+                    cost,
+                    discount,
+                    currency,
+                    user_id
+                FROM sold_product""")
+    result = {}
+    for row in db:
+        result = {
+            "sold_product_id": row["sold_product_id"],
+            "sale_transaction_id": row["sale_transaction_id"],
+            "product_id": row["product_id"],
+            "product_unit_id": row["product_unit_id"],
+            "unit_price": row["unit_price"].replace(",", ""),
+            "quantity": row["quantity"],
+            "cost": row["cost"].replace(",", ""),
+            "discount": row["discount"].replace(",", ""),
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

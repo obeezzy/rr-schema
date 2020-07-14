@@ -1,50 +1,80 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+import locale
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 
 class UpdateDebtPayment(StoredProcedureTestCase):
     def test_update_debt_payment(self):
-        addedDebtPayment = add_debt_payment(self.db)
-        update_debt_payment(self.db)
+        now = datetime.now()
+        addedDebtPayment = add_debt_payment(self.db, dueDateTime=now)
+        update_debt_payment(self.db, dueDateTime=now)
         updatedDebtPayment = fetch_debt_payment(self.db)
 
-        self.assertEqual(addedDebtPayment, updatedDebtPayment, "Date/time not updated.")
+        self.assertEqual(addedDebtPayment["debt_payment_id"], updatedDebtPayment["debt_payment_id"], "Debt payment ID mismatch.")
+        self.assertEqual(addedDebtPayment["debt_transaction_id"], updatedDebtPayment["debt_transaction_id"], "Debt transaction ID mismatch.")
+        self.assertEqual(addedDebtPayment["total_debt"], updatedDebtPayment["total_debt"], "Total debt mismatch.")
+        self.assertEqual(addedDebtPayment["amount_paid"], updatedDebtPayment["amount_paid"], "Amount paid mismatch.")
+        self.assertEqual(addedDebtPayment["balance"], updatedDebtPayment["balance"], "Balance mismatch.")
+        self.assertEqual(addedDebtPayment["currency"], updatedDebtPayment["currency"], "Currency mismatch.")
+        self.assertEqual(addedDebtPayment["due_date_time"], updatedDebtPayment["due_date_time"], "Due date/time mismatch.")
+        self.assertEqual(addedDebtPayment["note_id"], updatedDebtPayment["note_id"], "Note ID mismatch.")
+        self.assertEqual(addedDebtPayment["user_id"], updatedDebtPayment["user_id"], "User ID mismatch.")
 
-def add_debt_payment(db):
+def add_debt_payment(db, dueDateTime):
     debtPayment = {
         "debt_transaction_id": 1,
-        "total_debt": 100,
-        "amount_paid": 20,
-        "balance": 80,
+        "total_debt": locale.currency(100),
+        "amount_paid": locale.currency(20),
+        "balance": locale.currency(80),
         "currency": "NGN",
-        "due_date_time": DatabaseDateTime(datetime.now()).iso_format,
+        "due_date_time": dueDateTime,
         "note_id": 1,
         "user_id": 1
     }
 
-    debtPaymentTable = db.schema.get_table("debt_payment")
-    result = debtPaymentTable.insert("debt_transaction_id",
-                                        "total_debt",
-                                        "amount_paid",
-                                        "balance",
-                                        "currency",
-                                        "due_date_time",
-                                        "note_id",
-                                        "user_id") \
-                    .values(tuple(debtPayment.values())) \
-                    .execute()
-    debtPayment.update(DatabaseResult(result).fetch_one(columnLabel="debt_payment_id"))
-    return debtPayment
+    db.execute("""INSERT INTO debt_payment (debt_transaction_id,
+                                            total_debt,
+                                            amount_paid,
+                                            balance,
+                                            currency,
+                                            due_date_time,
+                                            note_id,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS debt_payment_id,
+                    debt_transaction_id,
+                    total_debt,
+                    amount_paid,
+                    balance,
+                    currency,
+                    due_date_time,
+                    note_id,
+                    user_id""", tuple(debtPayment.values()))
+    result = {}
+    for row in db:
+        result = {
+            "debt_payment_id": row["debt_payment_id"],
+            "debt_transaction_id": row["debt_transaction_id"],
+            "total_debt": row["total_debt"],
+            "amount_paid": row["amount_paid"],
+            "balance": row["balance"],
+            "currency": row["currency"],
+            "due_date_time": row["due_date_time"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    result.update(debtPayment)
+    return result
 
-def update_debt_payment(db):
+def update_debt_payment(db, dueDateTime):
     debtPayment = {
         "debt_payment_id": 1,
-        "total_debt": 100,
-        "amount_paid": 20,
-        "balance": 80,
+        "total_debt": locale.currency(100),
+        "amount_paid": locale.currency(20),
+        "balance": locale.currency(80),
         "currency": "NGN",
-        "due_date_time": DatabaseDateTime(datetime.now()).iso_format,
+        "due_date_time": dueDateTime,
         "user_id": 1
     }
 
@@ -52,18 +82,30 @@ def update_debt_payment(db):
                         tuple(debtPayment.values()))
 
 def fetch_debt_payment(db):
-    debtPaymentTable = db.schema.get_table("debt_payment")
-    rowResult = debtPaymentTable.select("id AS debt_payment_id",
-                                            "debt_transaction_id AS debt_transaction_id",
-                                            "total_debt AS total_debt",
-                                            "amount_paid AS amount_paid",
-                                            "balance AS balance",
-                                            "currency AS currency",
-                                            "due_date_time AS due_date_time",
-                                            "note_id AS note_id",
-                                            "user_id AS user_id") \
-                                    .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS debt_payment_id,
+                            debt_transaction_id,
+                            total_debt,
+                            amount_paid,
+                            balance,
+                            currency,
+                            due_date_time,
+                            note_id,
+                            user_id
+                FROM debt_payment""")
+    result = {}
+    for row in db:
+        result = {
+            "debt_payment_id": row["debt_payment_id"],
+            "debt_transaction_id": row["debt_transaction_id"],
+            "total_debt": row["total_debt"],
+            "amount_paid": row["amount_paid"],
+            "balance": row["balance"],
+            "currency": row["currency"],
+            "due_date_time": row["due_date_time"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

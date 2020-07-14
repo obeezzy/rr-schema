@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class ArchiveClient(StoredProcedureTestCase):
     def test_archive_client(self):
@@ -34,33 +34,46 @@ def add_single_client(db, clientId, preferredName, phoneNumber, archived=False):
         "user_id": 1
     }
 
-    clientTable = db.schema.get_table("client")
-    clientTable.insert("id",
-                        "first_name",
-                        "last_name",
-                        "preferred_name",
-                        "phone_number",
-                        "archived",
-                        "user_id") \
-                .values(tuple(client.values())) \
-                .execute()
+    db.execute("""INSERT INTO client (id,
+                                        first_name,
+                                        last_name,
+                                        preferred_name,
+                                        phone_number,
+                                        archived,
+                                        user_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)""", tuple(client.values()))
+    db.commit()
 
 def archive_client(db, clientId, userId):
-    sqlResult = db.call_procedure("ArchiveClient", (clientId, userId))
+    db.call_procedure("ArchiveClient", [clientId, userId])
 
 def view_archived_clients(db):
-    sqlResult = db.call_procedure("ViewClients", (True,))
-    return DatabaseResult(sqlResult).fetch_all()
+    db.call_procedure("ViewClients", [True])
+    results = [] 
+    for row in db:
+        result = {
+            "client_id": row["client_id"],
+            "preferred_name": row["preferred_name"],
+            "phone_number": row["phone_number"]
+        }
+        results.append(result)
+    return results
 
 def fetch_clients(db, archived=False):
-    clientTable = db.schema.get_table("client")
-    rowResult = clientTable.select("id AS client_id",
-                                    "preferred_name AS preferred_name",
-                                    "phone_number AS phone_number") \
-                            .where("archived = IFNULL(:archived, FALSE)") \
-                            .bind("archived", archived) \
-                            .execute()
-    return DatabaseResult(rowResult).fetch_all()
+    db.execute("""SELECT id AS client_id,
+                            preferred_name,
+                            phone_number
+                    FROM client
+                    WHERE archived = %s""", [archived])
+    results = [] 
+    for row in db:
+        result = {
+            "client_id": row["client_id"],
+            "preferred_name": row["preferred_name"],
+            "phone_number": row["phone_number"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

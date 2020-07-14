@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+import locale
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
 
 class ViewIncomeTransactions(StoredProcedureTestCase):
@@ -8,17 +9,17 @@ class ViewIncomeTransactions(StoredProcedureTestCase):
         add_income_transaction(self.db,
                                 clientName="Miles Morales",
                                 purpose="Kick Kingpin's ass.",
-                                amount=420,
-                                paymentMethod="debit-card")
+                                amount=locale.currency(420),
+                                paymentMethod="debit_card")
         add_income_transaction(db=self.db,
                                 clientName="Ororo Monroe",
                                 purpose="Fix climate change.",
-                                amount=620,
-                                paymentMethod="credit-card")
+                                amount=locale.currency(620),
+                                paymentMethod="credit_card")
         add_income_transaction(db=self.db,
                                 clientName="Jean Gray",
                                 purpose="Read minds like their encyclopedias.",
-                                amount=777,
+                                amount=locale.currency(777),
                                 paymentMethod="cash")
 
         today = date.today()
@@ -29,7 +30,12 @@ class ViewIncomeTransactions(StoredProcedureTestCase):
 
         fetchedIncomeTransactions = fetch_income_transactions(self.db)
 
-        self.assertEqual(viewedIncomeTransactions, fetchedIncomeTransactions, "Income transaction mismatch.")
+        self.assertEqual(viewedIncomeTransactions[0]["income_transaction_id"], fetchedIncomeTransactions[0]["income_transaction_id"], "Income transaction ID mismatch.")
+        self.assertEqual(viewedIncomeTransactions[0]["client_id"], fetchedIncomeTransactions[0]["client_id"], "Client ID mismatch.")
+        self.assertEqual(viewedIncomeTransactions[0]["client_name"], fetchedIncomeTransactions[0]["client_name"], "Client name mismatch.")
+        self.assertEqual(viewedIncomeTransactions[0]["purpose"], fetchedIncomeTransactions[0]["purpose"], "Purpose mismatch.")
+        self.assertEqual(viewedIncomeTransactions[0]["amount"], fetchedIncomeTransactions[0]["amount"], "Amount mismatch.")
+        self.assertEqual(viewedIncomeTransactions[0]["currency"], fetchedIncomeTransactions[0]["currency"], "Currency mismatch.")
 
 def add_income_transaction(db, clientName, purpose, amount, paymentMethod):
     incomeTransaction = {
@@ -37,41 +43,81 @@ def add_income_transaction(db, clientName, purpose, amount, paymentMethod):
         "client_name": clientName,
         "purpose": purpose,
         "amount": amount,
-        #"payment_method": paymentMethod,
+        "payment_method": paymentMethod,
         "currency": "NGN",
         "note_id": None,
         "user_id": 1
     }
 
-    incomeTransactionTable = db.schema.get_table("income_transaction")
-    incomeTransactionTable.insert("client_id",
-                                    "client_name",
-                                    "purpose",
-                                    "amount",
-                                    #"payment_method",
-                                    "currency",
-                                    "note_id",
-                                    "user_id") \
-                            .values(tuple(incomeTransaction.values())) \
-                            .execute()
+    db.execute("""INSERT INTO income_transaction (client_id,
+                                                    client_name,
+                                                    purpose,
+                                                    amount,
+                                                    payment_method,
+                                                    currency,
+                                                    note_id,
+                                                    user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS income_transaction_id,
+                    client_id,
+                    client_name,
+                    purpose,
+                    amount,
+                    payment_method,
+                    currency,
+                    note_id,
+                    user_id""", tuple(incomeTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "income_transaction_id": row["income_transaction_id"],
+            "client_id": row["client_id"],
+            "client_name": row["client_name"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+            "payment_method": row["payment_method"],
+            "currency": row["currency"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
-def view_income_transactions(db, fromDate, toDate, archived=None):
-    sqlResult = db.call_procedure("ViewIncomeTransactions", (
-                                    fromDate,
-                                    toDate,
-                                    archived))
-    return DatabaseResult(sqlResult).fetch_all()
+def view_income_transactions(db, fromDate, toDate, archived=False):
+    db.call_procedure("ViewIncomeTransactions", [fromDate, toDate, archived])
+    results = []
+    for row in db:
+        result = {
+            "income_transaction_id": row["income_transaction_id"],
+            "client_id": row["client_id"],
+            "client_name": row["client_name"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+            "currency": row["currency"]
+        }
+        results.append(result)
+    return results
 
 def fetch_income_transactions(db, archived=False):
-    incomeTransactionTable = db.schema.get_table("income_transaction")
-    rowResult = incomeTransactionTable.select("id AS income_transaction_id",
-                                                "client_id AS client_id",
-                                                "client_name AS client_name",
-                                                "amount AS amount") \
-                            .where("archived = :archived") \
-                            .bind("archived", archived) \
-                            .execute()
-    return DatabaseResult(rowResult).fetch_all()
+    db.execute("""SELECT id AS income_transaction_id,
+                            client_id,
+                            client_name,
+                            purpose,
+                            amount,
+                            currency
+                FROM income_transaction
+                WHERE archived = %s""", [archived])
+    results = []
+    for row in db:
+        result = {
+            "income_transaction_id": row["income_transaction_id"],
+            "client_id": row["client_id"],
+            "client_name": row["client_name"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+            "currency": row["currency"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+import locale
+from proctests.utils import StoredProcedureTestCase
 
 class AddPurchaseTransaction(StoredProcedureTestCase):
     def test_add_purchase_transaction(self):
         addedPurchaseTransaction = add_purchase_transaction(db=self.db,
                                                             vendorName="Lois Lane",
-                                                            discount=20.40)
+                                                            discount=locale.currency(20.40))
         fetchedPurchaseTransaction = fetch_purchase_transaction(self.db)
 
         self.assertEqual(addedPurchaseTransaction["vendor_name"],
@@ -38,22 +39,35 @@ def add_purchase_transaction(db, vendorName, discount, suspended=False, noteId=N
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("AddPurchaseTransaction",
-                                    tuple(purchaseTransaction.values()))
-    purchaseTransaction.update(DatabaseResult(sqlResult).fetch_one())
-    return purchaseTransaction
+    db.call_procedure("AddPurchaseTransaction",
+                        tuple(purchaseTransaction.values()))
+    for row in db:
+        result = {
+            "purchase_transaction_id": row[0]
+        }
+    result.update(purchaseTransaction)
+    return result
 
 def fetch_purchase_transaction(db):
-    purchaseTransactionTable = db.schema.get_table("purchase_transaction")
-    rowResult = purchaseTransactionTable.select("id AS purchase_transaction_id",
-                                                "vendor_id AS vendor_id",
-                                                "vendor_name AS vendor_name",
-                                                "discount AS discount",
-                                                "suspended AS suspended",
-                                                "note_id AS note_id",
-                                                "user_id AS user_id") \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS purchase_transaction_id,
+                            vendor_id,
+                            vendor_name,
+                            discount,
+                            suspended,
+                            note_id,
+                            user_id
+                FROM purchase_transaction""")
+    for row in db:
+        result = {
+            "purchase_transaction_id": row["purchase_transaction_id"],
+            "vendor_id": row["vendor_id"],
+            "vendor_name": row["vendor_name"],
+            "discount": row["discount"],
+            "suspended": row["suspended"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

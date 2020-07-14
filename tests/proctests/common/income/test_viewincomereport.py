@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+import locale
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
 
 class ViewIncomeReport(StoredProcedureTestCase):
@@ -8,15 +9,15 @@ class ViewIncomeReport(StoredProcedureTestCase):
         incomeTransaction1 = add_income_transaction(db=self.db,
                                                         clientName="Jack Dorsey",
                                                         purpose="Buy Twitter",
-                                                        amount=40)
+                                                        amount=locale.currency(40))
         incomeTransaction2 = add_income_transaction(db=self.db,
                                                         clientName="Elon Musk",
                                                         purpose="Buy Tesla",
-                                                        amount=90)
+                                                        amount=locale.currency(90))
         incomeTransaction3 = add_income_transaction(db=self.db,
                                                         clientName="Mark Zuckerberg",
                                                         purpose="Buy Facebook",
-                                                        amount=190)
+                                                        amount=locale.currency(190))
 
         today = date.today()
         tomorrow = today + timedelta(days=1)
@@ -25,17 +26,17 @@ class ViewIncomeReport(StoredProcedureTestCase):
                                                         toDate=tomorrow)
 
         self.assertEqual(len(viewedIncomeReport), 3, "Expected 3 transactions.")
-        self.assertEqual(viewedIncomeReport[0]["income_transaction_id"], incomeTransaction1["income_transaction_id"], "Income transaction ID mismatch")
-        self.assertEqual(viewedIncomeReport[0]["purpose"], incomeTransaction1["purpose"], "Purpose mismatch")
-        self.assertEqual(viewedIncomeReport[0]["amount"], incomeTransaction1["amount"], "Amount mismatch")
+        self.assertEqual(viewedIncomeReport[0]["income_transaction_id"], incomeTransaction1["income_transaction_id"], "Income transaction ID mismatch.")
+        self.assertEqual(viewedIncomeReport[0]["purpose"], incomeTransaction1["purpose"], "Purpose mismatch.")
+        self.assertEqual(viewedIncomeReport[0]["amount"], incomeTransaction1["amount"], "Amount mismatch.")
 
         self.assertEqual(viewedIncomeReport[1]["income_transaction_id"], incomeTransaction2["income_transaction_id"], "Income transaction ID mismatch")
-        self.assertEqual(viewedIncomeReport[1]["purpose"], incomeTransaction2["purpose"], "Purpose mismatch")
-        self.assertEqual(viewedIncomeReport[1]["amount"], incomeTransaction2["amount"], "Amount mismatch")
+        self.assertEqual(viewedIncomeReport[1]["purpose"], incomeTransaction2["purpose"], "Purpose mismatch.")
+        self.assertEqual(viewedIncomeReport[1]["amount"], incomeTransaction2["amount"], "Amount mismatch.")
 
         self.assertEqual(viewedIncomeReport[2]["income_transaction_id"], incomeTransaction3["income_transaction_id"], "Income transaction ID mismatch")
-        self.assertEqual(viewedIncomeReport[2]["purpose"], incomeTransaction3["purpose"], "Purpose mismatch")
-        self.assertEqual(viewedIncomeReport[2]["amount"], incomeTransaction3["amount"], "Amount mismatch")
+        self.assertEqual(viewedIncomeReport[2]["purpose"], incomeTransaction3["purpose"], "Purpose mismatch.")
+        self.assertEqual(viewedIncomeReport[2]["amount"], incomeTransaction3["amount"], "Amount mismatch.")
 
 def add_income_transaction(db, clientName, purpose, amount):
     incomeTransaction = {
@@ -47,24 +48,43 @@ def add_income_transaction(db, clientName, purpose, amount):
         "user_id": 1
     }
 
-    incomeTransactionTable = db.schema.get_table("income_transaction")
-    result = incomeTransactionTable.insert("client_name",
-                                            "purpose",
-                                            "amount",
-                                            "payment_method",
-                                            "currency",
-                                            "user_id") \
-                                    .values(tuple(incomeTransaction.values())) \
-                                    .execute()
-    incomeTransaction.update(DatabaseResult(result).fetch_one("income_transaction_id"))
-    return incomeTransaction
+    db.execute("""INSERT INTO income_transaction (client_name,
+                                                    purpose,
+                                                    amount,
+                                                    payment_method,
+                                                    currency,
+                                                    user_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id AS income_transaction_id,
+                    client_name,
+                    purpose,
+                    amount,
+                    payment_method,
+                    currency,
+                    user_id""", tuple(incomeTransaction.values()))
+    for row in db:
+        result = {
+            "income_transaction_id": row["income_transaction_id"],
+            "client_name": row["client_name"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+            "payment_method": row["payment_method"],
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def view_income_report(db, fromDate, toDate):
-    sqlResult = db.call_procedure("ViewIncomeReport", (
-                                    fromDate,
-                                    toDate))
-
-    return DatabaseResult(sqlResult).fetch_all()
+    db.call_procedure("ViewIncomeReport", [fromDate, toDate])
+    results = []
+    for row in db:
+        result = {
+            "income_transaction_id": row["income_transaction_id"],
+            "purpose": row["purpose"],
+            "amount": row["amount"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

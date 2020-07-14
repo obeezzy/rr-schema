@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+import locale
+from proctests.utils import StoredProcedureTestCase
 
 class AddSalePayment(StoredProcedureTestCase):
     def test_add_sale_payment(self):
@@ -32,29 +33,44 @@ class AddSalePayment(StoredProcedureTestCase):
 def add_sale_payment(db):
     salePayment = {
         "sale_transaction_id": 1,
-        "amount": 100.30,
+        "amount": locale.currency(100.30),
         "payment_method": "cash",
         "currency": "NGN",
         "note_id": 1,
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("AddSalePayment",
-                                        tuple(salePayment.values()))
-    salePayment.update(DatabaseResult(sqlResult).fetch_one())
-    return salePayment
+    db.call_procedure("AddSalePayment",
+                        tuple(salePayment.values()))
+    result = {}
+    for row in db:
+        result = {
+            "sale_payment_id": row[0]
+        }
+    result.update(salePayment)
+    return result
 
 def fetch_sale_payment(db):
-    salePaymentTable = db.schema.get_table("sale_payment")
-    rowResult = salePaymentTable.select("id AS sale_payment_id",
-                                            "sale_transaction_id AS sale_transaction_id",
-                                            "amount AS amount",
-                                            "payment_method AS payment_method",
-                                            "currency AS currency",
-                                            "note_id AS note_id",
-                                            "user_id AS user_id") \
-                                    .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS sale_payment_id,
+                            sale_transaction_id,
+                            amount,
+                            payment_method,
+                            currency,
+                            note_id,
+                            user_id
+                FROM sale_payment""")
+    result = {}
+    for row in db:
+        result = {
+            "sale_payment_id": row["sale_payment_id"],
+            "sale_transaction_id": row["sale_transaction_id"],
+            "amount": row["amount"],
+            "payment_method": row["payment_method"],
+            "currency": row["currency"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

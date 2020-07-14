@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 
 class FetchStockProductCategoryId(StoredProcedureTestCase):
@@ -28,24 +28,38 @@ class FetchStockProductCategoryId(StoredProcedureTestCase):
                             "Product category ID mismatch.")
 
 def add_product(db, productCategoryId, product):
-    productDict = {
+    product = {
         "product_category_id": productCategoryId,
         "product": product,
         "user_id": 1
     }
 
-    productTable = db.schema.get_table("product")
-    result = productTable.insert("product_category_id",
-                                    "product",
-                                    "user_id") \
-                                .values(tuple(productDict.values())) \
-                                .execute()
-    productDict.update(DatabaseResult(result).fetch_one("product_id"))
-    return productDict
+    db.execute("""INSERT INTO product (product_category_id,
+                                        product,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS product_id,
+                    product_category_id,
+                    product,
+                    user_id""", tuple(product.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"],
+            "product_category_id": row["product_category_id"],
+            "product": row["product"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def fetch_stock_product_category_id(db, productId):
-    sqlResult = db.call_procedure("FetchStockProductCategoryId", (productId,))
-    return DatabaseResult(sqlResult).fetch_one()["product_category_id"]
+    db.call_procedure("FetchStockProductCategoryId", [productId])
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row[0],
+        }
+    return result["product_category_id"]
 
 if __name__ == '__main__':
     unittest.main()

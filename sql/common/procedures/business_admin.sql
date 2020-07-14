@@ -1,19 +1,15 @@
-USE ###DATABASENAME###;
-
----
-DROP PROCEDURE IF EXISTS UpdateBusinessDetails;
----
-CREATE PROCEDURE UpdateBusinessDetails (
+CREATE OR REPLACE FUNCTION UpdateBusinessDetails (
     IN iName VARCHAR(100),
     IN iAddress VARCHAR(100),
     IN iBusinessFamily VARCHAR(10),
     IN iEstablishmentYear INTEGER,
     IN iPhoneNumber VARCHAR(20),
-    IN iLogo BLOB,
+    IN iLogo BYTEA,
     IN iExtraDetails VARCHAR(200)
-)
+) RETURNS void
+AS $$
 BEGIN
-    REPLACE INTO business_details (id,
+    INSERT INTO business_details (id,
                                     name,
                                     address,
                                     business_family,
@@ -28,5 +24,14 @@ BEGIN
                 iEstablishmentYear,
                 iPhoneNumber,
                 iLogo,
-                iExtraDetails);
-END;
+                iExtraDetails)
+        ON CONFLICT (id) DO UPDATE
+            SET name = iName,
+                address = iAddress,
+                business_family = iBusinessFamily,
+                establishment_year = iEstablishmentYear,
+                phone_number = iPhoneNumber,
+                logo = iLogo,
+                extra_details = iExtraDetails;
+END
+$$ LANGUAGE plpgsql;

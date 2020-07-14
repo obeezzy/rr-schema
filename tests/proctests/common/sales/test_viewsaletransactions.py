@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+import locale
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 
 class ViewSaleTransactions(StoredProcedureTestCase):
     def test_view_sale_transactions(self):
@@ -78,22 +80,22 @@ def add_first_sale_transaction(db):
                                             customerName="Miles Morales")
     salePayment1 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=340.45,
+                                        amount=locale.currency(340.45),
                                         paymentMethod="cash")
     salePayment2 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=440.45,
-                                        paymentMethod="credit-card")
+                                        amount=locale.currency(440.45),
+                                        paymentMethod="credit_card")
     salePayment3 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=390.45,
+                                        amount=locale.currency(390.45),
                                         paymentMethod="cash")
 
     return {
         "customer_name": saleTransaction["customer_name"],
         "customer_id": saleTransaction["customer_id"],
         "sale_transaction_id": saleTransaction["sale_transaction_id"],
-        "total_amount": salePayment1["amount"] + salePayment2["amount"] + salePayment3["amount"],
+        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip("$")) + Decimal(salePayment2["amount"].strip("$")) + Decimal(salePayment3["amount"].strip("$"))),
         "discount": saleTransaction["discount"],
         "suspended": saleTransaction["suspended"]
     }
@@ -103,18 +105,19 @@ def add_second_sale_transaction(db):
                                             customerName="Ororo Monroe")
     salePayment1 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=582.45,
-                                        paymentMethod="debit-card")
+                                        amount=locale.currency(582.45),
+                                        paymentMethod="debit_card")
     salePayment2 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=233.28,
-                                        paymentMethod="credit-card")
+                                        amount=locale.currency(233.28),
+                                        paymentMethod="credit_card")
 
     return {
         "customer_name": saleTransaction["customer_name"],
         "customer_id": saleTransaction["customer_id"],
         "sale_transaction_id": saleTransaction["sale_transaction_id"],
-        "total_amount": salePayment1["amount"] + salePayment2["amount"],
+        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip("$")) \
+                            + Decimal(salePayment2["amount"].strip("$"))),
         "discount": saleTransaction["discount"],
         "suspended": saleTransaction["suspended"]
     }
@@ -124,31 +127,34 @@ def add_third_sale_transaction(db):
                                             customerName="Jean Gray")
     salePayment1 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=578.23,
-                                        paymentMethod="debit-card")
+                                        amount=locale.currency(578.23),
+                                        paymentMethod="debit_card")
     salePayment2 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=694.95,
+                                        amount=locale.currency(694.95),
                                         paymentMethod="cash")
     salePayment3 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=394.38,
+                                        amount=locale.currency(394.38),
                                         paymentMethod="cash")
     salePayment4 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=421.57,
-                                        paymentMethod="credit-card")
+                                        amount=locale.currency(421.57),
+                                        paymentMethod="credit_card")
 
     return {
         "customer_name": saleTransaction["customer_name"],
         "customer_id": saleTransaction["customer_id"],
         "sale_transaction_id": saleTransaction["sale_transaction_id"],
-        "total_amount": salePayment1["amount"] + salePayment2["amount"] + salePayment3["amount"] + salePayment4["amount"],
+        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip("$")) \
+                            + Decimal(salePayment2["amount"].strip("$")) \
+                            + Decimal(salePayment3["amount"].strip("$")) \
+                            + Decimal(salePayment4["amount"].strip("$"))),
         "discount": saleTransaction["discount"],
         "suspended": saleTransaction["suspended"]
     }
 
-def add_sale_transaction(db, customerName, discount=0, suspended=False):
+def add_sale_transaction(db, customerName, discount="$0", suspended=False):
     saleTransaction = {
         "customer_id": None,
         "customer_name": customerName,
@@ -157,46 +163,86 @@ def add_sale_transaction(db, customerName, discount=0, suspended=False):
         "user_id": 1
     }
 
-    saleTransactionTable = db.schema.get_table("sale_transaction")
-    result = saleTransactionTable.insert("customer_id",
-                                                "customer_name",
-                                                "discount",
-                                                "suspended",
-                                                "user_id") \
-                                    .values(tuple(saleTransaction.values())) \
-                                    .execute()
-    saleTransaction.update(DatabaseResult(result).fetch_one("sale_transaction_id"))
-    return saleTransaction
+    db.execute("""INSERT INTO sale_transaction (customer_id,
+                                                customer_name,
+                                                discount,
+                                                suspended,
+                                                user_id)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id AS sale_transaction_id,
+                    customer_id,
+                    customer_name,
+                    discount,
+                    suspended,
+                    user_id""", tuple(saleTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "sale_transaction_id": row["sale_transaction_id"],
+            "customer_id": row["customer_id"],
+            "customer_name": row["customer_name"],
+            "discount": row["discount"],
+            "suspended": row["suspended"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_sale_payment(db, saleTransactionId, amount, paymentMethod, archived=False):
     salePayment = {
         "sale_transaction_id": saleTransactionId,
         "amount": amount,
-        #"payment_method": paymentMethod,
+        "payment_method": paymentMethod,
         "currency": "NGN",
         "archived": archived,
         "user_id": 1
     }
 
-    salePaymentTable = db.schema.get_table("sale_payment")
-    result = salePaymentTable.insert("sale_transaction_id",
-                                            "amount",
-                                            #"payment_method",
-                                            "currency",
-                                            "archived",
-                                            "user_id") \
-                                    .values(tuple(salePayment.values())) \
-                                    .execute()
-    salePayment.update(DatabaseResult(result).fetch_one("sale_payment_id"))
-    return salePayment
+    db.execute("""INSERT INTO sale_payment (sale_transaction_id,
+                                            amount,
+                                            payment_method,
+                                            currency,
+                                            archived,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id AS sale_payment_id,
+                    sale_transaction_id,
+                    amount,
+                    payment_method,
+                    currency,
+                    archived,
+                    user_id""", tuple(salePayment.values()))
+    result = {}
+    for row in db:
+        result = {
+            "sale_payment_id": row["sale_payment_id"],
+            "sale_transaction_id": row["sale_transaction_id"],
+            "amount": row["amount"],
+            "payment_method": row["payment_method"],
+            "currency": row["currency"],
+            "archived": row["archived"],
+            "user_id": row["user_id"]
+        }
+    return result
 
-def view_sale_transactions(db, fromDate, toDate, suspended=None, archived=None):
-    sqlResult = db.call_procedure("ViewSaleTransactions", (
-                                    fromDate,
-                                    toDate,
-                                    suspended,
-                                    archived))
-    return DatabaseResult(sqlResult).fetch_all()
+def view_sale_transactions(db, fromDate, toDate, suspended=False, archived=False):
+    db.call_procedure("ViewSaleTransactions", [fromDate, toDate, suspended, archived])
+    results = []
+    for row in db:
+        result = {
+            "sale_transaction_id": row["sale_transaction_id"],
+            "customer_name": row["customer_name"],
+            "customer_id": row["customer_id"],
+            "discount": row["discount"].replace(",", ""),
+            "suspended": row["suspended"],
+            "note_id": row["note_id"],
+            "total_amount": row["total_amount"].replace(",", ""),
+            "archived": row["archived"],
+            "created": row["created"],
+            "last_edited": row["last_edited"],
+            "user_id": row["user_id"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

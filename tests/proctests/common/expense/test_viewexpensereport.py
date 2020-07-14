@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
 
 class ViewExpenseReport(StoredProcedureTestCase):
@@ -25,17 +25,17 @@ class ViewExpenseReport(StoredProcedureTestCase):
                                                     toDate=tomorrow)
 
         self.assertEqual(len(viewedExpenseReport), 3, "Expected 3 transactions.")
-        self.assertEqual(viewedExpenseReport[0]["expense_transaction_id"], expenseTransaction1["expense_transaction_id"], "Expense transaction ID mismatch")
-        self.assertEqual(viewedExpenseReport[0]["purpose"], expenseTransaction1["purpose"], "Purpose mismatch")
-        self.assertEqual(viewedExpenseReport[0]["amount"], expenseTransaction1["amount"], "Amount mismatch")
+        self.assertEqual(viewedExpenseReport[0]["expense_transaction_id"], expenseTransaction1["expense_transaction_id"], "Expense transaction ID mismatch.")
+        self.assertEqual(viewedExpenseReport[0]["purpose"], expenseTransaction1["purpose"], "Purpose mismatch.")
+        self.assertEqual(viewedExpenseReport[0]["amount"], expenseTransaction1["amount"], "Amount mismatch.")
 
         self.assertEqual(viewedExpenseReport[1]["expense_transaction_id"], expenseTransaction2["expense_transaction_id"], "Expense transaction ID mismatch")
-        self.assertEqual(viewedExpenseReport[1]["purpose"], expenseTransaction2["purpose"], "Purpose mismatch")
-        self.assertEqual(viewedExpenseReport[1]["amount"], expenseTransaction2["amount"], "Amount mismatch")
+        self.assertEqual(viewedExpenseReport[1]["purpose"], expenseTransaction2["purpose"], "Purpose mismatch.")
+        self.assertEqual(viewedExpenseReport[1]["amount"], expenseTransaction2["amount"], "Amount mismatch.")
 
         self.assertEqual(viewedExpenseReport[2]["expense_transaction_id"], expenseTransaction3["expense_transaction_id"], "Expense transaction ID mismatch")
-        self.assertEqual(viewedExpenseReport[2]["purpose"], expenseTransaction3["purpose"], "Purpose mismatch")
-        self.assertEqual(viewedExpenseReport[2]["amount"], expenseTransaction3["amount"], "Amount mismatch")
+        self.assertEqual(viewedExpenseReport[2]["purpose"], expenseTransaction3["purpose"], "Purpose mismatch.")
+        self.assertEqual(viewedExpenseReport[2]["amount"], expenseTransaction3["amount"], "Amount mismatch.")
 
 def add_expense_transaction(db, clientName, purpose, amount):
     expenseTransaction = {
@@ -47,24 +47,46 @@ def add_expense_transaction(db, clientName, purpose, amount):
         "user_id": 1
     }
 
-    expenseTransactionTable = db.schema.get_table("expense_transaction")
-    result = expenseTransactionTable.insert("client_name",
-                                            "purpose",
-                                            "amount",
-                                            "payment_method",
-                                            "currency",
-                                            "user_id") \
-                                    .values(tuple(expenseTransaction.values())) \
-                                    .execute()
-    expenseTransaction.update(DatabaseResult(result).fetch_one("expense_transaction_id"))
-    return expenseTransaction
+    db.execute("""INSERT INTO expense_transaction (client_name,
+                                                    purpose,
+                                                    amount,
+                                                    payment_method,
+                                                    currency,
+                                                    user_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id AS expense_transaction_id,
+                    client_name,
+                    purpose,
+                    amount,
+                    payment_method,
+                    currency,
+                    user_id""", tuple(expenseTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "expense_transaction_id": row["expense_transaction_id"],
+            "client_name": row["client_name"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+            "payment_method": row["payment_method"],
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def view_expense_report(db, fromDate, toDate):
-    sqlResult = db.call_procedure("ViewExpenseReport", (
-                                    fromDate,
-                                    toDate))
-
-    return DatabaseResult(sqlResult).fetch_all()
+    db.call_procedure("ViewExpenseReport", (
+                        fromDate,
+                        toDate))
+    results = []
+    for row in db:
+        result = {
+            "expense_transaction_id": row["expense_transaction_id"],
+            "purpose": row["purpose"],
+            "amount": row["amount"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

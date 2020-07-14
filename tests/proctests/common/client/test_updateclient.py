@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
-from datetime import datetime
+from proctests.utils import StoredProcedureTestCase
 
 class UpdateClient(StoredProcedureTestCase):
     def test_update_client(self):
@@ -9,7 +8,12 @@ class UpdateClient(StoredProcedureTestCase):
         update_client(self.db)
         fetchedClient = fetch_client(self.db)
 
-        self.assertEqual(addedClient, fetchedClient, "Client mismatch.")
+        self.assertEqual(addedClient["client_id"], fetchedClient["client_id"], "Client ID mismatch.")
+        self.assertEqual(addedClient["first_name"], fetchedClient["first_name"], "First name mismatch.")
+        self.assertEqual(addedClient["last_name"], fetchedClient["last_name"], "Last name mismatch.")
+        self.assertEqual(addedClient["preferred_name"], fetchedClient["preferred_name"], "Preferred name mismatch.")
+        self.assertEqual(addedClient["phone_number"], fetchedClient["phone_number"], "Phone number mismatch.")
+        self.assertEqual(addedClient["user_id"], fetchedClient["user_id"], "User ID mismatch.")
 
 def add_single_client(db):
     client = {
@@ -21,17 +25,31 @@ def add_single_client(db):
         "user_id": 1
     }
 
-    clientTable = db.schema.get_table("client")
-    clientTable.insert("id",
-                        "first_name",
-                        "last_name",
-                        "preferred_name",
-                        "phone_number",
-                        "user_id") \
-                .values(list(client.values())) \
-                .execute()
-
-    return client
+    db.execute("""INSERT INTO client (id,
+                                        first_name,
+                                        last_name,
+                                        preferred_name,
+                                        phone_number,
+                                        user_id)
+                VALUES(%s, %s, %s, %s, %s, %s)
+                RETURNING id AS client_id,
+                    first_name,
+                    last_name,
+                    preferred_name,
+                    phone_number,
+                    user_id""", tuple(client.values()))
+    db.commit()
+    result = {}
+    for row in db:
+        result = {
+            "client_id": row["client_id"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"],
+            "preferred_name": row["preferred_name"],
+            "phone_number": row["phone_number"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def update_client(db):
     client = {
@@ -47,16 +65,24 @@ def update_client(db):
                         tuple(client.values()))
 
 def fetch_client(db):
-    clientTable = db.schema.get_table("client")
-    rowResult = clientTable.select("id AS client_id",
-                                    "first_name AS first_name",
-                                    "last_name AS last_name",
-                                    "preferred_name AS preferred_name",
-                                    "phone_number AS phone_number",
-                                    "user_id AS user_id") \
-                            .execute()
-
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS client_id,
+                            first_name,
+                            last_name,
+                            preferred_name,
+                            phone_number,
+                            user_id
+                FROM client""")
+    result = {}
+    for row in db:
+        result = {
+            "client_id": row["client_id"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"],
+            "preferred_name": row["preferred_name"],
+            "phone_number": row["phone_number"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

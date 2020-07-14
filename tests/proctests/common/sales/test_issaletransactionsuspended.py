@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class IsSaleTransactionSuspended(StoredProcedureTestCase):
     def test_is_sale_transaction_suspended_when_true(self):
@@ -27,19 +27,33 @@ def add_sale_transaction(db, customerName, suspended=False):
         "user_id": 1
     }
 
-    saleTransactionTable = db.schema.get_table("sale_transaction")
-    result = saleTransactionTable.insert("customer_id",
-                                                "customer_name",
-                                                "suspended",
-                                                "user_id") \
-                                    .values(tuple(saleTransaction.values())) \
-                                    .execute()
-    saleTransaction.update(DatabaseResult(result).fetch_one("sale_transaction_id"))
-    return saleTransaction
+    db.execute("""INSERT INTO sale_transaction (customer_id,
+                                                customer_name,
+                                                suspended,
+                                                user_id)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id AS sale_transaction_id,
+                    customer_id,
+                    customer_name,
+                    suspended,
+                    user_id""", tuple(saleTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "sale_transaction_id": row["sale_transaction_id"],
+            "customer_id": row["customer_id"],
+            "customer_name": row["customer_name"],
+            "suspended": row["suspended"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def is_sale_transaction_suspended(db, saleTransactionId):
-    sqlResult = db.call_procedure("IsSaleTransactionSuspended", (saleTransactionId,))
-    return bool(DatabaseResult(sqlResult).fetch_one()["suspended"])
+    db.call_procedure("IsSaleTransactionSuspended", [saleTransactionId])
+    result = False
+    for row in db:
+        result = row[0]
+    return result
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+import locale
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 
 class ViewDebtors(StoredProcedureTestCase):
@@ -30,20 +31,20 @@ def add_first_debtor(db):
                                             transactionTable="debtor")
     debtPayment1 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=420,
-                                    amountPaid=60)
+                                    totalDebt=locale.currency(420),
+                                    amountPaid=locale.currency(60))
     debtPayment2 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=360,
-                                    amountPaid=300) # 60
+                                    totalDebt=locale.currency(360),
+                                    amountPaid=locale.currency(300)) # 60
 
     debtTransaction2 = add_debt_transaction(db=db,
                                             debtorId=debtor["debtor_id"],
                                             transactionTable="debtor")
     debtPayment3 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction2["debt_transaction_id"],
-                                    totalDebt=240,
-                                    amountPaid=40) # 200
+                                    totalDebt=locale.currency(240),
+                                    amountPaid=locale.currency(40)) # 200
 
     return {
         "debtor_id": debtor["debtor_id"],
@@ -66,16 +67,16 @@ def add_second_debtor(db):
                                             transactionTable="debtor")
     debtPayment1 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=1400,
-                                    amountPaid=200)
+                                    totalDebt=locale.currency(1400),
+                                    amountPaid=locale.currency(200))
 
     debtTransaction2 = add_debt_transaction(db=db,
                                             debtorId=debtor["debtor_id"],
                                             transactionTable="debtor")
     debtPayment2 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction2["debt_transaction_id"],
-                                    totalDebt=600,
-                                    amountPaid=200)
+                                    totalDebt=locale.currency(600),
+                                    amountPaid=locale.currency(200))
 
     return {
         "debtor_id": debtor["debtor_id"],
@@ -98,40 +99,40 @@ def add_third_debtor(db):
                                             transactionTable="debtor")
     debtPayment1 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=3000,
-                                    amountPaid=1000)
+                                    totalDebt=locale.currency(3000),
+                                    amountPaid=locale.currency(1000))
     debtPayment2 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=2000,
-                                    amountPaid=500)
+                                    totalDebt=locale.currency(2000),
+                                    amountPaid=locale.currency(500))
 
     debtTransaction2 = add_debt_transaction(db=db,
                                             debtorId=debtor["debtor_id"],
                                             transactionTable="debtor")
     debtPayment3 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction2["debt_transaction_id"],
-                                    totalDebt=240,
-                                    amountPaid=40)
+                                    totalDebt=locale.currency(240),
+                                    amountPaid=locale.currency(40))
 
     debtTransaction3 = add_debt_transaction(db=db,
                                             debtorId=debtor["debtor_id"],
                                             transactionTable="debtor")
     debtPayment4 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction3["debt_transaction_id"],
-                                    totalDebt=2200,
-                                    amountPaid=200)
+                                    totalDebt=locale.currency(2200),
+                                    amountPaid=locale.currency(200))
     debtPayment5 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction3["debt_transaction_id"],
-                                    totalDebt=2000,
-                                    amountPaid=500)
+                                    totalDebt=locale.currency(2000),
+                                    amountPaid=locale.currency(500))
     debtPayment6 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction3["debt_transaction_id"],
-                                    totalDebt=1500,
-                                    amountPaid=300)
+                                    totalDebt=locale.currency(1500),
+                                    amountPaid=locale.currency(300))
     debtPayment7 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction3["debt_transaction_id"],
-                                    totalDebt=1200,
-                                    amountPaid=1200)
+                                    totalDebt=locale.currency(1200),
+                                    amountPaid=locale.currency(1200))
 
     return {
         "debtor_id": debtor["debtor_id"],
@@ -146,13 +147,21 @@ def add_debtor(db, clientId):
         "client_id": clientId,
         "user_id": 1
     }
-    debtorTable = db.schema.get_table("debtor")
-    result = debtorTable.insert("client_id",
-                                "user_id") \
-                        .values(tuple(debtor.values())) \
-                        .execute()
-    debtor.update(DatabaseResult(result).fetch_one("debtor_id"))
-    return debtor
+    db.execute("""INSERT INTO debtor (client_id,
+                                        user_id)
+                VALUES (%s, %s)
+                RETURNING id AS debtor_id,
+                    client_id,
+                    user_id""", tuple(debtor.values()))
+    result = {}
+    for row in db:
+        result = {
+            "debtor_id": row["debtor_id"],
+            "client_id": row["client_id"],
+            "user_id": row["user_id"]
+        }
+    result.update(debtor)
+    return result
 
 def add_client(db, firstName, lastName, preferredName, phoneNumber):
     client = {
@@ -163,16 +172,25 @@ def add_client(db, firstName, lastName, preferredName, phoneNumber):
         "user_id": 1
     }
 
-    clientTable = db.schema.get_table("client")
-    result = clientTable.insert("first_name",
-                                "last_name",
-                                "preferred_name",
-                                "phone_number",
-                                "user_id") \
-                        .values(tuple(client.values())) \
-                        .execute()
-    client.update(DatabaseResult(result).fetch_one("client_id"))
-    return client
+    db.execute("""INSERT INTO client (first_name,
+                                    last_name,
+                                    preferred_name,
+                                    phone_number,
+                                    user_id)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id AS client_id,
+                    first_name,
+                    last_name,
+                    preferred_name,
+                    phone_number,
+                    user_id""", tuple(client.values()))
+    result = {}
+    for row in db:
+        result = {
+            "client_id": row["client_id"]
+        }
+    result.update(client)
+    return result
 
 
 def add_debt_transaction(db, debtorId, transactionTable, transactionId=None):
@@ -183,15 +201,26 @@ def add_debt_transaction(db, debtorId, transactionTable, transactionId=None):
         "user_id": 1
     }
 
-    debtTransactionTable = db.schema.get_table("debt_transaction")
-    result = debtTransactionTable.insert("debtor_id",
-                                            "transaction_table",
-                                            "transaction_id",
-                                            "user_id") \
-                                    .values(tuple(debtTransaction.values())) \
-                                    .execute()
-    debtTransaction.update(DatabaseResult(result).fetch_one("debt_transaction_id"))
-    return debtTransaction
+    db.execute("""INSERT INTO debt_transaction (debtor_id,
+                                                transaction_table,
+                                                transaction_id,
+                                                user_id)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id AS debt_transaction_id,
+                    debtor_id,
+                    transaction_table,
+                    transaction_id,
+                    user_id""", tuple(debtTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "debt_transaction_id": row["debt_transaction_id"],
+            "debtor_id": row["debtor_id"],
+            "transaction_table": row["transaction_table"],
+            "user_id": row["user_id"]
+        }
+    result.update(debtTransaction)
+    return result
 
 def add_debt_payment(db, debtTransactionId, totalDebt, amountPaid):
     debtPayment = {
@@ -200,32 +229,58 @@ def add_debt_payment(db, debtTransactionId, totalDebt, amountPaid):
         "amount_paid": amountPaid,
         "balance": totalDebt - amountPaid,
         "currency": "NGN",
-        "due_date_time": DatabaseDateTime(datetime.now()).iso_format,
+        "due_date_time": datetime.now(),
         "user_id": 1
     }
 
-    debtPaymentTable = db.schema.get_table("debt_payment")
-    result = debtPaymentTable.insert("debt_transaction_id",
-                                        "total_debt",
-                                        "amount_paid",
-                                        "balance",
-                                        "currency",
-                                        "due_date_time",
-                                        "user_id") \
-                                .values(tuple(debtPayment.values())) \
-                                .execute()
-    debtPayment.update(DatabaseResult(result).fetch_one("debt_payment_id"))
-    return debtPayment
+    db.execute("""INSERT INTO debt_payment (debt_transaction_id,
+                                            total_debt,
+                                            amount_paid,
+                                            balance,
+                                            currency,
+                                            due_date_time,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS debt_payment_id,
+                    debt_transaction_id,
+                    total_debt,
+                    amount_paid,
+                    balance,
+                    currency,
+                    due_date_time,
+                    user_id""", tuple(debtPayment.values()))
+    result = {}
+    for row in db:
+        result = {
+            "debt_payment_id": row["debt_payment_id"],
+            "debt_transaction_id": row["debt_transaction_id"],
+            "total_debt": row["total_debt"],
+            "amount_paid": row["amount_paid"],
+            "balance": row["balance"],
+            "currency": row["currency"],
+            "due_date_time": row["due_date_time"],
+            "user_id": row["user_id"]
+        }
+    result.update(debtPayment)
+    return result
 
 def view_debtors(db, archived=False):
     debtor = {
         "archived": archived
     }
 
-    sqlResult = db.call_procedure("ViewDebtors",
-                                    tuple(debtor.values()))
-    
-    return DatabaseResult(sqlResult).fetch_all()
+    db.call_procedure("ViewDebtors",
+                        tuple(debtor.values()))
+    results = []
+    for row in db:
+        result = {
+            "debtor_id": row["debtor_id"],
+            "preferred_name": row["preferred_name"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class ArchiveStockProduct(StoredProcedureTestCase):
     def test_archive_stock_product(self):
@@ -21,7 +21,7 @@ class ArchiveStockProduct(StoredProcedureTestCase):
         archive_stock_product(db=self.db,
                                 archived=True,
                                 productId=product2["product_id"])
-        fetchedProductCategories = fetch_product_category(db=self.db,
+        fetchedProductCategories = fetch_product_categories(db=self.db,
                                                             archived=False)
         fetchedProducts = fetch_products(db=self.db,
                                             archived=False)
@@ -51,7 +51,7 @@ class ArchiveStockProduct(StoredProcedureTestCase):
         archive_stock_product(db=self.db,
                                 archived=False,
                                 productId=product2["product_id"])
-        fetchedProductCategories = fetch_product_category(db=self.db,
+        fetchedProductCategories = fetch_product_categories(db=self.db,
                                                             archived=False)
         fetchedProducts = fetch_products(db=self.db,
                                             archived=False)
@@ -68,7 +68,7 @@ class ArchiveStockProduct(StoredProcedureTestCase):
         self.assertEqual(fetchedProductCategories[1]["category"],
                             productCategory2["category"], "Product category mismatch.")
 
-        self.assertEqual(len(fetchedProducts), 3, "Expected 2 products.")
+        self.assertEqual(len(fetchedProducts), 3, "Expected 3 products.")
         self.assertEqual(fetchedProducts[0]["product_id"],
                             product1["product_id"],
                             "Product ID mismatch.")
@@ -96,29 +96,45 @@ def add_product_category(db, category):
         "user_id": 1
     }
 
-    productCategoryTable = db.schema.get_table("product_category")
-    result = productCategoryTable.insert("category",
-                                            "user_id") \
-                                    .values(tuple(productCategory.values())) \
-                                    .execute()
-    productCategory.update(DatabaseResult(result).fetch_one("product_category_id"))
-    return productCategory
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id,
+                    category,
+                    user_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"],
+            "category": row["category"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product(db, productCategoryId, product):
-    productDict = {
+    product = {
         "product_category_id": productCategoryId,
         "product": product,
         "user_id": 1
     }
 
-    productTable = db.schema.get_table("product")
-    result = productTable.insert("product_category_id",
-                                    "product",
-                                    "user_id") \
-                            .values(tuple(productDict.values())) \
-                            .execute()
-    productDict.update(DatabaseResult(result).fetch_one("product_id"))
-    return productDict
+    db.execute("""INSERT INTO product (product_category_id,
+                                        product,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS product_id,
+                    product_category_id,
+                    product,
+                    user_id""", tuple(product.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"],
+            "product_category_id": row["product_category_id"],
+            "product": row["product"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def archive_stock_product(db, archived, productId):
     args = {
@@ -126,27 +142,38 @@ def archive_stock_product(db, archived, productId):
         "product_id": productId,
         "user_id": 1
     }
-    sqlResult = db.call_procedure("ArchiveStockProduct", tuple(args.values()))
-    return DatabaseResult(sqlResult).fetch_all()
+    db.call_procedure("ArchiveStockProduct", tuple(args.values()))
 
-def fetch_product_category(db, archived):
-    productCategoryTable = db.schema.get_table("product_category")
-    rowResult = productCategoryTable.select("id AS product_category_id",
-                                            "category AS category") \
-                                        .where("archived = :archived") \
-                                        .bind("archived", archived) \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_all()
+def fetch_product_categories(db, archived):
+    db.execute("""SELECT id AS product_category_id,
+                                category
+                FROM product_category
+                WHERE archived = %s""", [archived])
+    results = []
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"],
+            "category": row["category"]
+        }
+        results.append(result)
+    return results
 
 def fetch_products(db, archived):
-    productTable = db.schema.get_table("product")
-    rowResult = productTable.select("id AS product_id",
-                                            "product_category_id AS product_category_id",
-                                            "product AS product") \
-                                            .where("archived = :archived") \
-                                            .bind("archived", archived) \
-                                            .execute()
-    return DatabaseResult(rowResult).fetch_all()
+    db.execute("""SELECT id AS product_id,
+                            product_category_id,
+                            product
+                FROM product
+                WHERE archived = %s
+                ORDER BY created""", [archived])
+    results = []
+    for row in db:
+        result = {
+            "product_id": row["product_id"],
+            "product_category_id": row["product_category_id"],
+            "product": row["product"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

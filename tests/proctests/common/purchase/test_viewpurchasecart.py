@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+import locale
+from proctests.utils import StoredProcedureTestCase
 
 class ViewPurchaseCart(StoredProcedureTestCase):
     def test_view_purchase_cart(self):
@@ -16,8 +17,8 @@ class ViewPurchaseCart(StoredProcedureTestCase):
                                         productId=product1["product_id"],
                                         unit="unit(s)",
                                         baseUnitEquivalent=1,
-                                        costPrice=183.32,
-                                        retailPrice=182.95)
+                                        costPrice=locale.currency(183.32),
+                                        retailPrice=locale.currency(182.95))
         product2 = add_product(db=self.db,
                                 productCategoryId=productCategory1["product_category_id"],
                                 product="Guitar")
@@ -28,8 +29,8 @@ class ViewPurchaseCart(StoredProcedureTestCase):
                                         productId=product2["product_id"],
                                         unit="unit(s)",
                                         baseUnitEquivalent=1,
-                                        costPrice=183.32,
-                                        retailPrice=182.95)
+                                        costPrice=locale.currency(183.32),
+                                        retailPrice=locale.currency(182.95))
 
         productCategory2 = add_product_category(db=self.db,
                                                 category="Logitech")
@@ -43,8 +44,8 @@ class ViewPurchaseCart(StoredProcedureTestCase):
                                         productId=product3["product_id"],
                                         unit="unit(s)",
                                         baseUnitEquivalent=1,
-                                        costPrice=400.32,
-                                        retailPrice=382.95)
+                                        costPrice=locale.currency(400.32),
+                                        retailPrice=locale.currency(382.95))
 
         client = add_client(db=self.db,
                             firstName="Carol",
@@ -63,35 +64,35 @@ class ViewPurchaseCart(StoredProcedureTestCase):
         purchasedProduct1 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
                                                     productId=product1["product_id"],
-                                                    unitPrice=89.66,
+                                                    unitPrice=locale.currency(89.66),
                                                     quantity=43.5,
                                                     productUnitId=productUnit1["product_unit_id"],
-                                                    cost=459.34,
-                                                    discount=96.38,
+                                                    cost=locale.currency(459.34),
+                                                    discount=locale.currency(96.38),
                                                     noteId=note["note_id"])
         purchasedProduct2 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
                                                     productId=product2["product_id"],
-                                                    unitPrice=27.36,
+                                                    unitPrice=locale.currency(27.36),
                                                     quantity=54.5,
                                                     productUnitId=productUnit2["product_unit_id"],
-                                                    cost=389.22,
-                                                    discount=28.38,
+                                                    cost=locale.currency(389.22),
+                                                    discount=locale.currency(28.38),
                                                     noteId=note["note_id"])
         purchasedProduct3 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
                                                     productId=product3["product_id"],
-                                                    unitPrice=36.86,
+                                                    unitPrice=locale.currency(36.86),
                                                     quantity=64.5,
                                                     productUnitId=productUnit3["product_unit_id"],
-                                                    cost=483.23,
-                                                    discount=38.48,
+                                                    cost=locale.currency(483.23),
+                                                    discount=locale.currency(38.48),
                                                     noteId=note["note_id"])
 
-        viewedPurchaseCart = view_purchase_transaction_products(db=self.db,
-                                                                    purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
-                                                                    purchaseTransactionArchived=False,
-                                                                    purchasedProductArchived=False)
+        viewedPurchaseCart = view_purchase_cart(db=self.db,
+                                                    purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
+                                                    purchaseTransactionArchived=False,
+                                                    purchasedProductArchived=False)
 
         self.assertEqual(len(viewedPurchaseCart), 3, "Expected 3 transactions.")
         self.assertEqual(viewedPurchaseCart[0]["purchase_transaction_id"],
@@ -292,29 +293,43 @@ def add_product_category(db, category):
         "user_id": 1
     }
 
-    productCategoryTable = db.schema.get_table("product_category")
-    result = productCategoryTable.insert("category",
-                                            "user_id") \
-                                    .values(tuple(productCategory.values())) \
-                                    .execute()
-    productCategory.update(DatabaseResult(result).fetch_one("product_category_id"))
-    return productCategory
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id,
+                    category,
+                    user_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"],
+            "category": row["category"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product(db, productCategoryId, product):
-    productDict = {
+    product = {
         "product_category_id": productCategoryId,
         "product": product,
         "user_id": 1
     }
 
-    productTable = db.schema.get_table("product")
-    result = productTable.insert("product_category_id",
-                                    "product",
-                                    "user_id") \
-                            .values(tuple(productDict.values())) \
-                            .execute()
-    productDict.update(DatabaseResult(result).fetch_one("product_id"))
-    return productDict
+    db.execute("""INSERT INTO product (product_category_id,
+                                        product,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS product_id,
+                    product,
+                    user_id""", tuple(product.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"],
+            "product": row["product"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_purchased_product(db, purchaseTransactionId, productId, unitPrice, quantity, productUnitId, cost, noteId, discount=0):
     purchasedProduct = {
@@ -330,21 +345,44 @@ def add_purchased_product(db, purchaseTransactionId, productId, unitPrice, quant
         "user_id": 1
     }
 
-    purchasedProductTable = db.schema.get_table("purchased_product")
-    result = purchasedProductTable.insert("purchase_transaction_id",
-                                            "product_id",
-                                            "unit_price",
-                                            "quantity",
-                                            "product_unit_id",
-                                            "currency",
-                                            "cost",
-                                            "note_id",
-                                            "discount",
-                                            "user_id") \
-                                    .values(tuple(purchasedProduct.values())) \
-                                    .execute()
-    purchasedProduct.update(DatabaseResult(result).fetch_one("purchased_product_id"))
-    return purchasedProduct
+    db.execute("""INSERT INTO purchased_product (purchase_transaction_id,
+                                                    product_id,
+                                                    unit_price,
+                                                    quantity,
+                                                    product_unit_id,
+                                                    currency,
+                                                    cost,
+                                                    note_id,
+                                                    discount,
+                                                    user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS purchased_product_id,
+                    purchase_transaction_id,
+                    product_id,
+                    unit_price,
+                    quantity,
+                    product_unit_id,
+                    currency,
+                    cost,
+                    note_id,
+                    discount,
+                    user_id""", tuple(purchasedProduct.values()))
+    result = {}
+    for row in db:
+        result = {
+            "purchased_product_id": row["purchased_product_id"],
+            "purchase_transaction_id": row["purchase_transaction_id"],
+            "product_id": row["product_id"],
+            "unit_price": row["unit_price"],
+            "quantity": row["quantity"],
+            "product_unit_id": row["product_unit_id"],
+            "currency": row["currency"],
+            "cost": row["cost"],
+            "note_id": row["note_id"],
+            "discount": row["discount"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product_unit(db, productId, unit, baseUnitEquivalent, costPrice, retailPrice):
     productUnit = {
@@ -358,19 +396,38 @@ def add_product_unit(db, productId, unit, baseUnitEquivalent, costPrice, retailP
         "user_id": 1
     }
 
-    productUnitTable = db.schema.get_table("product_unit")
-    result = productUnitTable.insert("product_id",
-                                        "unit",
-                                        "base_unit_equivalent",
-                                        "cost_price",
-                                        "retail_price",
-                                        "preferred",
-                                        "currency",
-                                        "user_id") \
-                                .values(tuple(productUnit.values())) \
-                                .execute()
-    productUnit.update(DatabaseResult(result).fetch_one("product_unit_id"))
-    return productUnit
+    db.execute("""INSERT INTO product_unit (product_id,
+                                            unit,
+                                            base_unit_equivalent,
+                                            cost_price,
+                                            retail_price,
+                                            preferred,
+                                            currency,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS product_unit_id,
+                    product_id,
+                    unit,
+                    base_unit_equivalent,
+                    cost_price,
+                    retail_price,
+                    preferred,
+                    currency,
+                    user_id""", tuple(productUnit.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_unit_id": row["product_unit_id"],
+            "product_id": row["product_id"],
+            "unit": row["unit"],
+            "base_unit_equivalent": row["base_unit_equivalent"],
+            "cost_price": row["cost_price"],
+            "retail_price": row["retail_price"],
+            "preferred": row["preferred"],
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_purchase_transaction(db, vendorId, vendorName, noteId, discount=0, suspended=False):
     purchaseTransaction = {
@@ -382,17 +439,32 @@ def add_purchase_transaction(db, vendorId, vendorName, noteId, discount=0, suspe
         "user_id": 1
     }
 
-    purchaseTransactionTable = db.schema.get_table("purchase_transaction")
-    result = purchaseTransactionTable.insert("vendor_id",
-                                                "vendor_name",
-                                                "note_id",
-                                                "discount",
-                                                "suspended",
-                                                "user_id") \
-                                        .values(tuple(purchaseTransaction.values())) \
-                                        .execute()
-    purchaseTransaction.update(DatabaseResult(result).fetch_one("purchase_transaction_id"))
-    return purchaseTransaction
+    db.execute("""INSERT INTO purchase_transaction (vendor_id,
+                                                    vendor_name,
+                                                    note_id,
+                                                    discount,
+                                                    suspended,
+                                                    user_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id AS purchase_transaction_id,
+                    vendor_id,
+                    vendor_name,
+                    note_id,
+                    discount,
+                    suspended,
+                    user_id""", tuple(purchaseTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "purchase_transaction_id": row["purchase_transaction_id"],
+            "vendor_id": row["vendor_id"],
+            "vendor_name": row["vendor_name"],
+            "note_id": row["note_id"],
+            "discount": row["discount"],
+            "suspended": row["suspended"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_current_product_quantity(db, productId, quantity):
     currentProductQuantity = {
@@ -401,14 +473,23 @@ def add_current_product_quantity(db, productId, quantity):
         "user_id": 1
     }
 
-    currentProductQuantityTable = db.schema.get_table("current_product_quantity")
-    result = currentProductQuantityTable.insert("product_id",
-                                                "quantity",
-                                                "user_id") \
-                                            .values(tuple(currentProductQuantity.values())) \
-                                            .execute()
-    currentProductQuantity.update(DatabaseResult(result).fetch_one("current_product_quantity_id"))
-    return currentProductQuantity
+    db.execute("""INSERT INTO current_product_quantity (product_id,
+                                                        quantity,
+                                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS current_product_quantity_id,
+                    product_id,
+                    quantity,
+                    user_id""", tuple(currentProductQuantity.values()))
+    result = {}
+    for row in db:
+        result = {
+            "current_product_quantity_id": row["current_product_quantity_id"],
+            "product_id": row["product_id"],
+            "quantity": row["quantity"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_client(db, firstName, lastName, preferredName, phoneNumber):
     client = {
@@ -419,16 +500,29 @@ def add_client(db, firstName, lastName, preferredName, phoneNumber):
         "user_id": 1
     }
 
-    clientTable = db.schema.get_table("client")
-    result = clientTable.insert("first_name",
-                                "last_name",
-                                "preferred_name",
-                                "phone_number",
-                                "user_id") \
-                            .values(tuple(client.values())) \
-                            .execute()
-    client.update(DatabaseResult(result).fetch_one("client_id"))
-    return client
+    db.execute("""INSERT INTO client (first_name,
+                                        last_name,
+                                        preferred_name,
+                                        phone_number,
+                                        user_id)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id AS client_id,
+                    first_name,
+                    last_name,
+                    preferred_name,
+                    phone_number,
+                    user_id""", tuple(client.values()))
+    result = {}
+    for row in db:
+        result = {
+            "client_id": row["client_id"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"],
+            "preferred_name": row["preferred_name"],
+            "phone_number": row["phone_number"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_vendor(db, clientId):
     vendor = {
@@ -436,38 +530,83 @@ def add_vendor(db, clientId):
         "user_id": 1
     }
 
-    vendorTable = db.schema.get_table("vendor")
-    result = vendorTable.insert("client_id",
-                                "user_id") \
-                            .values(tuple(vendor.values())) \
-                            .execute()
-    vendor.update(DatabaseResult(result).fetch_one("vendor_id"))
-    return vendor
+    db.execute("""INSERT INTO vendor (client_id,
+                                        user_id)
+                VALUES (%s, %s)
+                RETURNING id AS vendor_id,
+                    client_id,
+                    user_id""", tuple(vendor.values()))
+    result = {}
+    for row in db:
+        result = {
+            "vendor_id": row["vendor_id"],
+            "client_id": row["client_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_note(db, note, tableName):
-    noteDict = {
+    note = {
         "note": note,
         "table_name": tableName,
         "user_id": 1
     }
 
-    noteTable = db.schema.get_table("note")
-    result = noteTable.insert("note",
-                                "table_name",
-                                "user_id") \
-                        .values(tuple(noteDict.values())) \
-                        .execute()
-    noteDict.update(DatabaseResult(result).fetch_one("note_id"))
-    return noteDict
+    db.execute("""INSERT INTO note (note,
+                                    table_name,
+                                    user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS note_id,
+                    note,
+                    table_name,
+                    user_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"],
+            "note": row["note"],
+            "table_name": row["table_name"],
+            "user_id": row["user_id"]
+        }
+    return result
 
-def view_purchase_transaction_products(db, purchaseTransactionId, purchaseTransactionArchived=None, purchasedProductArchived=None):
+def view_purchase_cart(db, purchaseTransactionId, purchaseTransactionArchived=False, purchasedProductArchived=False):
     args = {
         "purchase_transaction_id": purchaseTransactionId,
         "purchase_transaction_archived": purchaseTransactionArchived,
         "purchased_product_archived": purchasedProductArchived
     }
-    sqlResult = db.call_procedure("ViewPurchaseCart", tuple(args.values()))
-    return DatabaseResult(sqlResult).fetch_all()
+    db.call_procedure("ViewPurchaseCart", tuple(args.values()))
+    results = []
+    for row in db:
+        result = {
+            "purchase_transaction_id": row["purchase_transaction_id"],
+            "vendor_name": row["vendor_name"],
+            "vendor_id": row["vendor_id"],
+            "vendor_phone_number": row["vendor_phone_number"],
+            "suspended": row["suspended"],
+            "note_id": row["note_id"],
+            "note": row["note"],
+            "product_category_id": row["product_category_id"],
+            "product_category": row["product_category"],
+            "product_id": row["product_id"],
+            "product": row["product"],
+            "unit_price": row["unit_price"],
+            "quantity": row["quantity"],
+            "available_quantity": row["available_quantity"],
+            "product_unit_id": row["product_unit_id"],
+            "product_unit": row["product_unit"],
+            "cost_price": row["cost_price"],
+            "retail_price": row["retail_price"],
+            "cost": row["cost"],
+            "discount": row["discount"],
+            "currency": row["currency"],
+            "created": row["created"],
+            "last_edited": row["last_edited"],
+            "user_id": row["user_id"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

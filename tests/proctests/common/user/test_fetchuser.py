@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseErrorCodes, StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class FetchUser(StoredProcedureTestCase):
     def test_fetch_user(self):
@@ -14,7 +14,7 @@ class FetchUser(StoredProcedureTestCase):
         fetchedUser = fetch_user(db=self.db,
                                     userId=addedUser["user_id"])
 
-        self.assertEqual(addedUser["user"], fetchedUser["user"], "User field mismatch.")
+        self.assertEqual(addedUser["username"], fetchedUser["username"], "User name mismatch.")
         self.assertEqual(addedUser["first_name"], fetchedUser["first_name"], "First name field mismatch.")
         self.assertEqual(addedUser["last_name"], fetchedUser["last_name"], "Last name field mismatch.")
         self.assertEqual(addedUser["photo"], fetchedUser["photo"], "Photo field mismatch.")
@@ -23,8 +23,8 @@ class FetchUser(StoredProcedureTestCase):
         self.assertEqual(addedUser["user_id"], fetchedUser["user_id"], "User ID field mismatch.")
 
 def add_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
-    userDict = {
-        "user": user,
+    user = {
+        "username": user,
         "first_name": firstName,
         "last_name": lastName,
         "photo": photo,
@@ -33,22 +33,50 @@ def add_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
         "user_id": 1
     }
 
-    userTable = db.schema.get_table("rr_user")
-    result = userTable.insert("user",
-                                "first_name",
-                                "last_name",
-                                "photo",
-                                "phone_number",
-                                "email_address",
-                                "user_id") \
-                            .values(tuple(userDict.values())) \
-                            .execute()
-    userDict.update(DatabaseResult(result).fetch_one("user_id"))
-    return userDict
+    db.execute("""INSERT INTO rr_user (username,
+                                        first_name,
+                                        last_name,
+                                        photo,
+                                        phone_number,
+                                        email_address,
+                                        user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS user_id,
+                    username,
+                    first_name,
+                    last_name,
+                    photo,
+                    phone_number,
+                    email_address""", tuple(user.values()))
+    result = {}
+    for row in db:
+        result = {
+            "user_id": row["user_id"],
+            "username": row["username"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"],
+            "photo": row["photo"],
+            "phone_number": row["phone_number"],
+            "email_address": row["email_address"]
+        }
+    return result
 
 def fetch_user(db, userId, archived=False):
-    sqlResult = db.call_procedure("FetchUser", (userId, archived))
-    return DatabaseResult(sqlResult).fetch_one()
+    db.call_procedure("FetchUser", [userId, archived])
+    result = {}
+    for row in db:
+        result = {
+            "user_id": row["user_id"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"],
+            "username": row["username"],
+            "photo": row["photo"],
+            "phone_number": row["phone_number"],
+            "email_address": row["email_address"],
+            "active": row["active"],
+            "note": row["note"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

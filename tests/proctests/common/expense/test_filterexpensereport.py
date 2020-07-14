@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+import locale
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
 
 class FilterExpenseReport(StoredProcedureTestCase):
@@ -8,15 +9,15 @@ class FilterExpenseReport(StoredProcedureTestCase):
         expenseTransaction1 = add_expense_transaction(db=self.db,
                                                         clientName="Jack Dorsey",
                                                         purpose="Buy Twitter",
-                                                        amount=40)
+                                                        amount=locale.currency(40))
         expenseTransaction2 = add_expense_transaction(db=self.db,
                                                         clientName="Elon Musk",
                                                         purpose="Buy Tesla",
-                                                        amount=90)
+                                                        amount=locale.currency(90))
         expenseTransaction3 = add_expense_transaction(db=self.db,
                                                         clientName="Mark Zuckerberg",
                                                         purpose="Buy Facebook",
-                                                        amount=190)
+                                                        amount=locale.currency(190))
 
         today = date.today()
         tomorrow = today + timedelta(days=1)
@@ -71,40 +72,73 @@ def add_expense_transaction(db, clientName, purpose, amount):
         "user_id": 1
     }
 
-    expenseTransactionTable = db.schema.get_table("expense_transaction")
-    result = expenseTransactionTable.insert("client_name",
-                                            "purpose",
-                                            "amount",
-                                            "payment_method",
-                                            "currency",
-                                            "user_id") \
-                                    .values(tuple(expenseTransaction.values())) \
-                                    .execute()
-    expenseTransaction.update(DatabaseResult(result).fetch_one("expense_transaction_id"))
-    return expenseTransaction
+    db.execute("""INSERT INTO expense_transaction (client_name,
+                                                    purpose,
+                                                    amount,
+                                                    payment_method,
+                                                    currency,
+                                                    user_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id AS expense_transaction_id,
+                    client_name,
+                    purpose,
+                    amount,
+                    payment_method,
+                    currency,
+                    user_id""", tuple(expenseTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "expense_transaction_id": row["expense_transaction_id"],
+            "client_name": row["client_name"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+            "payment_method": row["payment_method"],
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def filter_expense_report(db, filterColumn, filterText, sortColumn, sortOrder, fromDate, toDate):
-    sqlResult = db.call_procedure("FilterExpenseReport", (
-                                    filterColumn,
-                                    filterText,
-                                    sortColumn,
-                                    sortOrder,
-                                    fromDate,
-                                    toDate))
-    return DatabaseResult(sqlResult).fetch_all()
+    db.call_procedure("FilterExpenseReport", [filterColumn,
+                                                filterText,
+                                                sortColumn,
+                                                sortOrder,
+                                                fromDate,
+                                                toDate])
+    results = []
+    for row in db:
+        result = {
+            "expense_transaction_id": row["expense_transaction_id"],
+            "purpose": row["purpose"],
+            "amount": row["amount"]
+        }
+        results.append(result)
+    return results
 
 def fetch_expense_transactions(db):
-    expenseTransactionTable = db.schema.get_table("expense_transaction")
-    rowResult = expenseTransactionTable.select("id AS expense_transaction_id",
-                                                "client_name AS client_name",
-                                                "purpose AS purpose",
-                                                "amount AS amount",
-                                                "payment_method AS payment_method",
-                                                "currency AS currency",
-                                                "user_id AS user_id") \
-                                        .where("archived = FALSE") \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_all()
+    db.execute("""SELECT id AS expense_transaction_id,
+                            client_name,
+                            purpose,
+                            amount,
+                            payment_method,
+                            currency,
+                            user_id
+                FROM expense_transaction
+                WHERE archived = FALSE""")
+    results = []
+    for row in db:
+        result = {
+            "expense_transaction_id": row["expense_transaction_id"],
+            "client_name": row["client_name"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+            "payment_method": row["payment_method"],
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

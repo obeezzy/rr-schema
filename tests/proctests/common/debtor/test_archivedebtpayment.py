@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 
 class ArchiveDebtPayment(StoredProcedureTestCase):
@@ -19,7 +19,7 @@ class ArchiveDebtPayment(StoredProcedureTestCase):
         self.assertEqual(len(fetchedDebtPayments), 2, "Expected 2 debt payments to be returned.")
 
         debtPaymentArchived = len([debtPayment for debtPayment in fetchedDebtPayments \
-                                if debtPayment["debt_transaction_id"] == 1]) == 0
+                                if debtPayment["debt_payment_id"] == 1]) == 0
         self.assertEqual(debtPaymentArchived, True, "Debt payment not archived.")
 
 def add_single_debt_payment(db, debtPaymentId):
@@ -29,22 +29,21 @@ def add_single_debt_payment(db, debtPaymentId):
         "amount_paid": 80,
         "balance": 20,
         "currency": "NGN",
-        "due_date_time": DatabaseDateTime(datetime.now()).iso_format,
+        "due_date_time": str(datetime.now()),
         "note_id": 1,
         "user_id": 1
     }
 
-    debtPaymentTable = db.schema.get_table("debt_payment")
-    debtPaymentTable.insert("debt_transaction_id",
-                            "total_debt",
-                            "amount_paid",
-                            "balance",
-                            "currency",
-                            "due_date_time",
-                            "note_id ",
-                            "user_id") \
-                    .values(tuple(debtPayment.values())) \
-                    .execute()
+    db.execute("""INSERT INTO debt_payment (debt_transaction_id,
+                                            total_debt,
+                                            amount_paid,
+                                            balance,
+                                            currency,
+                                            due_date_time,
+                                            note_id,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""", tuple(debtPayment.values()))
+    db.commit()
 
 def archive_debt_payment(db, debtPaymentId):
     debtPayment = {
@@ -57,19 +56,32 @@ def archive_debt_payment(db, debtPaymentId):
                         tuple(debtPayment.values()))
 
 def fetch_debt_payments(db, archived=False):
-    debtPaymentTable = db.schema.get_table("debt_payment")
-    rowResult = debtPaymentTable.select("id AS debt_transaction_id",
-                                            "total_debt AS total_debt",
-                                            "amount_paid AS amount_paid",
-                                            "balance AS balance",
-                                            "currency AS currency",
-                                            "due_date_time AS due_date_time",
-                                            "note_id AS note_id",
-                                            "user_id AS user_id") \
-                                    .where("archived = :archived") \
-                                    .bind("archived", archived) \
-                                    .execute()
-    return DatabaseResult(rowResult).fetch_all()
+    db.execute("""SELECT id AS debt_payment_id,
+                            debt_transaction_id,
+                            total_debt,
+                            amount_paid,
+                            balance,
+                            currency,
+                            due_date_time,
+                            note_id,
+                            user_id
+                FROM debt_payment
+                WHERE archived = %s""", [archived])
+    results = []
+    for row in db:
+        result = {
+            "debt_payment_id": row["debt_payment_id"],
+            "debt_transaction_id": row["debt_transaction_id"],
+            "total_debt": row["total_debt"],
+            "amount_paid": row["amount_paid"],
+            "balance": row["balance"],
+            "currency": row["currency"],
+            "due_date_time": row["due_date_time"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

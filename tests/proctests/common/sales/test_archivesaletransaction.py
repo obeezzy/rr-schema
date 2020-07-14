@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class ArchiveSaleTransaction(StoredProcedureTestCase):
     def test_archive_sale_transaction(self):
@@ -57,14 +57,23 @@ def add_sale_transaction(db, customerId, customerName):
         "user_id": 1
     }
 
-    saleTransactionTable = db.schema.get_table("sale_transaction")
-    result = saleTransactionTable.insert("customer_id",
-                                            "customer_name",
-                                            "user_id") \
-                                    .values(tuple(saleTransaction.values())) \
-                                    .execute()
-    saleTransaction.update(DatabaseResult(result).fetch_one("sale_transaction_id"))
-    return saleTransaction
+    db.execute("""INSERT INTO sale_transaction (customer_id,
+                                                customer_name,
+                                                user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS sale_transaction_id,
+                    customer_id,
+                    customer_name,
+                    user_id""", tuple(saleTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "sale_transaction_id": row["sale_transaction_id"],
+            "customer_id": row["customer_id"],
+            "customer_name": row["customer_name"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_client(db, firstName, lastName, preferredName, phoneNumber):
     client = {
@@ -75,16 +84,29 @@ def add_client(db, firstName, lastName, preferredName, phoneNumber):
         "user_id": 1
     }
 
-    clientTable = db.schema.get_table("client")
-    result = clientTable.insert("first_name",
-                                "last_name",
-                                "preferred_name",
-                                "phone_number",
-                                "user_id") \
-                            .values(tuple(client.values())) \
-                            .execute()
-    client.update(DatabaseResult(result).fetch_one("client_id"))
-    return client
+    db.execute("""INSERT INTO client (first_name,
+                                        last_name,
+                                        preferred_name,
+                                        phone_number,
+                                        user_id)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id AS client_id,
+                    first_name,
+                    last_name,
+                    preferred_name,
+                    phone_number,
+                    user_id""", tuple(client.values()))
+    result = {}
+    for row in db:
+        result = {
+            "client_id": row["client_id"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"],
+            "preferred_name": row["preferred_name"],
+            "phone_number": row["phone_number"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_customer(db, clientId):
     customer = {
@@ -92,29 +114,45 @@ def add_customer(db, clientId):
         "user_id": 1
     }
 
-    customerTable = db.schema.get_table("customer")
-    result = customerTable.insert("client_id",
-                                "user_id") \
-                            .values(tuple(customer.values())) \
-                            .execute()
-    customer.update(DatabaseResult(result).fetch_one("customer_id"))
-    return customer
+    db.execute("""INSERT INTO customer (client_id,
+                                        user_id)
+                VALUES (%s, %s)
+                RETURNING id AS customer_id,
+                    client_id,
+                    user_id""", tuple(customer.values()))
+    result = {}
+    for row in db:
+        result = {
+            "customer_id": row["customer_id"],
+            "client_id": row["client_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_note(db, note, tableName):
-    noteDict = {
+    note = {
         "note": note,
         "table_name": tableName,
         "user_id": 1
     }
 
-    noteTable = db.schema.get_table("note")
-    result = noteTable.insert("note",
-                                "table_name",
-                                "user_id") \
-                        .values(tuple(noteDict.values())) \
-                        .execute()
-    noteDict.update(DatabaseResult(result).fetch_one("note_id"))
-    return noteDict
+    db.execute("""INSERT INTO note (note,
+                                    table_name,
+                                    user_id)
+                VALUES (%s, %s, %s)
+                RETURNING Id AS note_id,
+                    note,
+                    table_name,
+                    user_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"],
+            "note": row["note"],
+            "table_name": row["table_name"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def archive_sale_transaction(db, archived, saleTransactionId):
     args = {
@@ -122,18 +160,23 @@ def archive_sale_transaction(db, archived, saleTransactionId):
         "sale_transaction_id": saleTransactionId,
         "user_id": 1
     }
-    sqlResult = db.call_procedure("ArchiveSaleTransaction", tuple(args.values()))
-    return DatabaseResult(sqlResult).fetch_all()
+    db.call_procedure("ArchiveSaleTransaction", tuple(args.values()))
 
 def fetch_sale_transactions(db, archived=False):
-    saleTransactionTable = db.schema.get_table("sale_transaction")
-    rowResult = saleTransactionTable.select("id AS sale_transaction_id",
-                                                "customer_id AS customer_id",
-                                                "customer_name AS customer_name") \
-                                            .where("archived = :archived") \
-                                            .bind("archived", archived) \
-                                            .execute()
-    return DatabaseResult(rowResult).fetch_all()
+    db.execute("""SELECT id AS sale_transaction_id,
+                            customer_id,
+                            customer_name
+                FROM sale_transaction
+                WHERE archived = %s""", [archived])
+    results = []
+    for row in db:
+        result = {
+            "sale_transaction_id": row["sale_transaction_id"],
+            "customer_id": row["customer_id"],
+            "customer_name": row["customer_name"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()
