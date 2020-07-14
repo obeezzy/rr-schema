@@ -31,6 +31,8 @@ jobs:
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         #working-directory: ./tests
       run: |
+        !pwd
+        !ls
         echo -e "\e[92mSetup virtual environment"
         sudo apt-get install python3-venv
         python3 -m venv env
