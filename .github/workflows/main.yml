@@ -31,8 +31,7 @@ jobs:
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       run: |
         echo -e "\e[92mNavigate to tests directory"
-        ls $GITHUB_WORKSPACE
-        cd $GITHUB_WORKSPACE/tests
+        pushd $GITHUB_WORKSPACE/tests
         echo -e "\e[92mSetup virtual environment"
         sudo apt-get install python3-venv
         python3 -m venv env
