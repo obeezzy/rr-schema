@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import unittest
+import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 
@@ -39,9 +40,9 @@ class AddCreditPayment(StoredProcedureTestCase):
 def add_credit_payment(db):
     creditPayment = {
         "credit_transaction_id": 1,
-        "total_credit": "$100.00",
-        "amount_paid": "$20.00",
-        "balance": "$80.00",
+        "total_credit": locale.currency(100),
+        "amount_paid": locale.currency(20),
+        "balance": locale.currency(80),
         "currency": "NGN",
         "due_date_time": datetime.now(),
         "note_id": 1,

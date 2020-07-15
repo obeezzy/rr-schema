@@ -6,31 +6,27 @@ from datetime import datetime
 import logging
 import locale
 
-try:
-    from ._config import config  # Use personal config if available
-except:
-    from .config import config
-
-class DatabaseErrorCodes:
-    USER_DEFINED_EXCEPTION = 1644
-    DUPLICATE_ENTRY_ERROR = 1136
+from .config import config
 
 class DatabaseClient(object):
     INIT_SQL = Path(".").resolve().parent.joinpath("sql/common/init.sql")
     PROCEDURE_DIR = Path(".").resolve().parent.joinpath("sql/common/procedures")
 
     def __init__(self):
-        locale.setlocale(locale.LC_ALL, '')
+        self._conn = None
+        self._cursor = None
+        locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
         self._open_connection("postgres")
-        self._drop_database(config['database'])
-        self._create_database(config['database'])
+        self._drop_database(config["database"])
+        self._create_database(config["database"])
         self._close_connection()
-        self._open_connection(config['database'])
+        self._open_connection(config["database"])
         self._init_database()
         self._create_procedures()
 
     def __del__(self):
-        self._conn.close()
+        if self._conn is not None:
+            self._conn.close()
 
     def __iter__(self):
         return iter(self._cursor)
@@ -38,6 +34,10 @@ class DatabaseClient(object):
     @property
     def lastrowid(self):
         return self._cursor.lastrowid
+
+    @property
+    def currency_symbol(self):
+        return locale.currency(0.0)[0]
 
     def call_procedure(self, procedure, args=()):
         effectiveProcedureCall = f"SELECT {procedure}({args})"

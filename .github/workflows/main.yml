@@ -16,10 +16,20 @@ jobs:
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: postgres
+          POSTGRES_INITDB_ARGS: >-
+            --encoding=UTF-8
+        options: >-
+            --health-cmd pg_isready
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
         ports:
         - 5432:5432
 
     steps:
+    - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
@@ -29,9 +39,12 @@ jobs:
       env:
         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        working-directory: ./tests
+        POSTGRES_DB: postgres
+      working-directory: ./tests
       run: |
         echo -e "\e[92mSetup virtual environment"
+        sudo apt-get install language-pack-en-base
+        sudo dpkg-reconfigure locales
         sudo apt-get install python3-venv
         python3 -m venv env
         . env/bin/activate

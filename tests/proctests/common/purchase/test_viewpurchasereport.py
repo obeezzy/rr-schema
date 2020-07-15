@@ -125,7 +125,7 @@ class ViewPurchaseReport(StoredProcedureTestCase):
                             purchasedProduct2["quantity"] + purchasedProduct3["quantity"],
                             "Quantity mismatch")
         self.assertEqual(viewedPurchaseReport[1]["total_expenditure"],
-                            locale.currency(Decimal(purchasedProduct2["cost"].strip("$")) + Decimal(purchasedProduct3["cost"].strip("$"))),
+                            locale.currency(Decimal(purchasedProduct2["cost"].strip(self.db.currency_symbol)) + Decimal(purchasedProduct3["cost"].strip(self.db.currency_symbol))),
                             "Total expenditure mismatch")
 
         self.assertEqual(viewedPurchaseReport[2]["product_category_id"],

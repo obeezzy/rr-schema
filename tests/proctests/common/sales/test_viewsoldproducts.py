@@ -327,7 +327,7 @@ def add_sale_transaction(db, customerName):
         }
     return result
 
-def add_sold_product(db, saleTransactionId, productId, productUnitId, unitPrice, quantity, cost, discount="$0", noteId=None):
+def add_sold_product(db, saleTransactionId, productId, productUnitId, unitPrice, quantity, cost, discount, noteId=None):
     soldProduct = {
         "sale_transaction_id": saleTransactionId,
         "product_id": productId,

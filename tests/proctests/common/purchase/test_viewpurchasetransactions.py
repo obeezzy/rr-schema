@@ -77,7 +77,8 @@ class ViewPurchaseTransactions(StoredProcedureTestCase):
 
 def add_first_purchase_transaction(db):
     purchaseTransaction = add_purchase_transaction(db=db,
-                                                    vendorName="Miles Morales")
+                                                    vendorName="Miles Morales",
+                                                    discount=locale.currency(0))
     purchasePayment1 = add_purchase_payment(db=db,
                                             purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
                                             amount=locale.currency(340.45),
@@ -95,14 +96,15 @@ def add_first_purchase_transaction(db):
         "vendor_name": purchaseTransaction["vendor_name"],
         "vendor_id": purchaseTransaction["vendor_id"],
         "purchase_transaction_id": purchaseTransaction["purchase_transaction_id"],
-        "total_amount": locale.currency(Decimal(purchasePayment1["amount"].strip("$")) + Decimal(purchasePayment2["amount"].strip("$")) + Decimal(purchasePayment3["amount"].strip("$"))),
+        "total_amount": locale.currency(Decimal(purchasePayment1["amount"].strip(db.currency_symbol)) + Decimal(purchasePayment2["amount"].strip(db.currency_symbol)) + Decimal(purchasePayment3["amount"].strip(db.currency_symbol))),
         "discount": purchaseTransaction["discount"],
         "suspended": purchaseTransaction["suspended"]
     }
 
 def add_second_purchase_transaction(db):
     purchaseTransaction = add_purchase_transaction(db=db,
-                                                    vendorName="Ororo Monroe")
+                                                    vendorName="Ororo Monroe",
+                                                    discount=locale.currency(0))
     purchasePayment1 = add_purchase_payment(db=db,
                                             purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
                                             amount=locale.currency(582.45),
@@ -116,14 +118,15 @@ def add_second_purchase_transaction(db):
         "vendor_name": purchaseTransaction["vendor_name"],
         "vendor_id": purchaseTransaction["vendor_id"],
         "purchase_transaction_id": purchaseTransaction["purchase_transaction_id"],
-        "total_amount": locale.currency(Decimal(purchasePayment1["amount"].strip("$")) + Decimal(purchasePayment2["amount"].strip("$"))),
+        "total_amount": locale.currency(Decimal(purchasePayment1["amount"].strip(db.currency_symbol)) + Decimal(purchasePayment2["amount"].strip(db.currency_symbol))),
         "discount": purchaseTransaction["discount"],
         "suspended": purchaseTransaction["suspended"]
     }
 
 def add_third_purchase_transaction(db):
     purchaseTransaction = add_purchase_transaction(db=db,
-                                                    vendorName="Jean Gray")
+                                                    vendorName="Jean Gray",
+                                                    discount=locale.currency(0))
     purchasePayment1 = add_purchase_payment(db=db,
                                             purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
                                             amount=locale.currency(578.23),
@@ -145,12 +148,12 @@ def add_third_purchase_transaction(db):
         "vendor_name": purchaseTransaction["vendor_name"],
         "vendor_id": purchaseTransaction["vendor_id"],
         "purchase_transaction_id": purchaseTransaction["purchase_transaction_id"],
-        "total_amount": locale.currency(Decimal(purchasePayment1["amount"].strip("$")) + Decimal(purchasePayment2["amount"].strip("$")) + Decimal(purchasePayment3["amount"].strip("$")) + Decimal(purchasePayment4["amount"].strip("$"))),
+        "total_amount": locale.currency(Decimal(purchasePayment1["amount"].strip(db.currency_symbol)) + Decimal(purchasePayment2["amount"].strip(db.currency_symbol)) + Decimal(purchasePayment3["amount"].strip(db.currency_symbol)) + Decimal(purchasePayment4["amount"].strip(db.currency_symbol))),
         "discount": purchaseTransaction["discount"],
         "suspended": purchaseTransaction["suspended"]
     }
 
-def add_purchase_transaction(db, vendorName, discount="$0", suspended=False):
+def add_purchase_transaction(db, vendorName, discount, suspended=False):
     purchaseTransaction = {
         "vendor_id": None,
         "vendor_name": vendorName,
