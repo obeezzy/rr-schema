@@ -37,6 +37,8 @@ jobs:
       run: |
         echo -e "\e[92mSetup virtual environment"
         sudo apt-get install python3-venv
+        sudo apt-get install language-pack-en-base
+        sudo dpkg-reconfigure locales
         python3 -m venv env
         . env/bin/activate
         echo -e "\e[92mUpgrade pip and install dependencies"
