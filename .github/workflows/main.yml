@@ -32,6 +32,7 @@ jobs:
       env:
         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_DB: postgres
       working-directory: ./tests
       run: |
         echo -e "\e[92mSetup virtual environment"

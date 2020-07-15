@@ -6,10 +6,7 @@ from datetime import datetime
 import logging
 import locale
 
-try:
-    from ._config import config  # Use personal config if available
-except:
-    from .config import config
+from .config import config
 
 class DatabaseClient(object):
     INIT_SQL = Path(".").resolve().parent.joinpath("sql/common/init.sql")
