@@ -15,12 +15,12 @@ class DatabaseClient(object):
     def __init__(self):
         self._conn = None
         self._cursor = None
-        locale.setlocale(locale.LC_ALL, "en_CA.UTF-8")
+        locale.setlocale(locale.LC_ALL, "en_NG")
         self._open_connection("postgres")
-        self._drop_database(config['database'])
-        self._create_database(config['database'])
+        self._drop_database(config["database"])
+        self._create_database(config["database"])
         self._close_connection()
-        self._open_connection(config['database'])
+        self._open_connection(config["database"])
         self._init_database()
         self._create_procedures()
 
