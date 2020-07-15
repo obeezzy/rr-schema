@@ -17,8 +17,8 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: postgres
-          POSTGRES_INITDB_ARGS: --lc-monetary=en_NG
-         options: >-
+          POSTGRES_INITDB_ARGS: "--lc-monetary=en_NG"
+        options: >-
             --health-cmd pg_isready
             --health-interval 10s
             --health-timeout 5s
