@@ -16,6 +16,8 @@ class DatabaseClient(object):
     PROCEDURE_DIR = Path(".").resolve().parent.joinpath("sql/common/procedures")
 
     def __init__(self):
+        self._conn = None
+        self._cursor = None
         locale.setlocale(locale.LC_ALL, '')
         self._open_connection("postgres")
         self._drop_database(config['database'])
