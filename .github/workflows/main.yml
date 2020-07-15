@@ -20,7 +20,7 @@ jobs:
           POSTGRES_INITDB_ARGS: >-
             --encoding=UTF-8
           #  --locale=en_NG
-          #  --lc-monetary=en_NG
+            --lc-monetary=en_NG
         options: >-
             --health-cmd pg_isready
             --health-interval 10s
