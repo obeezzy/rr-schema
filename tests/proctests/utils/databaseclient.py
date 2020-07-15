@@ -15,7 +15,6 @@ class DatabaseClient(object):
     def __init__(self):
         self._conn = None
         self._cursor = None
-        locale.setlocale(locale.LC_ALL, "en_NG")
         self._open_connection("postgres")
         self._drop_database(config["database"])
         self._create_database(config["database"])
