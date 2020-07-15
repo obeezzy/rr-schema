@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+import locale
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date
 
 class FetchStockProduct(StoredProcedureTestCase):
@@ -14,8 +15,8 @@ class FetchStockProduct(StoredProcedureTestCase):
         productUnit = add_product_unit(db=self.db,
                                         productId=product["product_id"],
                                         unit="unit(s)",
-                                        costPrice=285.28,
-                                        retailPrice=302.31)
+                                        costPrice=locale.currency(285.28),
+                                        retailPrice=locale.currency(302.31))
         currentProductQuantity = add_current_product_quantity(db=self.db,
                                                                 productId=product["product_id"],
                                                                 quantity=38.825)
@@ -58,16 +59,16 @@ class FetchStockProduct(StoredProcedureTestCase):
         self.assertEqual(fetchedStockProduct["currency"], 
                             productUnit["currency"],
                             "Currency mismatch.")
-        self.assertEqual(DatabaseDateTime(fetchedStockProduct["created"]).date(),
+        self.assertEqual(fetchedStockProduct["created"].date(),
                             date.today(),
                             "Created date/time mismatch.")
-        self.assertEqual(DatabaseDateTime(fetchedStockProduct["last_edited"]).date(),
+        self.assertEqual(fetchedStockProduct["last_edited"].date(),
                             date.today(),
                             "Last edited date/time flag mismatch.")
         self.assertEqual(fetchedStockProduct["user_id"], 
                             1,
                             "User ID mismatch.")
-        self.assertEqual(fetchedStockProduct["user"], 
+        self.assertEqual(fetchedStockProduct["username"], 
                             "admin",
                             "User mismatch.")
 
@@ -77,33 +78,53 @@ def add_product_category(db, category):
         "user_id": 1
     }
 
-    categoryTable = db.schema.get_table("product_category")
-    result = categoryTable.insert("category",
-                                    "user_id") \
-                            .values(tuple(productCategory.values())) \
-                            .execute()
-    productCategory.update(DatabaseResult(result).fetch_one("product_category_id"))
-    return productCategory
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id,
+                    category,
+                    user_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"],
+            "category": row["category"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product(db, productCategoryId, product, description, divisible=True):
-    productDict = {
+    product = {
         "product_category_id": productCategoryId,
         "product": product,
         "description": description,
         "divisible": divisible,
         "user_id": 1
     }
-
-    productTable = db.schema.get_table("product")
-    result = productTable.insert("product_category_id",
-                                    "product",
-                                    "description",
-                                    "divisible",
-                                    "user_id") \
-                                .values(tuple(productDict.values())) \
-                                .execute()
-    productDict.update(DatabaseResult(result).fetch_one("product_id"))
-    return productDict
+    
+    db.execute("""INSERT INTO product (product_category_id,
+                                        product,
+                                        description,
+                                        divisible,
+                                        user_id)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id AS product_id,
+                    product_category_id,
+                    product,
+                    description,
+                    divisible,
+                    user_id""", tuple(product.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"],
+            "product_category_id": row["product_category_id"],
+            "product": row["product"],
+            "description": row["description"],
+            "divisible": row["divisible"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
     productUnit = {
@@ -117,19 +138,38 @@ def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquiva
         "user_id": 1
     }
 
-    productUnitTable = db.schema.get_table("product_unit")
-    result = productUnitTable.insert("product_id",
-                                        "unit",
-                                        "base_unit_equivalent",
-                                        "preferred",
-                                        "cost_price",
-                                        "retail_price",
-                                        "currency",
-                                        "user_id") \
-                                    .values(tuple(productUnit.values())) \
-                                    .execute()
-    productUnit.update(DatabaseResult(result).fetch_one("product_unit_id"))
-    return productUnit
+    db.execute("""INSERT INTO product_unit (product_id,
+                                            unit,
+                                            base_unit_equivalent,
+                                            preferred,
+                                            cost_price,
+                                            retail_price,
+                                            currency,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS product_unit_id,
+                    product_id,
+                    unit,
+                    base_unit_equivalent,
+                    preferred,
+                    cost_price,
+                    retail_price,
+                    currency,
+                    user_id""", tuple(productUnit.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_unit_id": row["product_unit_id"],
+            "unit": row["unit"],
+            "product_id": row["product_id"],
+            "base_unit_equivalent": row["base_unit_equivalent"],
+            "preferred": row["preferred"],
+            "cost_price": row["cost_price"],
+            "retail_price": row["retail_price"],
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_current_product_quantity(db, productId, quantity):
     currentProductQuantity = {
@@ -138,18 +178,48 @@ def add_current_product_quantity(db, productId, quantity):
         "user_id": 1
     }
 
-    currentProductQuantityTable = db.schema.get_table("current_product_quantity")
-    result = currentProductQuantityTable.insert("product_id",
-                                                "quantity",
-                                                "user_id") \
-                                            .values(tuple(currentProductQuantity.values())) \
-                                            .execute()
-    currentProductQuantity.update(DatabaseResult(result).fetch_one("current_product_quantity_id"))
-    return currentProductQuantity
+    db.execute("""INSERT INTO current_product_quantity (product_id,
+                                                        quantity,
+                                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS current_product_quantity_id,
+                    product_id,
+                    quantity,
+                    user_id""", tuple(currentProductQuantity.values()))
+    result = {}
+    for row in db:
+        result = {
+            "current_product_quantity_id": row["current_product_quantity_id"],
+            "product_id": row["product_id"],
+            "quantity": row["quantity"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def fetch_stock_product(db, productId):
-    sqlResult = db.call_procedure("FetchStockProduct", (productId,))
-    return DatabaseResult(sqlResult).fetch_one()
+    db.call_procedure("FetchStockProduct", [productId])
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"],
+            "product_category_id": row["product_category_id"],
+            "product_category": row["product_category"],
+            "product": row["product"],
+            "description": row["description"],
+            "divisible": row["divisible"],
+            "image": row["image"],
+            "quantity": row["quantity"],
+            "product_unit_id": row["product_unit_id"],
+            "product_unit": row["product_unit"],
+            "cost_price": row["cost_price"],
+            "retail_price": row["retail_price"],
+            "currency": row["currency"],
+            "created": row["created"],
+            "last_edited": row["last_edited"],
+            "user_id": row["user_id"],
+            "username": row["username"],
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

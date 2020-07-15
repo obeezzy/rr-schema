@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
 
 class FilterIncomeReport(StoredProcedureTestCase):
@@ -71,41 +71,73 @@ def add_income_transaction(db, clientName, purpose, amount):
         "user_id": 1
     }
 
-    incomeTransactionTable = db.schema.get_table("income_transaction")
-    result = incomeTransactionTable.insert("client_name",
-                                            "purpose",
-                                            "amount",
-                                            "payment_method",
-                                            "currency",
-                                            "user_id") \
-                                    .values(tuple(incomeTransaction.values())) \
-                                    .execute()
-    incomeTransaction.update(DatabaseResult(result).fetch_one("income_transaction_id"))
-    return incomeTransaction
+    db.execute("""INSERT INTO income_transaction (client_name,
+                                                    purpose,
+                                                    amount,
+                                                    payment_method,
+                                                    currency,
+                                                    user_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id AS income_transaction_id,
+                    client_name,
+                    purpose,
+                    amount,
+                    payment_method,
+                    currency,
+                    user_id""", tuple(incomeTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "income_transaction_id": row["income_transaction_id"],
+            "client_name": row["client_name"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+            "payment_method": row["payment_method"],
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def filter_income_report(db, filterColumn, filterText, sortColumn, sortOrder, fromDate, toDate):
-    sqlResult = db.call_procedure("FilterIncomeReport", (
-                                    filterColumn,
-                                    filterText,
-                                    sortColumn,
-                                    sortOrder,
-                                    fromDate,
-                                    toDate))
-
-    return DatabaseResult(sqlResult).fetch_all()
+    db.call_procedure("FilterIncomeReport", [filterColumn,
+                                                filterText,
+                                                sortColumn,
+                                                sortOrder,
+                                                fromDate,
+                                                toDate])
+    results = []
+    for row in db:
+        result = {
+            "income_transaction_id": row["income_transaction_id"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+        }
+        results.append(result)
+    return results
 
 def fetch_income_transactions(db):
-    incomeTransactionTable = db.schema.get_table("income_transaction")
-    rowResult = incomeTransactionTable.select("id AS income_transaction_id",
-                                                "client_name AS client_name",
-                                                "purpose AS purpose",
-                                                "amount AS amount",
-                                                "payment_method AS payment_method",
-                                                "currency AS currency",
-                                                "user_id AS user_id") \
-                                        .where("archived = FALSE") \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_all()
+    db.execute("""SELECT id AS income_transaction_id,
+                            client_name,
+                            purpose,
+                            amount,
+                            payment_method,
+                            currency,
+                            user_id
+                FROM income_transaction
+                WHERE archived = FALSE""")
+    results = []
+    for row in db:
+        result = {
+            "income_transaction_id": row["income_transaction_id"],
+            "client_name": row["client_name"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+            "payment_method": row["payment_method"],
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

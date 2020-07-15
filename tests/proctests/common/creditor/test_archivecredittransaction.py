@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class ArchiveCreditTransaction(StoredProcedureTestCase):
     def test_archive_credit_transaction(self):
@@ -38,14 +38,13 @@ def add_single_credit_transaction(db, creditorId, transactionTable, transactionI
         "user_id": 1
     }
 
-    creditTransactionTable = db.schema.get_table("credit_transaction")
-    creditTransactionTable.insert("creditor_id",
-                                    "transaction_table",
-                                    "transaction_id",
-                                    "note_id ",
-                                    "user_id") \
-                            .values(tuple(creditTransaction.values())) \
-                            .execute()
+    db.execute("""INSERT INTO credit_transaction (creditor_id,
+                                                    transaction_table,
+                                                    transaction_id,
+                                                    note_id,
+                                                    user_id)
+                VALUES (%s, %s, %s, %s, %s)""", tuple(creditTransaction.values()))
+    db.commit()
 
 def archive_credit_transaction(db, archived, transactionTable, transactionId):
     creditTransaction = {
@@ -55,23 +54,30 @@ def archive_credit_transaction(db, archived, transactionTable, transactionId):
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("ArchiveCreditTransaction",
-                                        tuple(creditTransaction.values()))
-    creditTransaction.update(DatabaseResult(sqlResult).fetch_one())
-    return creditTransaction
+    db.call_procedure("ArchiveCreditTransaction",
+                        tuple(creditTransaction.values()))
 
-def fetch_credit_transactions(db, archived=None):
-    creditTransactionTable = db.schema.get_table("credit_transaction")
-    rowResult = creditTransactionTable.select("id AS credit_transaction_id",
-                                                "creditor_id AS creditor_id",
-                                                "transaction_table AS transaction_table",
-                                                "transaction_id AS transaction_id",
-                                                "note_id AS note_id",
-                                                "user_id AS user_id") \
-                                        .where("archived = IFNULL(:archived, FALSE)") \
-                                        .bind("archived", archived) \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_all()
+def fetch_credit_transactions(db, archived=False):
+    db.execute("""SELECT id AS credit_transaction_id,
+                            creditor_id,
+                            transaction_table,
+                            transaction_id,
+                            note_id,
+                            user_id
+                FROM credit_transaction
+                WHERE archived = %s""", [archived])
+    results = [] 
+    for row in db:
+        result = {
+            "credit_transaction_id": row["credit_transaction_id"],
+            "creditor_id": row["creditor_id"],
+            "transaction_table": row["transaction_table"],
+            "transacation_id": row["transaction_id"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

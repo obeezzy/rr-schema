@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class IsPurchaseTransactionSuspended(StoredProcedureTestCase):
     def test_is_purchase_transaction_suspended_when_true(self):
@@ -27,19 +27,33 @@ def add_purchase_transaction(db, vendorName, suspended=False):
         "user_id": 1
     }
 
-    purchaseTransactionTable = db.schema.get_table("purchase_transaction")
-    result = purchaseTransactionTable.insert("vendor_id",
-                                                "vendor_name",
-                                                "suspended",
-                                                "user_id") \
-                                        .values(tuple(purchaseTransaction.values())) \
-                                        .execute()
-    purchaseTransaction.update(DatabaseResult(result).fetch_one("purchase_transaction_id"))
-    return purchaseTransaction
+    db.execute("""INSERT INTO purchase_transaction (vendor_id,
+                                                    vendor_name,
+                                                    suspended,
+                                                    user_id)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id AS purchase_transaction_id,
+                    vendor_id,
+                    vendor_name,
+                    suspended,
+                    user_id""", tuple(purchaseTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "purchase_transaction_id": row["purchase_transaction_id"],
+            "vendor_id": row["vendor_id"],
+            "vendor_name": row["vendor_name"],
+            "suspended": row["suspended"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def is_purchase_transaction_suspended(db, purchaseTransactionId):
-    sqlResult = db.call_procedure("IsPurchaseTransactionSuspended", (purchaseTransactionId,))
-    return bool(DatabaseResult(sqlResult).fetch_one()["suspended"])
+    db.call_procedure("IsPurchaseTransactionSuspended", (purchaseTransactionId,))
+    result = False
+    for row in db:
+        result = row[0]
+    return result
 
 if __name__ == '__main__':
     unittest.main()

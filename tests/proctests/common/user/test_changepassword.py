@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class ChangePassword(StoredProcedureTestCase):
     def setUp(self):
@@ -21,22 +21,18 @@ class ChangePassword(StoredProcedureTestCase):
 
 def add_sql_user(db, user, password):
     user = {
-        "user": user,
+        "username": user,
         "password": password
     }
 
-    sqlResult = db.call_procedure("AddSqlUser",
-                                    tuple(user.values()))
-    user.update(DatabaseResult(sqlResult).fetch_one())
+    db.call_procedure("AddSqlUser", tuple(user.values()))
     return user
 
 def change_password(db, user, newPassword):
-    sqlResult = db.call_procedure("ChangePassword", (user, newPassword))
-    return DatabaseResult(sqlResult).fetch_one()
+    db.call_procedure("ChangePassword", [user, newPassword])
 
 def drop_user(db, user):
-    db.session.sql(f"DROP USER '{user}'@'localhost';") \
-        .execute()
+    db.execute(f"""DROP USER {user}""")
 
 if __name__ == '__main__':
     unittest.main()

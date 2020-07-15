@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class UpdateNote(StoredProcedureTestCase):
     def test_update_note(self):
@@ -8,7 +8,7 @@ class UpdateNote(StoredProcedureTestCase):
         updatedNote = update_note(self.db)
         fetchedNote = fetch_note(self.db)
 
-        self.assertEqual(updatedNote, fetchedNote, "Note mismatch.")
+        self.assertEqual(updatedNote["note_id"], fetchedNote["note_id"], "Note ID mismatch.")
 
 def add_note(db):
     note = {
@@ -17,14 +17,17 @@ def add_note(db):
         "user_id": 1
     }
 
-    noteTable = db.schema.get_table("note")
-    result = noteTable.insert("note",
-                                "table_name",
-                                "user_id") \
-                        .values(list(note.values())) \
-                        .execute()
-    note.update(DatabaseResult(result).fetch_one("note_id"))
-    return note
+    db.execute("""INSERT INTO note (note,
+                                    table_name,
+                                    user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS note_id""", tuple(note.values()))
+    for row in db:
+        result = {
+            "note_id": row[0]
+        }
+    result.update(note)
+    return result
 
 def update_note(db):
     note = {
@@ -38,13 +41,19 @@ def update_note(db):
     return note
 
 def fetch_note(db):
-    noteTable = db.schema.get_table("note")
-    rowResult = noteTable.select("id AS note_id",
-                                    "note AS note",
-                                    "table_name AS table_name",
-                                    "user_id AS user_id") \
-                            .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS note_id,
+                            note,
+                            table_name,
+                            user_id
+                FROM note""")
+    for row in db:
+        result = {
+            "note_id": row["note_id"],
+            "note": row["note"],
+            "table_name": row["table_name"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

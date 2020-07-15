@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseErrorCodes, StoredProcedureTestCase, OperationalError, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class AddOrUpdateStockProductCategory(StoredProcedureTestCase):
     def test_add_or_update_stock_product_category(self):
@@ -32,21 +32,33 @@ def add_or_update_stock_product_category(db, category, shortForm):
         "note_id": 1,
         "user_id": 1
     }
-    sqlResult = db.call_procedure("AddOrUpdateStockProductCategory", 
-                                    tuple(productCategory.values()))
-    productCategory.update(DatabaseResult(sqlResult).fetch_one())
-    return productCategory
+    db.call_procedure("AddOrUpdateStockProductCategory", 
+                        tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row[0]
+        }
+    result.update(productCategory)
+    return result
 
 def fetch_stock_product_category(db):
-    productCategoryTable = db.schema.get_table("product_category")
-    rowResult = productCategoryTable.select("id AS product_category_id",
-                                            "category AS category",
-                                            "short_form AS short_form",
-                                            "note_id AS note_id",
-                                            "user_id AS user_id") \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_one()
-    
+    db.execute("""SELECT id AS product_category_id,
+                            category,
+                            short_form,
+                            note_id,
+                            user_id
+                FROM product_category""")
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"],
+            "category": row["category"],
+            "short_form": row["short_form"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

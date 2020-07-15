@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import DatabaseErrorCodes, StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class AddUser(StoredProcedureTestCase):
     def test_add_user(self):
@@ -14,18 +14,18 @@ class AddUser(StoredProcedureTestCase):
         fetchedUser = fetch_user(db=self.db,
                                     userId=addedUser["user_id"])
 
-        self.assertEqual(addedUser["user"], fetchedUser["user"], "User field mismatch.")
+        self.assertEqual(addedUser["username"], fetchedUser["username"], "User name mismatch.")
         self.assertEqual(addedUser["first_name"], fetchedUser["first_name"], "First name field mismatch.")
         self.assertEqual(addedUser["last_name"], fetchedUser["last_name"], "Last name field mismatch.")
-        self.assertEqual(addedUser["photo"], fetchedUser["photo"], "Photo field mismatch.")
-        self.assertEqual(addedUser["phone_number"], fetchedUser["phone_number"], "Phone number field mismatch.")
-        self.assertEqual(addedUser["email_address"], fetchedUser["email_address"], "Email address field mismatch.")
-        self.assertEqual(addedUser["note_id"], fetchedUser["note_id"], "Note ID field mismatch.")
-        self.assertEqual(addedUser["user_id"], fetchedUser["user_id"], "User ID field mismatch.")
+        self.assertEqual(addedUser["photo"], fetchedUser["photo"], "Photo mismatch.")
+        self.assertEqual(addedUser["phone_number"], fetchedUser["phone_number"], "Phone number mismatch.")
+        self.assertEqual(addedUser["email_address"], fetchedUser["email_address"], "Email address mismatch.")
+        self.assertEqual(addedUser["note_id"], fetchedUser["note_id"], "Note ID mismatch.")
+        self.assertEqual(addedUser["user_id"], fetchedUser["user_id"], "User ID mismatch.")
 
 def add_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
     user = {
-        "user": user,
+        "username": user,
         "first_name": firstName,
         "last_name": lastName,
         "photo": photo,
@@ -35,27 +35,39 @@ def add_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("AddUser",
-                                    tuple(user.values())
-    )
-
-    user.update(DatabaseResult(sqlResult).fetch_one())
-    return user
+    db.call_procedure("AddUser", tuple(user.values()))
+    result = {}
+    for row in db:
+        result = {
+            "user_id": row["user_id"]
+        }
+    result.update(user)
+    return result
 
 def fetch_user(db, userId):
-    userTable = db.schema.get_table("rr_user")
-    rowResult = userTable.select("user AS user",
-                                    "first_name AS first_name",
-                                    "last_name AS last_name",
-                                    "photo AS photo",
-                                    "phone_number AS phone_number",
-                                    "email_address AS email_address",
-                                    "note_id AS note_id",
-                                    "id AS user_id") \
-                            .where("id = :user_id") \
-                            .bind("user_id", userId) \
-                            .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT user_id,
+                            username,
+                            first_name,
+                            last_name,
+                            photo,
+                            phone_number,
+                            email_address,
+                            note_id
+                FROM rr_user
+                WHERE username != 'admin'""")
+    result = {}
+    for row in db:
+        return {
+            "user_id": row["user_id"],
+            "username": row["username"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"],
+            "photo": row["photo"],
+            "phone_number": row["phone_number"],
+            "email_address": row["email_address"],
+            "note_id": row["note_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class UpdateStockProduct(StoredProcedureTestCase):
     def test_update_stock_product(self):
@@ -82,20 +82,31 @@ class UpdateStockProduct(StoredProcedureTestCase):
                             "User ID mismatch.")
 
 def add_product(db, productCategoryId, product):
-    productDict = {
+    product = {
         "product_category_id": productCategoryId,
         "product": product,
         "user_id": 1
     }
 
-    productTable = db.schema.get_table("product")
-    result = productTable.insert("product_category_id",
-                                    "product",
-                                    "user_id") \
-                            .values(tuple(productDict.values())) \
-                            .execute()
-    productDict.update(DatabaseResult(result).fetch_one("product_id"))
-    return productDict
+    db.execute("""INSERT INTO product (product_category_id,
+                                        product,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS product_id,
+                    product_category_id,
+                    product,
+                    short_form,
+                    user_id""", tuple(product.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"],
+            "product_category_id": row["product_category_id"],
+            "product": row["product"],
+            "short_form": row["short_form"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def update_stock_product(db, productCategoryId, productId, product, shortForm, description, barcode, divisible=True):
     note = {
@@ -115,19 +126,32 @@ def update_stock_product(db, productCategoryId, productId, product, shortForm, d
     return note
 
 def fetch_product(db):
-    productTable = db.schema.get_table("product")
-    rowResult = productTable.select("id AS product_id",
-                                    "product_category_id AS product_category_id",
-                                    "product AS product",
-                                    "short_form AS short_form",
-                                    "description AS description",
-                                    "barcode AS barcode",
-                                    "divisible AS divisible",
-                                    "image AS image",
-                                    "note_id AS note_id",
-                                    "user_id AS user_id") \
-                            .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS product_id,
+                    product_category_id,
+                    product,
+                    short_form,
+                    description,
+                    barcode,
+                    divisible,
+                    image,
+                    note_id,
+                    user_id
+                FROM product""")
+    result = {}
+    for row in db:
+        return {
+            "product_id": row["product_id"],
+            "product_category_id": row["product_category_id"],
+            "product": row["product"],
+            "short_form": row["short_form"],
+            "description": row["description"],
+            "barcode": row["barcode"],
+            "divisible": row["divisible"],
+            "image": row["image"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

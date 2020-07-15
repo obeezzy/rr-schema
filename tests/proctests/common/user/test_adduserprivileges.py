@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-import json
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from psycopg2.extras import Json
+from proctests.utils import StoredProcedureTestCase
 
 class AddUserPrivileges(StoredProcedureTestCase):
     def test_add_user_privileges(self):
@@ -17,9 +17,9 @@ class AddUserPrivileges(StoredProcedureTestCase):
         fetchedUserPrivileges = fetch_user_privileges(db=self.db,
                                                         userId=addedUser["user_id"])
 
-        self.assertEqual(addedUserPrivileges["user_privileges"],
-                            json.loads(fetchedUserPrivileges["user_privileges"]),
-                            "User privileges field mismatch.")
+        self.assertEqual(addedUserPrivileges["privileges"],
+                            fetchedUserPrivileges["privileges"],
+                            "User privileges mismatch.")
 
 def add_user(db, user, firstName, lastName):
     user = {
@@ -29,29 +29,43 @@ def add_user(db, user, firstName, lastName):
         "user_id": 1
     }
 
-    userTable = db.schema.get_table("rr_user")
-    result = userTable.insert("user",
-                                "first_name",
-                                "last_name",
-                                "user_id") \
-                        .values(tuple(user.values())) \
-                        .execute()
-    user.update(DatabaseResult(result).fetch_one("user_id"))
-    return user
+    db.execute("""INSERT INTO rr_user (username,
+                                        first_name,
+                                        last_name,
+                                        user_id)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id AS user_id,
+                    username,
+                    first_name,
+                    last_name,
+                    user_id""", tuple(user.values()))
+    result = {}
+    for row in db:
+        result = {
+            "username": row["username"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def fetch_user_privileges(db, userId):
-    userPrivilegeTable = db.schema.get_table("user_privilege")
-    rowResult = userPrivilegeTable.select("user_id AS user_id",
-                                            "privileges AS user_privileges") \
-                                .where("user_id = :userId") \
-                                .bind("userId", userId) \
-                                .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT user_id,
+                            privileges
+                FROM user_privilege
+                WHERE user_id = %s""", [userId])
+    result = {}
+    for row in db:
+        result = {
+            "user_id": row["user_id"],
+            "privileges": row["privileges"]
+        }
+    return result
 
 def add_user_privileges(db, userPrivileges, userId):
-    sqlResult = db.call_procedure("AddUserPrivileges", (json.dumps(userPrivileges), userId))
+    db.call_procedure("AddUserPrivileges", [Json(userPrivileges), userId])
     return {
-        "user_privileges": userPrivileges,
+        "privileges": userPrivileges,
         "user_id": userId
     }
 

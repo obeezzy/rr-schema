@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+import locale
+from proctests.utils import StoredProcedureTestCase
 
 class AddIncomeTransaction(StoredProcedureTestCase):
     def test_add_income_transaction(self):
         addedIncomeTransaction = add_income_transaction(db=self.db,
                                                             name="Lois Lane",
                                                             purpose="Need saving from Superman",
-                                                            amount=460.00,
+                                                            amount=locale.currency(460.00),
                                                             paymentMethod="cash")
         fetchedIncomeTransaction = fetch_income_transaction(self.db)
 
-        self.assertEqual(addedIncomeTransaction, fetchedIncomeTransaction, "Income transaction mismatch.")
+        self.assertEqual(addedIncomeTransaction["income_transaction_id"], fetchedIncomeTransaction["income_transaction_id"], "Income transaction mismatch.")
 
 def add_income_transaction(db, name, purpose, amount, paymentMethod):
     incomeTransaction = {
@@ -25,24 +26,41 @@ def add_income_transaction(db, name, purpose, amount, paymentMethod):
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("AddIncomeTransaction",
-                                    tuple(incomeTransaction.values()))
-    incomeTransaction.update(DatabaseResult(sqlResult).fetch_one())
-    return incomeTransaction
+    db.call_procedure("AddIncomeTransaction",
+                        tuple(incomeTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "income_transaction_id": row[0]
+        }
+    result.update(incomeTransaction)
+    return result
 
 def fetch_income_transaction(db):
-    incomeTransactionTable = db.schema.get_table("income_transaction")
-    rowResult = incomeTransactionTable.select("id AS income_transaction_id",
-                                                "client_id AS client_id",
-                                                "client_name AS client_name",
-                                                "purpose AS purpose",
-                                                "amount AS amount",
-                                                "payment_method AS payment_method",
-                                                "currency AS currency",
-                                                "note_id AS note_id",
-                                                "user_id AS user_id") \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS income_transaction_id,
+                            client_id,
+                            client_name,
+                            purpose,
+                            amount,
+                            payment_method,
+                            currency,
+                            note_id,
+                            user_id
+                FROM income_transaction""")
+    result = {}
+    for row in db:
+        result = {
+            "income_transaction_id": row["income_transaction_id"],
+            "client_id": row["client_id"],
+            "client_name": row["client_name"],
+            "purpose": row["purpose"],
+            "amount": row["amount"],
+            "payment_method": row["payment_method"],
+            "currency": row["currency"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

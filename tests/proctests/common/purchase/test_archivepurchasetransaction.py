@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class ArchivePurchaseTransaction(StoredProcedureTestCase):
     def test_archive_purchase_transaction(self):
@@ -57,14 +57,18 @@ def add_purchase_transaction(db, vendorId, vendorName):
         "user_id": 1
     }
 
-    purchaseTransactionTable = db.schema.get_table("purchase_transaction")
-    result = purchaseTransactionTable.insert("vendor_id",
-                                                "vendor_name",
-                                                "user_id") \
-                                        .values(tuple(purchaseTransaction.values())) \
-                                        .execute()
-    purchaseTransaction.update(DatabaseResult(result).fetch_one("purchase_transaction_id"))
-    return purchaseTransaction
+    db.execute("""INSERT INTO purchase_transaction (vendor_id,
+                                                    vendor_name,
+                                                    user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS purchase_transaction_id""", tuple(purchaseTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "purchase_transaction_id": row[0]
+        }
+    result.update(purchaseTransaction)
+    return result
 
 def add_client(db, firstName, lastName, preferredName, phoneNumber):
     client = {
@@ -75,16 +79,28 @@ def add_client(db, firstName, lastName, preferredName, phoneNumber):
         "user_id": 1
     }
 
-    clientTable = db.schema.get_table("client")
-    result = clientTable.insert("first_name",
-                                "last_name",
-                                "preferred_name",
-                                "phone_number",
-                                "user_id") \
-                            .values(tuple(client.values())) \
-                            .execute()
-    client.update(DatabaseResult(result).fetch_one("client_id"))
-    return client
+    db.execute("""INSERT INTO client (first_name,
+                                        last_name,
+                                        preferred_name,
+                                        phone_number,
+                                        user_id)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id AS client_id,
+                    first_name,
+                    last_name,
+                    preferred_name,
+                    phone_number,
+                    user_id""", tuple(client.values()))
+    for row in db:
+        result = {
+            "client_id": row["client_id"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"],
+            "preferred_name": row["preferred_name"],
+            "phone_number": row["phone_number"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_vendor(db, clientId):
     vendor = {
@@ -92,29 +108,42 @@ def add_vendor(db, clientId):
         "user_id": 1
     }
 
-    vendorTable = db.schema.get_table("vendor")
-    result = vendorTable.insert("client_id",
-                                "user_id") \
-                            .values(tuple(vendor.values())) \
-                            .execute()
-    vendor.update(DatabaseResult(result).fetch_one("vendor_id"))
-    return vendor
+    db.execute("""INSERT INTO vendor (client_id,
+                                        user_id)
+                VALUES (%s, %s)
+                RETURNING id AS vendor_id,
+                    client_id,
+                    user_id""", tuple(vendor.values()))
+    for row in db:
+        result = {
+            "vendor_id": row["vendor_id"],
+            "client_id": row["client_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_note(db, note, tableName):
-    noteDict = {
+    note = {
         "note": note,
         "table_name": tableName,
         "user_id": 1
     }
 
-    noteTable = db.schema.get_table("note")
-    result = noteTable.insert("note",
-                                "table_name",
-                                "user_id") \
-                        .values(tuple(noteDict.values())) \
-                        .execute()
-    noteDict.update(DatabaseResult(result).fetch_one("note_id"))
-    return noteDict
+    db.execute("""INSERT INTO note (note,
+                                    table_name,
+                                    user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS note_id,
+                    table_name,
+                    user_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"],
+            "table_name": row["table_name"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def archive_purchase_transaction(db, archived, purchaseTransactionId):
     args = {
@@ -122,18 +151,23 @@ def archive_purchase_transaction(db, archived, purchaseTransactionId):
         "purchase_transaction_id": purchaseTransactionId,
         "user_id": 1
     }
-    sqlResult = db.call_procedure("ArchivePurchaseTransaction", tuple(args.values()))
-    return DatabaseResult(sqlResult).fetch_all()
+    db.call_procedure("ArchivePurchaseTransaction", tuple(args.values()))
 
 def fetch_purchase_transactions(db, archived=False):
-    purchaseTransactionTable = db.schema.get_table("purchase_transaction")
-    rowResult = purchaseTransactionTable.select("id AS purchase_transaction_id",
-                                                "vendor_id AS vendor_id",
-                                                "vendor_name AS vendor_name") \
-                                            .where("archived = :archived") \
-                                            .bind("archived", archived) \
-                                            .execute()
-    return DatabaseResult(rowResult).fetch_all()
+    db.execute("""SELECT id AS purchase_transaction_id,
+                            vendor_id,
+                            vendor_name
+                FROM purchase_transaction
+                WHERE archived = %s""", [archived])
+    results = []
+    for row in db:
+        result = {
+            "purchase_transaction_id": row["purchase_transaction_id"],
+            "vendor_id": row["vendor_id"],
+            "vendor_name": row["vendor_name"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

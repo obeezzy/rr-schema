@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class ViewStockProductCategories(StoredProcedureTestCase):
     def test_view_stock_product_categories(self):
@@ -42,19 +42,31 @@ def add_product_category(db, category):
         "user_id": 1
     }
 
-    categoryTable = db.schema.get_table("product_category")
-    result = categoryTable.insert("category",
-                                    "user_id") \
-                            .values(tuple(productCategory.values())) \
-                            .execute()
-    productCategory.update(DatabaseResult(result).fetch_one("product_category_id"))
-    return productCategory
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id,
+                    category,
+                    user_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"],
+            "category": row["category"],
+            "user_id": row["user_id"]
+        }
+    return result
 
-def view_stock_product_categories(db, sortOrder=None, archived=None):
-    sqlResult = db.call_procedure("ViewStockProductCategories", (
-                                    sortOrder,
-                                    archived))
-    return DatabaseResult(sqlResult).fetch_all()
+def view_stock_product_categories(db, sortOrder=None, archived=False):
+    db.call_procedure("ViewStockProductCategories", [sortOrder, archived])
+    results = []
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"],
+            "product_category": row["product_category"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

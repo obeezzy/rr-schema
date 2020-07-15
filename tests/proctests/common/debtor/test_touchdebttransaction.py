@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+from proctests.utils import StoredProcedureTestCase
 import time
 
 class TouchDebtTransaction(StoredProcedureTestCase):
@@ -11,8 +11,8 @@ class TouchDebtTransaction(StoredProcedureTestCase):
         touch_debt_transaction(self.db)
         fetchedDebtTransaction = fetch_debt_transaction(self.db)
 
-        self.assertLess(DatabaseDateTime(fetchedDebtTransaction["created"]),
-                        DatabaseDateTime(fetchedDebtTransaction["last_edited"]),
+        self.assertLess(fetchedDebtTransaction["created"],
+                        fetchedDebtTransaction["last_edited"],
                         "Date/time not updated.")
 
 def add_debt_transaction(db):
@@ -23,16 +23,30 @@ def add_debt_transaction(db):
         "note_id": 1,
         "user_id": 1
     }
-    debtTransactionTable = db.schema.get_table("debt_transaction")
-    result = debtTransactionTable.insert("debtor_id",
-                                            "transaction_table",
-                                            "transaction_id",
-                                            "note_id",
-                                            "user_id") \
-                                        .values(tuple(debtTransaction.values())) \
-                                        .execute()
-    debtTransaction.update(DatabaseResult(result).fetch_one("debt_transaction_id"))
-    return debtTransaction
+
+    db.execute("""INSERT INTO debt_transaction (debtor_id,
+                                                transaction_table,
+                                                transaction_id,
+                                                note_id,
+                                                user_id)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id AS debt_transaction_id,
+                    debtor_id,
+                    transaction_table,
+                    transaction_id,
+                    note_id,
+                    user_id""", tuple(debtTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "debt_transaction_id": row["debt_transaction_id"],
+            "debtor_id": row["debtor_id"],
+            "transaction_table": row["transaction_table"],
+            "transaction_id": row["transaction_id"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def touch_debt_transaction(db):
     debtTransaction = {
@@ -44,17 +58,28 @@ def touch_debt_transaction(db):
                         tuple(debtTransaction.values()))
 
 def fetch_debt_transaction(db):
-    debtTransactionTable = db.schema.get_table("debt_transaction")
-    rowResult = debtTransactionTable.select("id AS debt_transaction_id",
-                                                "debtor_id AS debtor_id",
-                                                "transaction_table AS transaction_table",
-                                                "transaction_id AS transaction_id",
-                                                "note_id AS note_id",
-                                                "created AS created",
-                                                "last_edited AS last_edited",
-                                                "user_id AS user_id") \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS debt_transaction_id,
+                            debtor_id,
+                            transaction_table,
+                            transaction_id,
+                            note_id,
+                            created,
+                            last_edited,
+                            user_id)
+                FROM debt_transaction""")
+    result = {}
+    for row in db:
+        result = {
+            "debt_transaction_id": row["debt_transaction_id"],
+            "debtor_id": row["debtor_id"],
+            "transaction_table": row["transaction_table"],
+            "transaction_id": row["transaction_id"],
+            "note_id": row["note_id"],
+            "created": row["created"],
+            "last_edited": row["last_edited"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

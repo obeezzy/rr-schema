@@ -11,26 +11,15 @@ jobs:
     runs-on: ubuntu-18.04
 
     services:
-      mysql:
-        image: mysql:latest
+      postgres:
+        image: postgres:latest
         env:
-          MYSQL_ROOT_PASSWORD: password
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
-        - 3306:3306
-        - 33060:33060
-        options: --health-cmd "mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
+        - 5432:5432
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Verify MySQL connection
-      env:
-        PORT: ${{ job.services.mysql.ports[3306] }}
-      run: |
-        while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
-          sleep 1
-        done
-
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
@@ -38,10 +27,10 @@ jobs:
 
     - name: Run tests
       env:
-        MYSQL_USER: ${{ secrets.MYSQL_USER }}
-        MYSQL_PASSWORD: password
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        working-directory: ./tests
       run: |
-        pushd tests
         echo -e "\e[92mSetup virtual environment"
         sudo apt-get install python3-venv
         python3 -m venv env

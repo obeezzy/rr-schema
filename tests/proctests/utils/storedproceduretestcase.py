@@ -1,15 +1,12 @@
 import unittest
-import sys
 import os
 import logging
-import sys
-from datetime import datetime
 import time
 from .databaseclient import DatabaseClient
 
 class StoredProcedureTestCase(unittest.TestCase):
     def setUp(self):
-        self.startTime = time.time()
+        self.start_time = time.time()
         self.logger = logging.getLogger(__name__)
         self.db = DatabaseClient()
 
@@ -18,7 +15,7 @@ class StoredProcedureTestCase(unittest.TestCase):
 
     @property
     def elapsed(self):
-        return time.time() - self.startTime
+        return time.time() - self.start_time
 
 if str(os.environ.get("LOGLEVEL", "warning")).lower() == "info":
     logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)

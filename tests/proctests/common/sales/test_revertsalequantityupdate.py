@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+import locale
+from proctests.utils import StoredProcedureTestCase
 
 class RevertSaleQuantityUpdate(StoredProcedureTestCase):
     def test_revert_sale_quantity_update(self):
@@ -14,8 +15,8 @@ class RevertSaleQuantityUpdate(StoredProcedureTestCase):
         addedProductUnit = add_product_unit(db=self.db,
                                             productId=addedProduct["product_id"],
                                             unit="unit(s)",
-                                            costPrice=283.18,
-                                            retailPrice=844.23)
+                                            costPrice=locale.currency(283.18),
+                                            retailPrice=locale.currency(844.23))
         addedProductQuantity = add_product_quantity(db=self.db,
                                                     productId=addedProduct["product_id"],
                                                     quantity=200.25)
@@ -27,10 +28,10 @@ class RevertSaleQuantityUpdate(StoredProcedureTestCase):
                                             saleTransactionId=addedSaleTransaction["sale_transaction_id"],
                                             productId=addedProduct["product_id"],
                                             productUnitId=addedProductUnit["product_unit_id"],
-                                            unitPrice=389.23,
+                                            unitPrice=locale.currency(389.23),
                                             quantity=88.32,
-                                            cost=184.28,
-                                            discount=101.32)
+                                            cost=locale.currency(184.28),
+                                            discount=locale.currency(101.32))
         alter_product_quantity(db=self.db,
                                 productId=addedProduct["product_id"],
                                 newQuantity=round(addedProductQuantity["quantity"] - addedSoldProduct["quantity"], 2))
@@ -57,15 +58,26 @@ def add_sale_transaction(db, customerName, suspended=False):
         "user_id": 1
     }
 
-    saleTransactionTable = db.schema.get_table("sale_transaction")
-    result = saleTransactionTable.insert("customer_id",
-                                                "customer_name",
-                                                "suspended",
-                                                "user_id") \
-                                        .values(tuple(saleTransaction.values())) \
-                                        .execute()
-    saleTransaction.update(DatabaseResult(result).fetch_one("sale_transaction_id"))
-    return saleTransaction
+    db.execute("""INSERT INTO sale_transaction (customer_id,
+                                                customer_name,
+                                                suspended,
+                                                user_id)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id AS sale_transaction_id,
+                    customer_id,
+                    customer_name,
+                    suspended,
+                    user_id""", tuple(saleTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "sale_transaction_id": row["sale_transaction_id"],
+            "customer_id": row["customer_id"],
+            "customer_name": row["customer_name"],
+            "suspended": row["suspended"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product_category(db, category):
     productCategory = {
@@ -73,28 +85,45 @@ def add_product_category(db, category):
         "user_id": 1
     }
 
-    productCategoryTable = db.schema.get_table("product_category")
-    result = productCategoryTable.insert("category",
-                                            "user_id") \
-                                    .values(tuple(productCategory.values())) \
-                                    .execute()
-    productCategory.update(DatabaseResult(result).fetch_one("product_category_id"))
-    return productCategory
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id,
+                    category,
+                    user_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"],
+            "category": row["category"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product(db, productCategoryId, product):
-    productDict = {
+    product = {
         "product_category_id": productCategoryId,
         "product": product,
         "user_id": 1
     }
-    productTable = db.schema.get_table("product")
-    result = productTable.insert("product_category_id",
-                                    "product",
-                                    "user_id") \
-                                .values(tuple(productDict.values())) \
-                                .execute()
-    productDict.update(DatabaseResult(result).fetch_one("product_id"))
-    return productDict
+
+    db.execute("""INSERT INTO product (product_category_id,
+                                        product,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS product_id,
+                    product_category_id,
+                    product,
+                    user_id""", tuple(product.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"],
+            "product_category_id": row["product_category_id"],
+            "product": row["product"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
     productUnit = {
@@ -108,19 +137,36 @@ def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquiva
         "user_id": 1
     }
 
-    productUnitTable = db.schema.get_table("product_unit")
-    result = productUnitTable.insert("product_id",
-                                        "unit",
-                                        "cost_price",
-                                        "retail_price",
-                                        "base_unit_equivalent",
-                                        "preferred",
-                                        "currency",
-                                        "user_id") \
-                                .values(tuple(productUnit.values())) \
-                                .execute()
-    productUnit.update(DatabaseResult(result).fetch_one("product_unit_id"))
-    return productUnit
+    db.execute("""INSERT INTO product_unit (product_id,
+                                            unit,
+                                            cost_price,
+                                            retail_price,
+                                            base_unit_equivalent,
+                                            preferred,
+                                            currency,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS product_unit_id,
+                    product_id,
+                    cost_price,
+                    retail_price,
+                    base_unit_equivalent,
+                    preferred,
+                    currency,
+                    user_id""", tuple(productUnit.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_unit_id": row["product_unit_id"],
+            "product_id": row["product_id"],
+            "cost_price": row["cost_price"],
+            "retail_price": row["retail_price"],
+            "base_unit_equivalent": row["base_unit_equivalent"],
+            "preferred": row["preferred"],
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_sold_product(db, saleTransactionId, productId, productUnitId, unitPrice, quantity, cost, discount=0):
     soldProduct = {
@@ -135,20 +181,41 @@ def add_sold_product(db, saleTransactionId, productId, productUnitId, unitPrice,
         "user_id": 1
     }
 
-    soldProductTable = db.schema.get_table("sold_product")
-    result = soldProductTable.insert("sale_transaction_id",
-                                            "product_id",
-                                            "product_unit_id",
-                                            "unit_price",
-                                            "quantity",
-                                            "cost",
-                                            "discount",
-                                            "currency",
-                                            "user_id") \
-                                    .values(tuple(soldProduct.values())) \
-                                    .execute()
-    soldProduct.update(DatabaseResult(result).fetch_one("sold_product_id"))
-    return soldProduct
+    db.execute("""INSERT INTO sold_product (sale_transaction_id,
+                                            product_id,
+                                            product_unit_id,
+                                            unit_price,
+                                            quantity,
+                                            cost,
+                                            discount,
+                                            currency,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS sold_product_id,
+                    sale_transaction_id,
+                    product_id,
+                    product_unit_id,
+                    unit_price,
+                    quantity,
+                    cost,
+                    discount,
+                    currency,
+                    user_id""", tuple(soldProduct.values()))
+    result = {}
+    for row in db:
+        result = {
+            "sold_product_id": row["sold_product_id"],
+            "sale_transaction_id": row["sale_transaction_id"],
+            "product_id": row["product_id"],
+            "product_unit_id": row["product_unit_id"],
+            "unit_price": row["unit_price"],
+            "quantity": row["quantity"],
+            "cost": row["cost"],
+            "discount": row["discount"],
+            "currency": row["currency"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product_quantity(db, productId, quantity):
     productQuantity = {
@@ -157,36 +224,48 @@ def add_product_quantity(db, productId, quantity):
         "user_id": 1
     }
 
-    currentProductQuantityTable = db.schema.get_table("current_product_quantity")
-    result = currentProductQuantityTable.insert("product_id",
-                                                "quantity",
-                                                "user_id") \
-                                        .values(tuple(productQuantity.values())) \
-                                        .execute()
-    productQuantity.update(DatabaseResult(result).fetch_one("current_product_quantity_id"))
-    return productQuantity
+    db.execute("""INSERT INTO current_product_quantity (product_id,
+                                                        quantity,
+                                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS current_product_quantity_id,
+                    product_id,
+                    quantity,
+                    user_id""", tuple(productQuantity.values()))
+    result = {}
+    for row in db:
+        result = {
+            "current_product_quantity_id": row["current_product_quantity_id"],
+            "product_id": row["product_id"],
+            "quantity": row["quantity"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def alter_product_quantity(db, productId, newQuantity):
-    currentProductQuantityTable = db.schema.get_table("current_product_quantity")
-    result = currentProductQuantityTable.update() \
-                                        .set("quantity", newQuantity) \
-                                        .where("product_id = :productId") \
-                                        .bind("productId", productId) \
-                                        .execute()
+    db.execute("""UPDATE current_product_quantity
+                    SET quantity = %s
+                    WHERE product_id = %s""", [newQuantity, productId])
 
 def revert_sale_quantity_update(db, saleTransactionId, userId=1):
-    sqlResult = db.call_procedure("RevertSaleQuantityUpdate", (saleTransactionId, userId))
-    return bool(DatabaseResult(sqlResult).fetch_one())
+    db.call_procedure("RevertSaleQuantityUpdate", (saleTransactionId, userId))
 
 def fetch_current_product_quantity(db, productId):
-    currentProductQuantityTable = db.schema.get_table("current_product_quantity")
-    rowResult = currentProductQuantityTable.select("product_id AS product_id",
-                                                    "quantity AS quantity",
-                                                    "user_id AS user_id") \
-                                            .where("product_id = :productId") \
-                                            .bind("productId", productId) \
-                                            .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS current_product_quantity_id,
+                            product_id,
+                            quantity,
+                            user_id
+                FROM current_product_quantity
+                WHERE product_id = %s""", [productId])
+    result = {}
+    for row in db:
+        result = {
+            "current_product_quantity_id": row["current_product_quantity_id"],
+            "product_id": row["product_id"],
+            "quantity": row["quantity"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

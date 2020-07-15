@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class ArchiveDebtor(StoredProcedureTestCase):
     def test_archive_debtor(self):
@@ -18,25 +18,40 @@ def add_debtor(db, debtorId, clientId):
         "user_id": 1
     }
 
-    debtorTable = db.schema.get_table("debtor")
-    debtorTable.insert("id",
-                        "client_id",
-                        "user_id") \
-                .values(tuple(debtor.values())) \
-                .execute()
+    db.execute("""INSERT INTO debtor (id,
+                                        client_id,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS debtor_id,
+                    client_id,
+                    user_id""", tuple(debtor.values()))
+    db.commit()
+    result = {}
+    for row in db:
+        result = {
+            "debtor_id": row["debtor_id"],
+            "client_id": row["client_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def archive_debtor(db, debtorId, userId=1):
     db.call_procedure("ArchiveDebtor", (True, debtorId, 1))
 
 def fetch_debtors(db, archived=False):
-    debtorTable = db.schema.get_table("debtor")
-    rowResult = debtorTable.select("id AS debtor_id",
-                                    "client_id AS client_id",
-                                    "user_id AS user_id") \
-                            .where("archived = :archived") \
-                            .bind("archived", archived) \
-                            .execute()
-    return DatabaseResult(rowResult).fetch_all()
+    db.execute("""SELECT client_id,
+                            user_id
+                FROM debtor
+                WHERE archived = %s""", [archived])
+    results = []
+    for row in db:
+        result = {
+            "debtor_id": row["debtor_id"],
+            "client_id": row["client_id"],
+            "user_id": row["user_id"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

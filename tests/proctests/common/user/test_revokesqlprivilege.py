@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 import unittest
-import json
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class RevokeSqlPrivilege(StoredProcedureTestCase):
+    @unittest.skip("Needs to be refactored.""")
     def setUp(self):
-        super().setUp()
         self.userName = "testuser"
+        super().setUp()
+        drop_user(db=self.db, user=self.userName)
         add_sql_user(db=self.db,
                         user=self.userName,
                         password="mypassword")
 
     def test_revoke_sql_privileges(self):
+        grant_sql_privilege(db=self.db,
+                            user=self.userName,
+                            privilege="SELECT")
         revoke_sql_privilege(db=self.db,
                             user=self.userName,
                             privilege="SELECT")
@@ -26,40 +30,52 @@ def add_sql_user(db, user, password):
         "password": password
     }
 
-    sqlResult = db.call_procedure("AddSqlUser",
-                                    tuple(user.values()))
-    user.update(DatabaseResult(sqlResult).fetch_one())
-    return user
+    db.call_procedure("AddSqlUser", tuple(user.values()))
 
 def add_user(db, user, firstName, lastName):
     user = {
-        "user": user,
+        "username": user,
         "first_name": firstName,
         "last_name": lastName,
         "user_id": 1
     }
 
-    userTable = db.schema.get_table("rr_user")
-    result = userTable.insert("user",
-                                "first_name",
-                                "last_name",
-                                "user_id") \
-                        .values(tuple(user.values())) \
-                        .execute()
-    user.update(DatabaseResult(result).fetch_one("user_id"))
-    return user
+    db.execute("""INSERT INTO rr_user (username,
+                                        first_name,
+                                        last_name)
+                VALUES (%s, %s, %s)
+                RETURNING id AS user_id,
+                    first_name,
+                    last_name""", tuple(user.values()))
+    result = {}
+    for row in db:
+        result = {
+            "username": row["username"],
+            "first_name": row["first_name"],
+            "last_name": row["last_name"],
+            "user_id": row["user_id"]
+        }
+    return result
+
+def grant_sql_privilege(db, user, privilege):
+    db.execute(f"""GRANT CONNECT ON DATABASE rr_test TO {user}""")
+    db.execute(f"""GRANT USAGE ON SCHEMA public TO {user}""")
+    db.execute(f"""GRANT {privilege} TO {user}""")
 
 def revoke_sql_privilege(db, user, privilege):
-    db.call_procedure("RevokeSqlPrivilege", (user, privilege))
+    db.call_procedure("RevokeSqlPrivilege", [user, privilege])
 
 def fetch_sql_user(db, user):
-    sqlResult = db.session.sql(f"SELECT user AS user FROM mysql.user WHERE user = '{user}'") \
-                    .execute()
-    return DatabaseResult(sqlResult).fetch_one()
+    db.execute(f"""SELECT usename AS username FROM pg_user WHERE username = %s""", [user])
+    result = {}
+    for row in db:
+        result = {
+            "username": row["username"]
+        }
+    return result
 
 def drop_user(db, user):
-    db.session.sql(f"DROP USER '{user}'@'localhost';") \
-        .execute()
+    db.execute(f"""DROP USER IF EXISTS {user}""")
 
 if __name__ == '__main__':
     unittest.main()

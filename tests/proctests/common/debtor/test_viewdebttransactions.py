@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+import locale
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
+from decimal import Decimal
 
 class ViewDebtTransactions(StoredProcedureTestCase):
     def test_view_debt_transactions(self):
@@ -14,19 +16,19 @@ class ViewDebtTransactions(StoredProcedureTestCase):
                                                 debtorId=debtor1["debtor_id"])
         debtPayment1 = add_debt_payment(db=self.db,
                                         debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                        totalDebt=500.48,
-                                        amountPaid=302.12)
+                                        totalDebt=locale.currency(500.48),
+                                        amountPaid=locale.currency(302.12))
         debtPayment2 = add_debt_payment(db=self.db,
                                         debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                        totalDebt=2399.23,
-                                        amountPaid=302.03)
+                                        totalDebt=locale.currency(2399.23),
+                                        amountPaid=locale.currency(302.03))
 
         debtTransaction2 = add_debt_transaction(db=self.db,
                                                 debtorId=debtor1["debtor_id"])
         debtPayment3 = add_debt_payment(db=self.db,
                                         debtTransactionId=debtTransaction2["debt_transaction_id"],
-                                        totalDebt=4200.38,
-                                        amountPaid=398.45)
+                                        totalDebt=locale.currency(4200.38),
+                                        amountPaid=locale.currency(398.45))
 
         viewedDebtTransactions = view_debt_transactions(db=self.db,
                                                         debtorId=debtor1["debtor_id"])
@@ -117,7 +119,7 @@ class ViewDebtTransactions(StoredProcedureTestCase):
 
 
 def add_debtor_with_transactions(db, preferredName, phoneNumber):
-    client = add_client(db=db, preferredName=preferredName, phoneNumber=phoneNumber)
+    add_client(db=db, preferredName=preferredName, phoneNumber=phoneNumber)
 
 
 def add_client(db, preferredName, phoneNumber, archived=False):
@@ -128,29 +130,46 @@ def add_client(db, preferredName, phoneNumber, archived=False):
         "user_id": 1
     }
 
-    clientTable = db.schema.get_table("client")
-    result = clientTable.insert("preferred_name",
-                                "phone_number",
-                                "archived",
-                                "user_id") \
-                        .values(tuple(client.values())) \
-                        .execute()
-    client.update(DatabaseResult(result).fetch_one("client_id"))
-    return client
+    db.execute("""INSERT INTO client (preferred_name,
+                                        phone_number,
+                                        archived,
+                                        user_id)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id AS client_id,
+                    preferred_name,
+                    phone_number,
+                    archived,
+                    user_id""", tuple(client.values()))
+    result = {}
+    for row in db:
+        result = {
+            "client_id": row["client_id"],
+            "preferred_name": row["preferred_name"],
+            "phone_number": row["phone_number"],
+            "archived": row["archived"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_debtor(db, clientId):
     debtor = {
         "client_id": clientId,
         "user_id": 1
     }
-
-    debtorTable = db.schema.get_table("debtor")
-    result = debtorTable.insert("client_id",
-                                "user_id") \
-                        .values(tuple(debtor.values())) \
-                        .execute()
-    debtor.update(DatabaseResult(result).fetch_one("debtor_id"))
-    return debtor
+    db.execute("""INSERT INTO debtor(client_id,
+                                        user_id)
+                VALUES (%s, %s)
+                RETURNING id AS debtor_id,
+                    client_id,
+                    user_id""", tuple(debtor.values()))
+    result = {}
+    for row in db:
+        result = {
+            "debtor_id": row["debtor_id"],
+            "client_id": row["client_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_debt_transaction(db, debtorId):
     debtTransaction = {
@@ -159,42 +178,84 @@ def add_debt_transaction(db, debtorId):
         "user_id": 1
     }
 
-    debtTransactionTable = db.schema.get_table("debt_transaction")
-    result = debtTransactionTable.insert("debtor_id",
-                                            "transaction_table",
-                                            "user_id") \
-                                    .values(tuple(debtTransaction.values())) \
-                                    .execute()
-    debtTransaction.update(DatabaseResult(result).fetch_one("debt_transaction_id"))
-    return debtTransaction
+    db.execute("""INSERT INTO debt_transaction (debtor_id,
+                                                transaction_table,
+                                                user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS debt_transaction_id,
+                    debtor_id,
+                    transaction_table,
+                    user_id""", tuple(debtTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "debt_transaction_id": row["debt_transaction_id"],
+            "debtor_id": row["debtor_id"],
+            "transaction_table": row["transaction_table"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_debt_payment(db, debtTransactionId, totalDebt, amountPaid):
     debtPayment = {
         "debt_transaction_id": debtTransactionId,
         "total_debt": totalDebt,
         "amount_paid": amountPaid,
-        "balance": round(totalDebt - amountPaid, 2),
+        "balance": locale.currency(Decimal(totalDebt.strip("$")) - Decimal(amountPaid.strip("$"))),
         "currency": "NGN",
-        "due_date_time": DatabaseDateTime(datetime(2999, 3, 2)).iso_format,
+        "due_date_time": datetime(2999, 3, 2),
         "user_id": 1
     }
 
-    debtPaymentTable = db.schema.get_table("debt_payment")
-    result = debtPaymentTable.insert("debt_transaction_id",
-                                        "total_debt",
-                                        "amount_paid",
-                                        "balance",
-                                        "currency",
-                                        "due_date_time",
-                                        "user_id") \
-                                    .values(tuple(debtPayment.values())) \
-                                    .execute()
-    debtPayment.update(DatabaseResult(result).fetch_one("debt_payment_id"))
-    return debtPayment
+    db.execute("""INSERT INTO debt_payment (debt_transaction_id,
+                                            total_debt,
+                                            amount_paid,
+                                            balance,
+                                            currency,
+                                            due_date_time,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS debt_payment_id,
+                    debt_transaction_id,
+                    total_debt,
+                    amount_paid,
+                    balance,
+                    currency,
+                    due_date_time,
+                    user_id""", tuple(debtPayment.values()))
+    result = {}
+    for row in db:
+        result = {
+            "debt_payment_id": row["debt_payment_id"],
+            "debt_transaction_id": row["debt_transaction_id"],
+            "total_debt": row["total_debt"],
+            "amount_paid": row["amount_paid"],
+            "balance": row["balance"],
+            "currency": row["currency"],
+            "due_date_time": row["due_date_time"],
+            "user_id": row["user_id"]
+        }
+    return result
 
-def view_debt_transactions(db, debtorId, archived=None):
-    sqlResult = db.call_procedure("ViewDebtTransactions", (debtorId, archived))
-    return DatabaseResult(sqlResult).fetch_all()
+def view_debt_transactions(db, debtorId, archived=False):
+    db.call_procedure("ViewDebtTransactions", [debtorId, archived])
+    results = []
+    for row in db:
+        result = {
+            "debt_transaction_id": row["debt_transaction_id"],
+            "debtor_id": row["debtor_id"],
+            "related_transaction_table": row["related_transaction_table"],
+            "related_transaction_id": row["related_transaction_id"],
+            "debt_payment_id": row["debt_payment_id"],
+            "total_debt": row["total_debt"],
+            "amount_paid": row["amount_paid"],
+            "balance": row["balance"],
+            "currency": row["currency"],
+            "due_date_time": row["due_date_time"],
+            "archived": row["archived"]
+        }
+        results.append(result)
+    return results
 
 if __name__ == '__main__':
     unittest.main()

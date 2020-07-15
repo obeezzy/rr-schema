@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+import locale
+from proctests.utils import StoredProcedureTestCase
 
 class UpdateStockProductUnit(StoredProcedureTestCase):
     def test_update_stock_product_unit(self):
@@ -11,8 +12,8 @@ class UpdateStockProductUnit(StoredProcedureTestCase):
                                         productId=product["product_id"],
                                         unit="gram(s)",
                                         shortForm="Kush",
-                                        costPrice=3882.18,
-                                        retailPrice=4819.57)
+                                        costPrice=locale.currency(3882.18),
+                                        retailPrice=locale.currency(4819.57))
         fetchedProductUnit = fetch_product_unit(db=self.db)
 
         self.assertEqual(fetchedProductUnit["product_unit_id"],
@@ -47,8 +48,8 @@ class UpdateStockProductUnit(StoredProcedureTestCase):
                                                         productId=product["product_id"],
                                                         unit="gram(s)",
                                                         shortForm="Kush",
-                                                        costPrice=1000.38,
-                                                        retailPrice=2000.84)
+                                                        costPrice=locale.currency(1000.38),
+                                                        retailPrice=locale.currency(2000.84))
         fetchedProductUnit = fetch_product_unit(db=self.db)
 
         self.assertEqual(fetchedProductUnit["product_id"],
@@ -77,20 +78,29 @@ class UpdateStockProductUnit(StoredProcedureTestCase):
                             "User ID mismatch.")
 
 def add_product(db, productCategoryId, product):
-    productDict = {
+    product = {
         "product_category_id": productCategoryId,
         "product": product,
         "user_id": 1
     }
 
-    productTable = db.schema.get_table("product")
-    result = productTable.insert("product_category_id",
-                                    "product",
-                                    "user_id") \
-                            .values(tuple(productDict.values())) \
-                            .execute()
-    productDict.update(DatabaseResult(result).fetch_one("product_id"))
-    return productDict
+    db.execute("""INSERT INTO product (product_category_id,
+                                        product,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS product_id,
+                    product_category_id,
+                    product,
+                    user_id""", tuple(product.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"],
+            "product_category_id": row["product_category_id"],
+            "product": row["product"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def add_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
     productUnit = {
@@ -106,21 +116,44 @@ def add_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, bas
         "user_id": 1
     }
 
-    productUnitTable = db.schema.get_table("product_unit")
-    result = productUnitTable.insert("product_id",
-                                        "unit",
-                                        "short_form",
-                                        "base_unit_equivalent",
-                                        "preferred",
-                                        "cost_price",
-                                        "retail_price",
-                                        "currency",
-                                        "note_id",
-                                        "user_id") \
-                                .values(tuple(productUnit.values())) \
-                                .execute()
-    productUnit.update(DatabaseResult(result).fetch_one("product_unit_id"))
-    return productUnit
+    db.execute("""INSERT INTO product_unit (product_id,
+                                            unit,
+                                            short_form,
+                                            base_unit_equivalent,
+                                            preferred,
+                                            cost_price,
+                                            retail_price,
+                                            currency,
+                                            note_id,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS product_unit_id,
+                    product_id,
+                    unit,
+                    short_form,
+                    base_unit_equivalent,
+                    preferred,
+                    cost_price,
+                    retail_price,
+                    currency,
+                    note_id,
+                    user_id""", tuple(productUnit.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_unit_id": row["product_unit_id"],
+            "product_id": row["product_id"],
+            "unit": row["unit"],
+            "short_form": row["short_form"],
+            "base_unit_equivalent": row["base_unit_equivalent"],
+            "preferred": row["preferred"],
+            "cost_price": row["cost_price"].replace(",", ""),
+            "retail_price": row["retail_price"].replace(",", ""),
+            "currency": row["currency"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 def update_stock_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
     productUnit = {
@@ -136,24 +169,38 @@ def update_stock_product_unit(db, productId, unit, shortForm, costPrice, retailP
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("UpdateStockProductUnit", tuple(productUnit.values()))
+    db.call_procedure("UpdateStockProductUnit", tuple(productUnit.values()))
     return productUnit
 
 def fetch_product_unit(db):
-    productUnitTable = db.schema.get_table("product_unit")
-    rowResult = productUnitTable.select("id AS product_unit_id",
-                                        "product_id AS product_id",
-                                        "unit AS unit",
-                                        "short_form AS short_form",
-                                        "cost_price AS cost_price",
-                                        "retail_price AS retail_price",
-                                        "base_unit_equivalent AS base_unit_equivalent",
-                                        "preferred AS preferred",
-                                        "currency AS currency",
-                                        "note_id AS note_id",
-                                        "user_id AS user_id") \
-                                .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS product_unit_id,
+                            product_id,
+                            unit,
+                            short_form,
+                            cost_price,
+                            retail_price,
+                            base_unit_equivalent,
+                            preferred,
+                            currency,
+                            note_id,
+                            user_id
+                FROM product_unit""")
+    result = {}
+    for row in db:
+        return {
+            "product_unit_id": row["product_unit_id"],
+            "product_id": row["product_id"],
+            "unit": row["unit"],
+            "short_form": row["short_form"],
+            "cost_price": row["cost_price"].replace(",", ""),
+            "retail_price": row["retail_price"].replace(",", ""),
+            "base_unit_equivalent": row["base_unit_equivalent"],
+            "preferred": row["preferred"],
+            "currency": row["currency"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

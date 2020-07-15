@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult
+from proctests.utils import StoredProcedureTestCase
 
 class AddCurrentProductQuantity(StoredProcedureTestCase):
     def test_add_current_product_quantity(self):
@@ -29,21 +29,32 @@ def add_current_product_quantity(db, productId, quantity):
         "quantity": quantity,
         "user_id": 1
     }
-    sqlResult = db.call_procedure("AddCurrentProductQuantity", 
-                                    tuple(currentProductQuantity.values()))
-    currentProductQuantity.update(DatabaseResult(sqlResult).fetch_one())
-    return currentProductQuantity
+    db.call_procedure("AddCurrentProductQuantity", 
+                        tuple(currentProductQuantity.values()))
+    result = {}
+    for row in db:
+        result = {
+            "current_product_quantity_id": row[0]
+        }
+    result.update(currentProductQuantity)
+    return result
 
 def fetch_current_product_quantity(db, productId):
-    currentProductQuantity = db.schema.get_table("current_product_quantity")
-    rowResult = currentProductQuantity.select("id AS current_product_quantity_id",
-                                                "product_id AS product_id",
-                                                "quantity AS quantity",
-                                                "user_id AS user_id") \
-                                        .where("product_id = :productId") \
-                                        .bind("productId", productId) \
-                                        .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS current_product_quantity_id,
+                            product_id,
+                            quantity,
+                            user_id
+                FROM current_product_quantity
+                WHERE product_id = %s""", [productId])
+    result = {}
+    for row in db:
+        result = {
+            "current_product_quantity_id": row["current_product_quantity_id"],
+            "product_id": row["product_id"],
+            "quantity": row["quantity"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from proctests.utils import StoredProcedureTestCase, DatabaseResult, DatabaseDateTime
+from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 
 class AddCreditPayment(StoredProcedureTestCase):
@@ -8,6 +8,9 @@ class AddCreditPayment(StoredProcedureTestCase):
         addedCreditPayment = add_credit_payment(self.db)
         fetchedCreditPayment = fetch_credit_payment(self.db)
 
+        self.assertEqual(addedCreditPayment["credit_payment_id"],
+                            fetchedCreditPayment["credit_payment_id"],
+                            "Credit payment ID mismatch.")
         self.assertEqual(addedCreditPayment["credit_transaction_id"],
                             fetchedCreditPayment["credit_transaction_id"],
                             "Credit transaction ID mismatch.")
@@ -36,33 +39,49 @@ class AddCreditPayment(StoredProcedureTestCase):
 def add_credit_payment(db):
     creditPayment = {
         "credit_transaction_id": 1,
-        "total_credit": 100,
-        "amount_paid": 20,
-        "balance": 80,
+        "total_credit": "$100.00",
+        "amount_paid": "$20.00",
+        "balance": "$80.00",
         "currency": "NGN",
-        "due_date_time": DatabaseDateTime(datetime.now()).iso_format,
+        "due_date_time": datetime.now(),
         "note_id": 1,
         "user_id": 1
     }
 
-    sqlResult = db.call_procedure("AddCreditPayment",
-                                    tuple(creditPayment.values()))
-    creditPayment.update(DatabaseResult(sqlResult).fetch_one())
-    return creditPayment
+    db.call_procedure("AddCreditPayment", tuple(creditPayment.values()))
+    result = {}
+    for row in db:
+        result = {
+            "credit_payment_id": row[0]
+        }
+    result.update(creditPayment)
+    return result
 
 def fetch_credit_payment(db):
-    creditPaymentTable = db.schema.get_table("credit_payment")
-    rowResult = creditPaymentTable.select("id AS credit_payment_id",
-                                            "credit_transaction_id AS credit_transaction_id",
-                                            "total_credit AS total_credit",
-                                            "amount_paid AS amount_paid",
-                                            "balance AS balance",
-                                            "currency AS currency",
-                                            "due_date_time AS due_date_time",
-                                            "note_id AS note_id",
-                                            "user_id AS user_id") \
-                                    .execute()
-    return DatabaseResult(rowResult).fetch_one()
+    db.execute("""SELECT id AS credit_payment_id,
+                            credit_transaction_id,
+                            total_credit,
+                            amount_paid,
+                            balance,
+                            currency,
+                            due_date_time,
+                            note_id,
+                            user_id
+                FROM credit_payment""")
+    result = {}
+    for row in db:
+        result = {
+            "credit_payment_id": row["credit_payment_id"],
+            "credit_transaction_id": row["credit_transaction_id"],
+            "total_credit": row["total_credit"],
+            "amount_paid": row["amount_paid"],
+            "balance": row["balance"],
+            "currency": row["currency"],
+            "due_date_time": row["due_date_time"],
+            "note_id": row["note_id"],
+            "user_id": row["user_id"]
+        }
+    return result
 
 if __name__ == '__main__':
     unittest.main()
