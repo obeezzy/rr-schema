@@ -43,6 +43,8 @@ jobs:
       working-directory: ./tests
       run: |
         echo -e "\e[92mSetup virtual environment"
+        sudo apt-get install language-pack-en-base
+        sudo dpkg-reconfigure locales
         sudo apt-get install python3-venv
         python3 -m venv env
         . env/bin/activate
