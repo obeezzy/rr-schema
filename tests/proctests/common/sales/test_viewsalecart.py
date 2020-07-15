@@ -333,7 +333,7 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def add_sold_product(db, saleTransactionId, productId, unitPrice, quantity, productUnitId, cost, noteId, discount="$0"):
+def add_sold_product(db, saleTransactionId, productId, unitPrice, quantity, productUnitId, cost, noteId, discount):
     soldProduct = {
         "sale_transaction_id": saleTransactionId,
         "product_id": productId,

@@ -88,7 +88,7 @@ class FetchMostSoldProducts(StoredProcedureTestCase):
                             productUnit1["unit"],
                             "Product unit mismatch.")
         self.assertEqual(fetchedMostSoldProducts[0]["total_revenue"], 
-                            locale.currency(Decimal(soldProduct1["cost"].strip("$")) - Decimal(soldProduct1["discount"].strip("$"))),
+                            locale.currency(Decimal(soldProduct1["cost"].strip(self.db.currency_symbol)) - Decimal(soldProduct1["discount"].strip(self.db.currency_symbol))),
                             "Total revenue mismatch.")
         self.assertEqual(fetchedMostSoldProducts[0]["total_quantity"], 
                             soldProduct1["quantity"],
@@ -113,7 +113,7 @@ class FetchMostSoldProducts(StoredProcedureTestCase):
                             productUnit2["unit"],
                             "Product unit mismatch.")
         self.assertEqual(fetchedMostSoldProducts[1]["total_revenue"], 
-                            locale.currency(Decimal(soldProduct2["cost"].strip("$")) - Decimal(soldProduct2["discount"].strip("$"))),
+                            locale.currency(Decimal(soldProduct2["cost"].strip(self.db.currency_symbol)) - Decimal(soldProduct2["discount"].strip(self.db.currency_symbol))),
                             "Total revenue mismatch.")
         self.assertEqual(fetchedMostSoldProducts[1]["total_quantity"], 
                             soldProduct2["quantity"],
@@ -138,7 +138,7 @@ class FetchMostSoldProducts(StoredProcedureTestCase):
                             productUnit3["unit"],
                             "Product unit mismatch.")
         self.assertEqual(fetchedMostSoldProducts[2]["total_revenue"], 
-                            locale.currency(Decimal(soldProduct3["cost"].strip("$")) - Decimal(soldProduct3["discount"].strip("$"))),
+                            locale.currency(Decimal(soldProduct3["cost"].strip(self.db.currency_symbol)) - Decimal(soldProduct3["discount"].strip(self.db.currency_symbol))),
                             "Total revenue mismatch.")
         self.assertEqual(fetchedMostSoldProducts[2]["total_quantity"], 
                             soldProduct3["quantity"],

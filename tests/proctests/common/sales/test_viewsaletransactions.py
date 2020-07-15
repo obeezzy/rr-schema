@@ -77,7 +77,8 @@ class ViewSaleTransactions(StoredProcedureTestCase):
 
 def add_first_sale_transaction(db):
     saleTransaction = add_sale_transaction(db=db,
-                                            customerName="Miles Morales")
+                                            customerName="Miles Morales",
+                                            discount=locale.currency(0))
     salePayment1 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
                                         amount=locale.currency(340.45),
@@ -95,14 +96,15 @@ def add_first_sale_transaction(db):
         "customer_name": saleTransaction["customer_name"],
         "customer_id": saleTransaction["customer_id"],
         "sale_transaction_id": saleTransaction["sale_transaction_id"],
-        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip("$")) + Decimal(salePayment2["amount"].strip("$")) + Decimal(salePayment3["amount"].strip("$"))),
+        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip(db.currency_symbol)) + Decimal(salePayment2["amount"].strip(db.currency_symbol)) + Decimal(salePayment3["amount"].strip(db.currency_symbol))),
         "discount": saleTransaction["discount"],
         "suspended": saleTransaction["suspended"]
     }
 
 def add_second_sale_transaction(db):
     saleTransaction = add_sale_transaction(db=db,
-                                            customerName="Ororo Monroe")
+                                            customerName="Ororo Monroe",
+                                            discount=locale.currency(0))
     salePayment1 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
                                         amount=locale.currency(582.45),
@@ -116,15 +118,16 @@ def add_second_sale_transaction(db):
         "customer_name": saleTransaction["customer_name"],
         "customer_id": saleTransaction["customer_id"],
         "sale_transaction_id": saleTransaction["sale_transaction_id"],
-        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip("$")) \
-                            + Decimal(salePayment2["amount"].strip("$"))),
+        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip(db.currency_symbol)) \
+                            + Decimal(salePayment2["amount"].strip(db.currency_symbol))),
         "discount": saleTransaction["discount"],
         "suspended": saleTransaction["suspended"]
     }
 
 def add_third_sale_transaction(db):
     saleTransaction = add_sale_transaction(db=db,
-                                            customerName="Jean Gray")
+                                            customerName="Jean Gray",
+                                            discount=locale.currency(0))
     salePayment1 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
                                         amount=locale.currency(578.23),
@@ -146,15 +149,15 @@ def add_third_sale_transaction(db):
         "customer_name": saleTransaction["customer_name"],
         "customer_id": saleTransaction["customer_id"],
         "sale_transaction_id": saleTransaction["sale_transaction_id"],
-        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip("$")) \
-                            + Decimal(salePayment2["amount"].strip("$")) \
-                            + Decimal(salePayment3["amount"].strip("$")) \
-                            + Decimal(salePayment4["amount"].strip("$"))),
+        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip(db.currency_symbol)) \
+                            + Decimal(salePayment2["amount"].strip(db.currency_symbol)) \
+                            + Decimal(salePayment3["amount"].strip(db.currency_symbol)) \
+                            + Decimal(salePayment4["amount"].strip(db.currency_symbol))),
         "discount": saleTransaction["discount"],
         "suspended": saleTransaction["suspended"]
     }
 
-def add_sale_transaction(db, customerName, discount="$0", suspended=False):
+def add_sale_transaction(db, customerName, discount, suspended=False):
     saleTransaction = {
         "customer_id": None,
         "customer_name": customerName,

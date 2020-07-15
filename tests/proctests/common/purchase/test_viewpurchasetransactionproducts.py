@@ -196,7 +196,7 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def add_purchased_product(db, purchaseTransactionId, productId, unitPrice, quantity, productUnitId, cost, discount="$0"):
+def add_purchased_product(db, purchaseTransactionId, productId, unitPrice, quantity, productUnitId, cost, discount):
     purchasedProduct = {
         "purchase_transaction_id": purchaseTransactionId,
         "product_id": productId,

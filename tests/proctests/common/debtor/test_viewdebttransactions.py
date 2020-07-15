@@ -201,7 +201,7 @@ def add_debt_payment(db, debtTransactionId, totalDebt, amountPaid):
         "debt_transaction_id": debtTransactionId,
         "total_debt": totalDebt,
         "amount_paid": amountPaid,
-        "balance": locale.currency(Decimal(totalDebt.strip("$")) - Decimal(amountPaid.strip("$"))),
+        "balance": locale.currency(Decimal(totalDebt.strip(db.currency_symbol)) - Decimal(amountPaid.strip(db.currency_symbol))),
         "currency": "NGN",
         "due_date_time": datetime(2999, 3, 2),
         "user_id": 1

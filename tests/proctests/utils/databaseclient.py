@@ -35,6 +35,10 @@ class DatabaseClient(object):
     def lastrowid(self):
         return self._cursor.lastrowid
 
+    @property
+    def currency_symbol(self):
+        return locale.currency(0.0)[0]
+
     def call_procedure(self, procedure, args=()):
         effectiveProcedureCall = f"SELECT {procedure}({args})"
         logging.debug(f"Effective procedure call: {effectiveProcedureCall}")

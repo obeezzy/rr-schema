@@ -32,7 +32,7 @@ class FetchTotalRevenue(StoredProcedureTestCase):
                                                     toDate=tomorrow)
 
         self.assertEqual(fetchedTotalRevenue["total_revenue"], 
-                            locale.currency(Decimal(salePayment1["amount"].strip("$")) + Decimal(salePayment2["amount"].strip("$")) + Decimal(salePayment3["amount"].strip("$"))),
+                            locale.currency(Decimal(salePayment1["amount"].strip(self.db.currency_symbol)) + Decimal(salePayment2["amount"].strip(self.db.currency_symbol)) + Decimal(salePayment3["amount"].strip(self.db.currency_symbol))),
                             "Total revenue mismatch.")
 
 

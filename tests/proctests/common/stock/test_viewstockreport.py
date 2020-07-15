@@ -54,7 +54,8 @@ class ViewStockReport(StoredProcedureTestCase):
                                                                 productId=product3["product_id"],
                                                                 quantity=initialProductQuantity3["quantity"])
         saleTransaction1 = add_sale_transaction(db=self.db, 
-                                                customerName="Susan Richards")
+                                                customerName="Susan Richards",
+                                                discount=locale.currency(0))
         soldProduct1 = add_sold_product(db=self.db,
                                             saleTransactionId=saleTransaction1["sale_transaction_id"],
                                             productId=product1["product_id"],
@@ -90,7 +91,8 @@ class ViewStockReport(StoredProcedureTestCase):
                                 newQuantity=newQuantity2)
 
         purchaseTransaction1 = add_purchase_transaction(db=self.db,
-                                                        vendorName="Harley Quinn")
+                                                        vendorName="Harley Quinn",
+                                                        discount=locale.currency(0))
         purchasedProduct1 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction1["purchase_transaction_id"],
                                                     productId=product3["product_id"],
@@ -101,7 +103,8 @@ class ViewStockReport(StoredProcedureTestCase):
                                                     discount=locale.currency(8.28))
 
         purchaseTransaction2 = add_purchase_transaction(db=self.db,
-                                                        vendorName="Harley Quinn")
+                                                        vendorName="Harley Quinn",
+                                                        discount=locale.currency(0))
         purchasedProduct2 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction2["purchase_transaction_id"],
                                                     productId=product3["product_id"],
@@ -234,7 +237,7 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def add_sale_transaction(db, customerName, discount="$0", suspended=False, noteId=None):
+def add_sale_transaction(db, customerName, discount, suspended=False, noteId=None):
     saleTransaction = {
         "customer_name": customerName,
         "customer_id": None,
@@ -271,7 +274,7 @@ def add_sale_transaction(db, customerName, discount="$0", suspended=False, noteI
         }
     return result
 
-def add_purchase_transaction(db, vendorName, discount=0, suspended=False, noteId=None):
+def add_purchase_transaction(db, vendorName, discount, suspended=False, noteId=None):
     purchaseTransaction = {
         "vendor_name": vendorName,
         "vendor_id": None,
