@@ -13,7 +13,7 @@ jobs:
     services:
       postgres:
         image: postgres:latest
-        run: localedef -i en_NG -c -f UTF-8 -A /usr/share/locale/locale.alias de_DE.UTF-8
+        run: localedef -i en_NG -c -f UTF-8 -A /usr/share/locale/locale.alias en_NG.UTF-8
         env:
           LANG: en_NG
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
