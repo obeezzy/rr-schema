@@ -11,10 +11,6 @@ try:
 except:
     from .config import config
 
-class DatabaseErrorCodes:
-    USER_DEFINED_EXCEPTION = 1644
-    DUPLICATE_ENTRY_ERROR = 1136
-
 class DatabaseClient(object):
     INIT_SQL = Path(".").resolve().parent.joinpath("sql/common/init.sql")
     PROCEDURE_DIR = Path(".").resolve().parent.joinpath("sql/common/procedures")
@@ -30,7 +26,8 @@ class DatabaseClient(object):
         self._create_procedures()
 
     def __del__(self):
-        self._conn.close()
+        if self._conn is not None:
+            self._conn.close()
 
     def __iter__(self):
         return iter(self._cursor)
