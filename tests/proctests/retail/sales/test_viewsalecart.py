@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
+from decimal import Decimal
 
 class ViewSaleCart(StoredProcedureTestCase):
     def test_view_sale_cart(self):
@@ -10,19 +10,19 @@ class ViewSaleCart(StoredProcedureTestCase):
         product1 = add_product(db=self.db,
                                 productCategoryId=productCategory1["product_category_id"],
                                 product="Keyboard")
-        currentProductQuantity1 = add_current_product_quantity(db=self.db,
+        currentProductQuantity1 = add_product_quantity(db=self.db,
                                                                 productId=product1["product_id"],
                                                                 quantity=57.29)
         productUnit1 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="unit(s)",
                                         baseUnitEquivalent=1,
-                                        costPrice=183.32,
-                                        retailPrice=182.95)
+                                        costPrice=Decimal("183.32"),
+                                        retailPrice=Decimal("182.95"))
         product2 = add_product(db=self.db,
                                 productCategoryId=productCategory1["product_category_id"],
                                 product="Guitar")
-        currentProductQuantity2 = add_current_product_quantity(db=self.db,
+        currentProductQuantity2 = add_product_quantity(db=self.db,
                                                                 productId=product2["product_id"],
                                                                 quantity=23.86)
         productUnit2 = add_product_unit(db=self.db,
@@ -37,15 +37,15 @@ class ViewSaleCart(StoredProcedureTestCase):
         product3 = add_product(db=self.db,
                                 productCategoryId=productCategory2["product_category_id"],
                                 product="MX Master")
-        currentProductQuantity3 = add_current_product_quantity(db=self.db,
+        currentProductQuantity3 = add_product_quantity(db=self.db,
                                                                 productId=product3["product_id"],
                                                                 quantity=92.88)
         productUnit3 = add_product_unit(db=self.db,
                                         productId=product3["product_id"],
                                         unit="unit(s)",
                                         baseUnitEquivalent=1,
-                                        costPrice=locale.currency(400.32),
-                                        retailPrice=locale.currency(382.95))
+                                        costPrice=400.32,
+                                        retailPrice=382.95)
 
         client = add_client(db=self.db,
                             firstName="Carol",
@@ -64,29 +64,29 @@ class ViewSaleCart(StoredProcedureTestCase):
         soldProduct1 = add_sold_product(db=self.db,
                                                     saleTransactionId=saleTransaction["sale_transaction_id"],
                                                     productId=product1["product_id"],
-                                                    unitPrice=locale.currency(89.66),
+                                                    unitPrice=89.66,
                                                     quantity=43.5,
                                                     productUnitId=productUnit1["product_unit_id"],
-                                                    cost=locale.currency(459.34),
-                                                    discount=locale.currency(96.38),
+                                                    cost=459.34,
+                                                    discount=96.38,
                                                     noteId=note["note_id"])
         soldProduct2 = add_sold_product(db=self.db,
                                                     saleTransactionId=saleTransaction["sale_transaction_id"],
                                                     productId=product2["product_id"],
-                                                    unitPrice=locale.currency(27.36),
+                                                    unitPrice=27.36,
                                                     quantity=54.5,
                                                     productUnitId=productUnit2["product_unit_id"],
-                                                    cost=locale.currency(389.22),
-                                                    discount=locale.currency(28.38),
+                                                    cost=389.22,
+                                                    discount=28.38,
                                                     noteId=note["note_id"])
         soldProduct3 = add_sold_product(db=self.db,
                                                     saleTransactionId=saleTransaction["sale_transaction_id"],
                                                     productId=product3["product_id"],
-                                                    unitPrice=locale.currency(36.86),
+                                                    unitPrice=36.86,
                                                     quantity=64.5,
                                                     productUnitId=productUnit3["product_unit_id"],
-                                                    cost=locale.currency(483.23),
-                                                    discount=locale.currency(38.48),
+                                                    cost=483.23,
+                                                    discount=38.48,
                                                     noteId=note["note_id"])
 
         viewedSaleCart = view_sale_transaction_products(db=self.db,
@@ -468,25 +468,25 @@ def add_sale_transaction(db, customerId, customerName, noteId, discount=0, suspe
         }
     return result
 
-def add_current_product_quantity(db, productId, quantity):
+def add_product_quantity(db, productId, quantity):
     currentProductQuantity = {
         "product_id": productId,
         "quantity": quantity,
         "user_id": 1
     }
 
-    db.execute("""INSERT INTO current_product_quantity (product_id,
+    db.execute("""INSERT INTO product_quantity (product_id,
                                                         quantity,
                                                         user_id)
                 VALUES (%s, %s, %s)
-                RETURNING id AS current_product_quantity_id,
+                RETURNING id AS product_quantity_id,
                     product_id,
                     quantity,
                     user_id""", tuple(currentProductQuantity.values()))
     result = {}
     for row in db:
         result = {
-            "current_product_quantity_id": row["current_product_quantity_id"],
+            "product_quantity_id": row["product_quantity_id"],
             "product_id": row["product_id"],
             "quantity": row["quantity"],
             "user_id": row["user_id"]

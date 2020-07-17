@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
+from decimal import Decimal
 
 class ViewPurchaseTransactionProducts(StoredProcedureTestCase):
     def test_view_purchase_transaction_products(self):
@@ -13,16 +13,16 @@ class ViewPurchaseTransactionProducts(StoredProcedureTestCase):
         productUnit1 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(183.32),
-                                        retailPrice=locale.currency(182.95))
+                                        costPrice=Decimal("183.32"),
+                                        retailPrice=Decimal("182.95"))
         product2 = add_product(db=self.db,
                                 productCategoryId=productCategory1["product_category_id"],
                                 product="Guitar")
         productUnit2 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(183.32),
-                                        retailPrice=locale.currency(182.95))
+                                        costPrice=Decimal("183.32"),
+                                        retailPrice=Decimal("182.95"))
 
         productCategory2 = add_product_category(db=self.db,
                                                 category="Logitech")
@@ -32,33 +32,33 @@ class ViewPurchaseTransactionProducts(StoredProcedureTestCase):
         productUnit3 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(400.32),
-                                        retailPrice=locale.currency(382.95))
+                                        costPrice=Decimal("400.32"),
+                                        retailPrice=Decimal("382.95"))
         purchaseTransaction = add_purchase_transaction(self.db, vendorName="Carol Denvers")
         purchasedProduct1 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
                                                     productId=product1["product_id"],
-                                                    unitPrice=locale.currency(89.66),
+                                                    unitPrice=Decimal("89.66"),
                                                     quantity=43.5,
                                                     productUnitId=productUnit1["product_unit_id"],
-                                                    cost=locale.currency(459.34),
-                                                    discount=locale.currency(96.38))
+                                                    cost=Decimal("459.34"),
+                                                    discount=Decimal("96.38"))
         purchasedProduct2 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
                                                     productId=product2["product_id"],
-                                                    unitPrice=locale.currency(27.36),
+                                                    unitPrice=Decimal("27.36"),
                                                     quantity=54.5,
                                                     productUnitId=productUnit2["product_unit_id"],
-                                                    cost=locale.currency(389.22),
-                                                    discount=locale.currency(28.38))
+                                                    cost=Decimal("389.22"),
+                                                    discount=Decimal("28.38"))
         purchasedProduct3 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
                                                     productId=product3["product_id"],
-                                                    unitPrice=locale.currency(36.86),
+                                                    unitPrice=Decimal("36.86"),
                                                     quantity=64.5,
                                                     productUnitId=productUnit3["product_unit_id"],
-                                                    cost=locale.currency(483.23),
-                                                    discount=locale.currency(38.48))
+                                                    cost=Decimal("483.23"),
+                                                    discount=Decimal("38.48"))
 
         viewedPurchaseTransactionProducts = view_purchase_transaction_products(db=self.db,
                                                                                 purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
@@ -290,7 +290,7 @@ def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquiva
         }
     return result
 
-def add_purchase_transaction(db, vendorName, discount=0, suspended=False):
+def add_purchase_transaction(db, vendorName, discount=Decimal("0.00"), suspended=False):
     purchaseTransaction = {
         "vendor_id": None,
         "vendor_name": vendorName,
@@ -323,7 +323,7 @@ def add_purchase_transaction(db, vendorName, discount=0, suspended=False):
         }
     return result
 
-def view_purchase_transaction_products(db, purchaseTransactionId, suspended=None, archived=None):
+def view_purchase_transaction_products(db, purchaseTransactionId, suspended=False, archived=False):
     args = {
         "purchase_transaction_id": purchaseTransactionId,
         "suspended": suspended,

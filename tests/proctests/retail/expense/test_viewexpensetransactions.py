@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 
 class ViewExpenseTransactions(StoredProcedureTestCase):
     def test_view_expense_transactions(self):
         add_expense_transaction(self.db,
                                 clientName="Miles Morales",
                                 purpose="Kick Kingpin's ass.",
-                                amount=locale.currency(420),
+                                amount=Decimal("420.00"),
                                 paymentMethod="debit_card")
         add_expense_transaction(db=self.db,
                                 clientName="Ororo Monroe",
                                 purpose="Fix climate change.",
-                                amount=locale.currency(620),
+                                amount=Decimal("620.00"),
                                 paymentMethod="credit_card")
         add_expense_transaction(db=self.db,
                                 clientName="Jean Gray",
                                 purpose="Read minds like their encyclopedias.",
-                                amount=locale.currency(777),
+                                amount=Decimal("777.00"),
                                 paymentMethod="cash")
 
         today = date.today()

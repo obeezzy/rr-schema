@@ -1,10 +1,10 @@
 import psycopg2
 import psycopg2.extras
 from pathlib import Path
+import os
 import re
 from datetime import datetime
 import logging
-import locale
 
 from .config import config
 
@@ -15,7 +15,6 @@ class DatabaseClient(object):
     def __init__(self):
         self._conn = None
         self._cursor = None
-        locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
         self._open_connection("postgres")
         self._drop_database(config["database"])
         self._create_database(config["database"])
@@ -25,8 +24,7 @@ class DatabaseClient(object):
         self._create_procedures()
 
     def __del__(self):
-        if self._conn is not None:
-            self._conn.close()
+        self._close_connection()
 
     def __iter__(self):
         return iter(self._cursor)
@@ -35,9 +33,8 @@ class DatabaseClient(object):
     def lastrowid(self):
         return self._cursor.lastrowid
 
-    @property
-    def currency_symbol(self):
-        return locale.currency(0.0)[0]
+    def close(self):
+        self._close_connection()
 
     def call_procedure(self, procedure, args=()):
         effectiveProcedureCall = f"SELECT {procedure}({args})"
@@ -67,7 +64,8 @@ class DatabaseClient(object):
         self._cursor = self._conn.cursor(cursor_factory = psycopg2.extras.DictCursor)
 
     def _close_connection(self):
-        self._conn.close()
+        if self._conn is not None:
+            self._conn.close()
 
     def _create_database(self, database):
         self.execute(f"CREATE DATABASE {database}")
@@ -91,6 +89,6 @@ class DatabaseClient(object):
             statement = statement.replace(r"(\/\*(.|\n)*?\*\/|^--.*\n|\t|\n)", " ") # Remove tabs and spaces
             statement = statement.strip()
             self._cursor.execute(statement)
-        
+
     def _drop_database(self, database):
         self.execute(f"DROP DATABASE IF EXISTS {database}")

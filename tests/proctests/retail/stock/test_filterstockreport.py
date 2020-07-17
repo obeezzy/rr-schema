@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 
 class FilterStockReport(StoredProcedureTestCase):
     def setUp(self):
@@ -15,28 +15,28 @@ class FilterStockReport(StoredProcedureTestCase):
         self.productUnit1 = add_product_unit(db=self.db,
                                                 productId=self.product1["product_id"],
                                                 unit="unit(s)",
-                                                costPrice=locale.currency(6.38),
-                                                retailPrice=locale.currency(50.38))
-        self.initialProductQuantity1 = add_initial_product_quantity(db=self.db,
+                                                costPrice=Decimal("6.38"),
+                                                retailPrice=Decimal("50.38"))
+        self.productQuantitySnapshot1 = add_product_quantity_snapshot(db=self.db,
                                                                     productId=self.product1["product_id"],
                                                                     quantity=39294.28)
-        self.currentProductQuantity1 = add_current_product_quantity(db=self.db,
+        self.currentProductQuantity1 = add_product_quantity(db=self.db,
                                                                     productId=self.product1["product_id"],
-                                                                    quantity=self.initialProductQuantity1["quantity"])
+                                                                    quantity=self.productQuantitySnapshot1["quantity"])
         self.product2 = add_product(db=self.db,
                                     productCategoryId=self.productCategory1["product_category_id"],
                                     product="Arch Linux")
         self.productUnit2 = add_product_unit(db=self.db,
                                                 productId=self.product2["product_id"],
                                                 unit="unit(s)",
-                                                costPrice=locale.currency(489.28),
-                                                retailPrice=locale.currency(550.38))
-        self.initialProductQuantity2 = add_initial_product_quantity(db=self.db,
+                                                costPrice=Decimal("489.28"),
+                                                retailPrice=Decimal("550.38"))
+        self.productQuantitySnapshot2 = add_product_quantity_snapshot(db=self.db,
                                                                     productId=self.product2["product_id"],
                                                                     quantity=3452.28)
-        self.currentProductQuantity2 = add_current_product_quantity(db=self.db,
+        self.currentProductQuantity2 = add_product_quantity(db=self.db,
                                                                     productId=self.product2["product_id"],
-                                                                    quantity=self.initialProductQuantity2["quantity"])
+                                                                    quantity=self.productQuantitySnapshot2["quantity"])
 
         self.productCategory2 = add_product_category(db=self.db,
                                                         category="Android versions")
@@ -46,25 +46,25 @@ class FilterStockReport(StoredProcedureTestCase):
         self.productUnit3 = add_product_unit(db=self.db,
                                                 productId=self.product3["product_id"],
                                                 unit="unit(s)",
-                                                costPrice=locale.currency(138456.83),
-                                                retailPrice=locale.currency(383593.32))
-        self.initialProductQuantity3 = add_initial_product_quantity(db=self.db,
+                                                costPrice=Decimal("138456.83"),
+                                                retailPrice=Decimal("383593.32"))
+        self.productQuantitySnapshot3 = add_product_quantity_snapshot(db=self.db,
                                                                     productId=self.product3["product_id"],
                                                                     quantity=2333.90)
-        self.currentProductQuantity3 = add_current_product_quantity(db=self.db,
+        self.currentProductQuantity3 = add_product_quantity(db=self.db,
                                                                     productId=self.product3["product_id"],
-                                                                    quantity=self.initialProductQuantity3["quantity"])
+                                                                    quantity=self.productQuantitySnapshot3["quantity"])
         self.saleTransaction1 = add_sale_transaction(db=self.db, 
                                                      customerName="Susan Richards")
         self.soldProduct1 = add_sold_product(db=self.db,
                                                 saleTransactionId=self.saleTransaction1["sale_transaction_id"],
                                                 productId=self.product1["product_id"],
-                                                unitPrice=locale.currency(38.27),
+                                                unitPrice=Decimal("38.27"),
                                                 quantity=29.5,
                                                 productUnitId=self.productUnit1["product_unit_id"],
-                                                cost=locale.currency(378.28),
-                                                discount=locale.currency(8.28))
-        self.newQuantity1 = round(self.currentProductQuantity1["quantity"] - self.soldProduct1["quantity"], 2)
+                                                cost=Decimal("378.28"),
+                                                discount=Decimal("8.28"))
+        self.newQuantity1 = self.currentProductQuantity1["quantity"] - self.soldProduct1["quantity"],
         alter_product_quantity(db=self.db,
                                 productId=self.product1["product_id"],
                                 newQuantity=self.newQuantity1)
@@ -72,20 +72,20 @@ class FilterStockReport(StoredProcedureTestCase):
         self.soldProduct2 = add_sold_product(db=self.db,
                                                 saleTransactionId=self.saleTransaction1["sale_transaction_id"],
                                                 productId=self.product2["product_id"],
-                                                unitPrice=locale.currency(38.27),
+                                                unitPrice=Decimal("38.27"),
                                                 quantity=44.5,
                                                 productUnitId=self.productUnit2["product_unit_id"],
-                                                cost=locale.currency(378.28),
-                                                discount=locale.currency(8.28))
+                                                cost=Decimal("378.28"),
+                                                discount=Decimal("8.28"))
         self.soldProduct3 = add_sold_product(db=self.db,
                                                 saleTransactionId=self.saleTransaction1["sale_transaction_id"],
                                                 productId=self.product2["product_id"],
-                                                unitPrice=locale.currency(38.27),
+                                                unitPrice=Decimal("38.27"),
                                                 quantity=33.5,
                                                 productUnitId=self.productUnit2["product_unit_id"],
-                                                cost=locale.currency(378.28),
-                                                discount=locale.currency(8.28))
-        self.newQuantity2 = round(self.currentProductQuantity2["quantity"] - self.soldProduct2["quantity"] - self.soldProduct3["quantity"], 2)
+                                                cost=Decimal("378.28"),
+                                                discount=Decimal("8.28"))
+        self.newQuantity2 = self.currentProductQuantity2["quantity"] - self.soldProduct2["quantity"] - self.soldProduct3["quantity"]
         alter_product_quantity(db=self.db,
                                 productId=self.product2["product_id"],
                                 newQuantity=self.newQuantity2)
@@ -95,23 +95,23 @@ class FilterStockReport(StoredProcedureTestCase):
         self.purchasedProduct1 = add_purchased_product(db=self.db,
                                                         purchaseTransactionId=self.purchaseTransaction1["purchase_transaction_id"],
                                                         productId=self.product3["product_id"],
-                                                        unitPrice=locale.currency(38.27),
+                                                        unitPrice=Decimal("38.27"),
                                                         quantity=38.5,
                                                         productUnitId=self.productUnit3["product_unit_id"],
-                                                        cost=locale.currency(378.28),
-                                                        discount=locale.currency(8.28))
+                                                        cost=Decimal("378.28"),
+                                                        discount=Decimal("8.28"))
 
         self.purchaseTransaction2 = add_purchase_transaction(db=self.db,
                                                                 vendorName="Harley Quinn")
         self.purchasedProduct2 = add_purchased_product(db=self.db,
                                                         purchaseTransactionId=self.purchaseTransaction2["purchase_transaction_id"],
                                                         productId=self.product3["product_id"],
-                                                        unitPrice=locale.currency(38.27),
+                                                        unitPrice=Decimal("38.27"),
                                                         quantity=22.5,
                                                         productUnitId=self.productUnit3["product_unit_id"],
-                                                        cost=locale.currency(378.28),
-                                                        discount=locale.currency(8.28))
-        self.newQuantity3 = round(self.currentProductQuantity3["quantity"] + self.purchasedProduct1["quantity"] + self.purchasedProduct2["quantity"], 2)
+                                                        cost=Decimal("378.28"),
+                                                        discount=Decimal("8.28"))
+        self.newQuantity3 = self.currentProductQuantity3["quantity"] + self.purchasedProduct1["quantity"] + self.purchasedProduct2["quantity"]
         alter_product_quantity(db=self.db,
                                 productId=self.product3["product_id"],
                                 newQuantity=self.newQuantity3)
@@ -145,7 +145,7 @@ class FilterStockReport(StoredProcedureTestCase):
                             0,
                             "Quantity sold mismatch")
         self.assertEqual(filteredStockReport[0]["quantity_bought"],
-                            round(self.purchasedProduct1["quantity"] + self.purchasedProduct2["quantity"], 2),
+                            self.purchasedProduct1["quantity"] + self.purchasedProduct2["quantity"],
                             "Quantity bought mismatch")
         self.assertEqual(filteredStockReport[0]["quantity_in_stock"],
                             self.newQuantity3,
@@ -503,28 +503,28 @@ def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquiva
         }
     return result
 
-def add_initial_product_quantity(db, productId, quantity):
-    initialProductQuantity = {
+def add_product_quantity_snapshot(db, productId, quantity):
+    productQuantitySnapshot = {
         "product_id": productId,
         "quantity": quantity,
         "reason": "sale_transaction",
         "user_id": 1
     }
 
-    db.execute("""INSERT INTO initial_product_quantity (product_id,
+    db.execute("""INSERT INTO product_quantity_snapshot (product_id,
                                                         quantity,
                                                         reason,
                                                         user_id)
                 VALUES (%s, %s, %s, %s)
-                RETURNING id AS initial_product_quantity_id,
+                RETURNING id AS product_quantity_snapshot_id,
                     product_id,
                     quantity,
                     reason,
-                    user_id""", tuple(initialProductQuantity.values()))
+                    user_id""", tuple(productQuantitySnapshot.values()))
     result = {}
     for row in db:
         result = {
-            "initial_product_quantity_id": row["initial_product_quantity_id"],
+            "product_quantity_snapshot_id": row["product_quantity_snapshot_id"],
             "product_id": row["product_id"],
             "quantity": row["quantity"],
             "reason": row["reason"],
@@ -532,25 +532,25 @@ def add_initial_product_quantity(db, productId, quantity):
         }
     return result
 
-def add_current_product_quantity(db, productId, quantity):
+def add_product_quantity(db, productId, quantity):
     currentProductQuantity = {
         "product_id": productId,
         "quantity": quantity,
         "user_id": 1
     }
 
-    db.execute("""INSERT INTO current_product_quantity (product_id,
+    db.execute("""INSERT INTO product_quantity (product_id,
                                                         quantity,
                                                         user_id)
                 VALUES (%s, %s, %s)
-                RETURNING id AS current_product_quantity_id,
+                RETURNING id AS product_quantity_id,
                     product_id,
                     quantity,
                     user_id""", tuple(currentProductQuantity.values()))
     result = {}
     for row in db:
         result = {
-            "current_product_quantity_id": row["current_product_quantity_id"],
+            "product_quantity_id": row["product_quantity_id"],
             "product_id": row["product_id"],
             "quantity": row["quantity"],
             "user_id": row["user_id"]
@@ -558,7 +558,7 @@ def add_current_product_quantity(db, productId, quantity):
     return result
 
 def alter_product_quantity(db, productId, newQuantity):
-    db.execute("""UPDATE current_product_quantity
+    db.execute("""UPDATE product_quantity
                     SET quantity = %s
                     WHERE product_id = %s""", [newQuantity, productId])
 

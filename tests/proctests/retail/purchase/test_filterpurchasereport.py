@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 
 class FilterPurchaseReport(StoredProcedureTestCase):
     @unittest.skip("Needs to be refactored!")
@@ -15,8 +15,8 @@ class FilterPurchaseReport(StoredProcedureTestCase):
         productUnit1 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(6.38),
-                                        retailPrice=locale.currency(50.38))
+                                        costPrice=Decimal("6.38"),
+                                        retailPrice=Decimal("50.38"))
         currentProductQuantity1 = add_current_product_quantity(db=self.db,
                                                                 productId=product1["product_id"],
                                                                 quantity=38.28)
@@ -26,8 +26,8 @@ class FilterPurchaseReport(StoredProcedureTestCase):
         productUnit2 = add_product_unit(db=self.db,
                                         productId=product2["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(489.28),
-                                        retailPrice=locale.currency(550.38))
+                                        costPrice=Decimal("489.28"),
+                                        retailPrice=Decimal("550.38"))
         currentProductQuantity2 = add_current_product_quantity(db=self.db,
                                                                 productId=product2["product_id"],
                                                                 quantity=66.28)
@@ -40,8 +40,8 @@ class FilterPurchaseReport(StoredProcedureTestCase):
         productUnit3 = add_product_unit(db=self.db,
                                         productId=product3["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(138456.83),
-                                        retailPrice=locale.currency(383593.32))
+                                        costPrice=Decimal("138456.83"),
+                                        retailPrice=Decimal("383593.32"))
         currentProductQuantity3 = add_current_product_quantity(db=self.db,
                                                                 productId=product3["product_id"],
                                                                 quantity=78.90)
@@ -51,38 +51,38 @@ class FilterPurchaseReport(StoredProcedureTestCase):
         purchasedProduct1 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction1["purchase_transaction_id"],
                                                     productId=product1["product_id"],
-                                                    unitPrice=locale.currency(38.27),
+                                                    unitPrice=Decimal("38.27"),
                                                     quantity=583.5,
                                                     productUnitId=productUnit1["product_unit_id"],
-                                                    cost=locale.currency(378.28),
-                                                    discount=locale.currency(8.28))
+                                                    cost=Decimal("378.28"),
+                                                    discount=Decimal("8.28"))
         purchasedProduct2 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction1["purchase_transaction_id"],
                                                     productId=product2["product_id"],
-                                                    unitPrice=locale.currency(38.27),
+                                                    unitPrice=Decimal("38.27"),
                                                     quantity=583.5,
                                                     productUnitId=productUnit2["product_unit_id"],
-                                                    cost=locale.currency(378.28),
-                                                    discount=locale.currency(8.28))
+                                                    cost=Decimal("378.28"),
+                                                    discount=Decimal("8.28"))
         purchasedProduct3 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction1["purchase_transaction_id"],
                                                     productId=product2["product_id"],
-                                                    unitPrice=locale.currency(38.27),
+                                                    unitPrice=Decimal("38.27"),
                                                     quantity=583.5,
                                                     productUnitId=productUnit2["product_unit_id"],
-                                                    cost=locale.currency(378.28),
-                                                    discount=locale.currency(8.28))
+                                                    cost=Decimal("378.28"),
+                                                    discount=Decimal("8.28"))
 
         purchaseTransaction2 = add_purchase_transaction(db=self.db,
                                                         vendorName="Harley Quinn")
         purchasedProduct4 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction2["purchase_transaction_id"],
                                                     productId=product3["product_id"],
-                                                    unitPrice=locale.currency(38.27),
+                                                    unitPrice=Decimal("38.27"),
                                                     quantity=583.5,
                                                     productUnitId=productUnit3["product_unit_id"],
-                                                    cost=locale.currency(378.28),
-                                                    discount=locale.currency(8.28))
+                                                    cost=Decimal("378.28"),
+                                                    discount=Decimal("8.28"))
         today = date.today()
         tomorrow = today + timedelta(days=1)
         filteredPurchaseReport = filter_purchase_report(db=self.db,

@@ -12,6 +12,7 @@ class StoredProcedureTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.logger.info(f"({round(self.elapsed, 2)}s)")
+        self.db.close()
 
     @property
     def elapsed(self):

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
 from decimal import Decimal
@@ -78,25 +77,25 @@ class ViewSaleTransactions(StoredProcedureTestCase):
 def add_first_sale_transaction(db):
     saleTransaction = add_sale_transaction(db=db,
                                             customerName="Miles Morales",
-                                            discount=locale.currency(0))
+                                            discount=Decimal("0.00"))
     salePayment1 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=locale.currency(340.45),
+                                        amount=Decimal("340.45"),
                                         paymentMethod="cash")
     salePayment2 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=locale.currency(440.45),
+                                        amount=Decimal("440.45"),
                                         paymentMethod="credit_card")
     salePayment3 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=locale.currency(390.45),
+                                        amount=Decimal("390.45"),
                                         paymentMethod="cash")
 
     return {
         "customer_name": saleTransaction["customer_name"],
         "customer_id": saleTransaction["customer_id"],
         "sale_transaction_id": saleTransaction["sale_transaction_id"],
-        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip(db.currency_symbol)) + Decimal(salePayment2["amount"].strip(db.currency_symbol)) + Decimal(salePayment3["amount"].strip(db.currency_symbol))),
+        "total_amount": salePayment1["amount"] + salePayment2["amount"] + salePayment3["amount"],
         "discount": saleTransaction["discount"],
         "suspended": saleTransaction["suspended"]
     }
@@ -104,22 +103,21 @@ def add_first_sale_transaction(db):
 def add_second_sale_transaction(db):
     saleTransaction = add_sale_transaction(db=db,
                                             customerName="Ororo Monroe",
-                                            discount=locale.currency(0))
+                                            discount=Decimal("0.00"))
     salePayment1 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=locale.currency(582.45),
+                                        amount=Decimal("582.45"),
                                         paymentMethod="debit_card")
     salePayment2 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=locale.currency(233.28),
+                                        amount=Decimal("233.28"),
                                         paymentMethod="credit_card")
 
     return {
         "customer_name": saleTransaction["customer_name"],
         "customer_id": saleTransaction["customer_id"],
         "sale_transaction_id": saleTransaction["sale_transaction_id"],
-        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip(db.currency_symbol)) \
-                            + Decimal(salePayment2["amount"].strip(db.currency_symbol))),
+        "total_amount": salePayment1["amount"] + salePayment2["amount"],
         "discount": saleTransaction["discount"],
         "suspended": saleTransaction["suspended"]
     }
@@ -127,32 +125,32 @@ def add_second_sale_transaction(db):
 def add_third_sale_transaction(db):
     saleTransaction = add_sale_transaction(db=db,
                                             customerName="Jean Gray",
-                                            discount=locale.currency(0))
+                                            discount=Decimal("0.00"))
     salePayment1 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=locale.currency(578.23),
+                                        amount=Decimal("578.23"),
                                         paymentMethod="debit_card")
     salePayment2 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=locale.currency(694.95),
+                                        amount=Decimal("694.95"),
                                         paymentMethod="cash")
     salePayment3 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=locale.currency(394.38),
+                                        amount=Decimal("394.38"),
                                         paymentMethod="cash")
     salePayment4 = add_sale_payment(db=db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
-                                        amount=locale.currency(421.57),
+                                        amount=Decimal("421.57"),
                                         paymentMethod="credit_card")
 
     return {
         "customer_name": saleTransaction["customer_name"],
         "customer_id": saleTransaction["customer_id"],
         "sale_transaction_id": saleTransaction["sale_transaction_id"],
-        "total_amount": locale.currency(Decimal(salePayment1["amount"].strip(db.currency_symbol)) \
-                            + Decimal(salePayment2["amount"].strip(db.currency_symbol)) \
-                            + Decimal(salePayment3["amount"].strip(db.currency_symbol)) \
-                            + Decimal(salePayment4["amount"].strip(db.currency_symbol))),
+        "total_amount": salePayment1["amount"]
+                            + salePayment2["amount"] \
+                            + salePayment3["amount"] \
+                            + salePayment4["amount"],
         "discount": saleTransaction["discount"],
         "suspended": saleTransaction["suspended"]
     }
@@ -235,10 +233,10 @@ def view_sale_transactions(db, fromDate, toDate, suspended=False, archived=False
             "sale_transaction_id": row["sale_transaction_id"],
             "customer_name": row["customer_name"],
             "customer_id": row["customer_id"],
-            "discount": row["discount"].replace(",", ""),
+            "discount": row["discount"],
             "suspended": row["suspended"],
             "note_id": row["note_id"],
-            "total_amount": row["total_amount"].replace(",", ""),
+            "total_amount": row["total_amount"],
             "archived": row["archived"],
             "created": row["created"],
             "last_edited": row["last_edited"],

@@ -170,8 +170,8 @@ BEGIN
         '' AS preferred_name,
         '' AS first_name,
         '' AS last_name,
-        0.00 AS total_balance
-        0.00 AS balance
+        0 AS total_balance,
+        0 AS balance
     FROM debtor;
 END
 $$ LANGUAGE plpgsql;

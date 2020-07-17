@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
+from decimal import Decimal
 
 class UndoRevertPurchaseQuantityUpdate(StoredProcedureTestCase):
     def test_undo_revert_purchase_quantity_update(self):
@@ -12,7 +12,7 @@ class UndoRevertPurchaseQuantityUpdate(StoredProcedureTestCase):
         addedProductQuantity = add_product_quantity(db=self.db,
                                                     productId=addedProduct["product_id"],
                                                     quantity=200.25)
-        fetchedProductQuantity = fetch_current_product_quantity(db=self.db,
+        fetchedProductQuantity = fetch_product_quantity(db=self.db,
                                                                 productId=addedProduct["product_id"])
         self.assertEqual(addedProductQuantity["quantity"], fetchedProductQuantity["quantity"], "Quantity mismatch.")
 
@@ -21,7 +21,7 @@ class UndoRevertPurchaseQuantityUpdate(StoredProcedureTestCase):
         alter_product_quantity(db=self.db,
                                 productId=addedProduct["product_id"],
                                 newQuantity=addedProductQuantity["quantity"] + addedPurchasedProduct["quantity"])
-        fetchedProductQuantity = fetch_current_product_quantity(db=self.db,
+        fetchedProductQuantity = fetch_product_quantity(db=self.db,
                                                                 productId=addedProduct["product_id"])
         self.assertEqual(addedProductQuantity["quantity"] + addedPurchasedProduct["quantity"],
                             fetchedProductQuantity["quantity"],
@@ -30,14 +30,14 @@ class UndoRevertPurchaseQuantityUpdate(StoredProcedureTestCase):
         revert_purchase_quantity_update(db=self.db, 
                                         purchaseTransactionId=addedPurchaseTransaction["purchase_transaction_id"])
 
-        fetchedProductQuantity = fetch_current_product_quantity(db=self.db,
+        fetchedProductQuantity = fetch_product_quantity(db=self.db,
                                                                 productId=addedProduct["product_id"])
         self.assertEqual(addedProductQuantity["quantity"], fetchedProductQuantity["quantity"], "Quantity mismatch.")
 
         undo_revert_purchase_quantity_update(db=self.db, 
                                                 purchaseTransactionId=addedPurchaseTransaction["purchase_transaction_id"])
 
-        fetchedProductQuantity = fetch_current_product_quantity(db=self.db,
+        fetchedProductQuantity = fetch_product_quantity(db=self.db,
                                                                 productId=addedProduct["product_id"])
         self.assertEqual(addedProductQuantity["quantity"] + addedPurchasedProduct["quantity"],
                             fetchedProductQuantity["quantity"],
@@ -102,10 +102,10 @@ def add_purchased_product(db, purchaseTransactionId):
         "purchase_transaction_id": purchaseTransactionId,
         "product_id": 1,
         "product_unit_id": 1,
-        "unit_price": 1038.39,
-        "quantity": 183.25,
-        "cost": 1832.28,
-        "discount": 138.23,
+        "unit_price": Decimal("1038.39"),
+        "quantity": Decimal("183.25"),
+        "cost": Decimal("1832.28"),
+        "discount": Decimal("138.23"),
         "currency": "NGN",
         "user_id": 1
     }
@@ -151,18 +151,18 @@ def add_product_quantity(db, productId, quantity):
         "user_id": 1
     }
 
-    db.execute("""INSERT INTO current_product_quantity (product_id,
-                                                        quantity,
-                                                        user_id)
+    db.execute("""INSERT INTO product_quantity (product_id,
+                                                quantity,
+                                                user_id)
                 VALUES (%s, %s, %s)
-                RETURNING id AS current_product_quantity_id,
+                RETURNING id AS product_quantity_id,
                     product_id,
                     quantity,
                     user_id""", tuple(productQuantity.values()))
     result = {}
     for row in db:
         result = {
-            "current_product_quantity_id": row["current_product_quantity_id"],
+            "product_quantity_id": row["product_quantity_id"],
             "product_id": row["product_id"],
             "quantity": row["quantity"],
             "user_id": row["user_id"]
@@ -170,7 +170,7 @@ def add_product_quantity(db, productId, quantity):
     return result
 
 def alter_product_quantity(db, productId, newQuantity):
-    db.execute("""UPDATE current_product_quantity
+    db.execute("""UPDATE product_quantity
                     SET quantity = %s
                     WHERE product_id = %s""", [newQuantity, productId])
 
@@ -180,11 +180,11 @@ def revert_purchase_quantity_update(db, purchaseTransactionId, userId=1):
 def undo_revert_purchase_quantity_update(db, purchaseTransactionId, userId=1):
     db.call_procedure("UndoRevertPurchaseQuantityUpdate", (purchaseTransactionId, userId))
 
-def fetch_current_product_quantity(db, productId):
+def fetch_product_quantity(db, productId):
     db.execute("""SELECT product_id,
                             quantity,
                             user_id
-                FROM current_product_quantity
+                FROM product_quantity
                 WHERE product_id = %s""", [productId])
     result = {}
     for row in db:

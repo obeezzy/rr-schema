@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
+from decimal import Decimal
 
 class AddPurchasedProduct(StoredProcedureTestCase):
     def test_add_purchased_product(self):
@@ -44,10 +44,10 @@ def add_purchased_product(db):
         "purchase_transaction_id": 1,
         "product_id": 1,
         "product_unit_id": 1,
-        "quantity": 183.25,
-        "unit_price": locale.currency(1038.39),
-        "cost": locale.currency(1832.28),
-        "discount": locale.currency(138.23),
+        "quantity": Decimal("183.25"),
+        "unit_price": Decimal("1038.39"),
+        "cost": Decimal("1832.28"),
+        "discount": Decimal("138.23"),
         "currency": "NGN",
         "user_id": 1
     }
@@ -82,9 +82,9 @@ def fetch_purchased_product(db):
             "product_id": row["product_id"],
             "product_unit_id": row["product_unit_id"],
             "quantity": row["quantity"],
-            "unit_price": row["unit_price"].replace(",", ""),
-            "cost": row["cost"].replace(",", ""),
-            "discount": row["discount"].replace(",", ""),
+            "unit_price": row["unit_price"],
+            "cost": row["cost"],
+            "discount": row["discount"],
             "currency": row["currency"],
             "user_id": row["user_id"]
         }

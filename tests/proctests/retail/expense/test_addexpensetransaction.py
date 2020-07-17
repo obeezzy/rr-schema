@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 from decimal import Decimal
@@ -10,7 +9,7 @@ class AddExpenseTransaction(StoredProcedureTestCase):
         addedExpenseTransaction = add_expense_transaction(db=self.db,
                                                             name="Lois Lane",
                                                             purpose="Need saving from Superman",
-                                                            amount=locale.currency(460.00),
+                                                            amount=Decimal("460.00"),
                                                             paymentMethod="cash")
         fetchedExpenseTransaction = fetch_expense_transaction(self.db)
 

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
+from decimal import Decimal
 
 class AddIncomeTransaction(StoredProcedureTestCase):
     def test_add_income_transaction(self):
         addedIncomeTransaction = add_income_transaction(db=self.db,
                                                             name="Lois Lane",
                                                             purpose="Need saving from Superman",
-                                                            amount=locale.currency(460.00),
+                                                            amount=Decimal("460.00"),
                                                             paymentMethod="cash")
         fetchedIncomeTransaction = fetch_income_transaction(self.db)
 
