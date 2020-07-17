@@ -17,10 +17,10 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION AddCreditPayment (
     IN iCreditTransactionId BIGINT,
-    IN iTotalCredit MONEY,
-    IN iAmountPaid MONEY,
-    IN iBalance MONEY,
-    IN iCurrency VARCHAR(4),
+    IN iTotalCredit NUMERIC(19,2),
+    IN iAmountPaid NUMERIC(19,2),
+    IN iBalance NUMERIC(19,2),
+    IN iCurrency TEXT,
     IN iDueDateTime TIMESTAMP,
     IN iNoteId BIGINT,
     IN iUserId BIGINT
@@ -49,7 +49,7 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION AddCreditTransaction (
     IN iCreditorId BIGINT,
-    IN iTransactionTable VARCHAR(20),
+    IN iTransactionTable TEXT,
     IN iTransactionId BIGINT,
     IN iNoteId BIGINT,
     IN iUserId BIGINT
@@ -72,7 +72,7 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION ArchiveCreditTransaction (
     IN iArchived BOOLEAN,
-    IN iTransactionTable VARCHAR(40),
+    IN iTransactionTable TEXT,
     IN iTransactionId BIGINT,
     IN iUserId BIGINT
 ) RETURNS void

@@ -1,11 +1,11 @@
 CREATE OR REPLACE FUNCTION UpdateBusinessDetails (
-    IN iName VARCHAR(100),
-    IN iAddress VARCHAR(100),
-    IN iBusinessFamily VARCHAR(10),
+    IN iName TEXT,
+    IN iAddress TEXT,
+    IN iBusinessFamily TEXT,
     IN iEstablishmentYear INTEGER,
-    IN iPhoneNumber VARCHAR(20),
+    IN iPhoneNumber TEXT,
     IN iLogo BYTEA,
-    IN iExtraDetails VARCHAR(200)
+    IN iExtraDetails TEXT
 ) RETURNS void
 AS $$
 BEGIN

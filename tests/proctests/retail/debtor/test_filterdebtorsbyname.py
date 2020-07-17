@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 
@@ -54,20 +53,20 @@ def add_first_debtor(db):
                                             transactionTable="debtor")
     debtPayment1 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=locale.currency(420),
-                                    amountPaid=locale.currency(60))
+                                    totalDebt=420,
+                                    amountPaid=60)
     debtPayment2 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=locale.currency(360),
-                                    amountPaid=locale.currency(300))  # 60
+                                    totalDebt=360,
+                                    amountPaid=300)  # 60
 
     debtTransaction2 = add_debt_transaction(db=db,
                                             debtorId=debtor["debtor_id"],
                                             transactionTable="debtor")
     debtPayment3 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction2["debt_transaction_id"],
-                                    totalDebt=locale.currency(240),
-                                    amountPaid=locale.currency(40))  # 200
+                                    totalDebt=240,
+                                    amountPaid=40)  # 200
 
     return {
         "debtor_id": debtor["debtor_id"],
@@ -90,8 +89,8 @@ def add_second_debtor(db):
                                             transactionTable="debtor")
     debtPayment1 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=locale.currency(1400),
-                                    amountPaid=locale.currency(200))
+                                    totalDebt=1400,
+                                    amountPaid=200)
 
     debtTransaction2 = add_debt_transaction(db=db,
                                             debtorId=debtor["debtor_id"],

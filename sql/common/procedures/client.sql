@@ -1,8 +1,8 @@
 CREATE OR REPLACE FUNCTION FilterClients (
-    IN iFilterColumn VARCHAR(100),
-    IN iFilterText VARCHAR(100),
+    IN iFilterColumn TEXT,
+    IN iFilterText TEXT,
     IN iArchived BOOLEAN DEFAULT FALSE
-) RETURNS TABLE(client_id BIGINT, preferred_name VARCHAR(100), phone_number VARCHAR(100))
+) RETURNS TABLE(client_id BIGINT, preferred_name TEXT, phone_number TEXT)
 AS $$
 BEGIN
     IF LOWER(iFilterColumn) = 'preferred_name' THEN
@@ -35,7 +35,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ViewClients (
     IN iArchived BOOLEAN DEFAULT FALSE
-) RETURNS TABLE(client_id BIGINT, preferred_name VARCHAR(200), phone_number VARCHAR(100))
+) RETURNS TABLE(client_id BIGINT, preferred_name TEXT, phone_number TEXT)
 AS $$
     SELECT id AS client_id,
         preferred_name AS preferred_name,
@@ -47,11 +47,11 @@ $$ LANGUAGE sql;
 ---
 
 CREATE OR REPLACE FUNCTION AddClient (
-    IN iFirstName VARCHAR(100),
-    IN iLastName VARCHAR(100),
-    IN iPreferredName VARCHAR(100),
-    IN iPhoneNumber VARCHAR(20),
-    IN iAddress VARCHAR(100),
+    IN iFirstName TEXT,
+    IN iLastName TEXT,
+    IN iPreferredName TEXT,
+    IN iPhoneNumber TEXT,
+    IN iAddress TEXT,
     IN iNoteId BIGINT,
     IN iUserId BIGINT
 ) RETURNS BIGINT
@@ -83,8 +83,8 @@ $$ LANGUAGE sql;
 ---
 
 CREATE OR REPLACE FUNCTION AddClientLite (
-    IN iPreferredName VARCHAR(100),
-    IN iPhoneNumber VARCHAR(20),
+    IN iPreferredName TEXT,
+    IN iPhoneNumber TEXT,
     IN iUserId BIGINT
 ) RETURNS BIGINT
 AS $$
@@ -130,10 +130,10 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION UpdateClient (
     IN iClientId BIGINT,
-    IN iFirstName VARCHAR(100),
-    IN iLastName VARCHAR(100),
-    IN iPreferredName VARCHAR(100),
-    IN iPhoneNumber VARCHAR(20),
+    IN iFirstName TEXT,
+    IN iLastName TEXT,
+    IN iPreferredName TEXT,
+    IN iPhoneNumber TEXT,
     IN iUserId BIGINT
 ) RETURNS void
 AS $$
