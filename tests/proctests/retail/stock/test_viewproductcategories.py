@@ -2,8 +2,8 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase
 
-class FilterStockProductCategories(StoredProcedureTestCase):
-    def test_filter_stock_product_categories(self):
+class ViewProductCategories(StoredProcedureTestCase):
+    def test_view_product_categories(self):
         productCategory1 = add_product_category(db=self.db,
                                                 category="Pianos")
         productCategory2 = add_product_category(db=self.db,
@@ -11,14 +11,28 @@ class FilterStockProductCategories(StoredProcedureTestCase):
         productCategory3 = add_product_category(db=self.db,
                                                 category="Drums")
 
-        fetchedProductCategories = filter_stock_product_categories(db=self.db,
-                                                                    filterText="Pi",
-                                                                    sortOrder="ascending")
-        self.assertEqual(len(fetchedProductCategories), 1, "Expected 1 product category.")
+        fetchedProductCategories = view_product_categories(db=self.db,
+                                                                    sortOrder="ascending",
+                                                                    archived=False)
+        self.assertEqual(len(fetchedProductCategories), 3, "Expected 3 product categories.")
         self.assertEqual(fetchedProductCategories[0]["product_category_id"],
-                            productCategory1["product_category_id"],
+                            productCategory3["product_category_id"],
                             "Product category ID mismatch.")
         self.assertEqual(fetchedProductCategories[0]["product_category"],
+                            productCategory3["category"],
+                            "Product category mismatch.")
+
+        self.assertEqual(fetchedProductCategories[1]["product_category_id"],
+                            productCategory2["product_category_id"],
+                            "Product category ID mismatch.")
+        self.assertEqual(fetchedProductCategories[1]["product_category"],
+                            productCategory2["category"],
+                            "Product category mismatch.")
+
+        self.assertEqual(fetchedProductCategories[2]["product_category_id"],
+                            productCategory1["product_category_id"],
+                            "Product category ID mismatch.")
+        self.assertEqual(fetchedProductCategories[2]["product_category"],
                             productCategory1["category"],
                             "Product category mismatch.")
 
@@ -43,8 +57,8 @@ def add_product_category(db, category):
         }
     return result
 
-def filter_stock_product_categories(db, filterText, sortOrder=None):
-    db.call_procedure("FilterStockProductCategories", [filterText, sortOrder])
+def view_product_categories(db, sortOrder=None, archived=False):
+    db.call_procedure("ViewProductCategories", [sortOrder, archived])
     results = []
     for row in db:
         result = {

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
+from decimal import Decimal
 
 class ViewSoldProducts(StoredProcedureTestCase):
     def test_view_sold_products(self):
@@ -13,8 +13,8 @@ class ViewSoldProducts(StoredProcedureTestCase):
         productUnit1 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="box(es)",
-                                        costPrice=locale.currency(95.22),
-                                        retailPrice=locale.currency(199.33))
+                                        costPrice=Decimal("95.22"),
+                                        retailPrice=Decimal("199.33"))
         productCategory2 = add_product_category(db=self.db,
                                                 category="Mice")
         product2 = add_product(db=self.db,
@@ -23,8 +23,8 @@ class ViewSoldProducts(StoredProcedureTestCase):
         productUnit2 = add_product_unit(db=self.db,
                                         productId=product2["product_id"],
                                         unit="box(es)",
-                                        costPrice=locale.currency(95.22),
-                                        retailPrice=locale.currency(199.33))
+                                        costPrice=Decimal("95.22"),
+                                        retailPrice=Decimal("199.33"))
         note = add_note(db=self.db, note="Disregard this note")
         saleTransaction = add_sale_transaction(db=self.db,
                                                 customerName="Mary-Jane Watson")
@@ -32,26 +32,26 @@ class ViewSoldProducts(StoredProcedureTestCase):
                                             saleTransactionId=saleTransaction["sale_transaction_id"],
                                             productId=product1["product_id"],
                                             productUnitId=productUnit1["product_unit_id"],
-                                            unitPrice=locale.currency(1038.38),
+                                            unitPrice=Decimal("1038.38"),
                                             quantity=375.25,
-                                            cost=locale.currency(69.57),
-                                            discount=locale.currency(38.21))
+                                            cost=Decimal("69.57"),
+                                            discount=Decimal("38.21"))
         soldProduct2 = add_sold_product(db=self.db,
                                             saleTransactionId=saleTransaction["sale_transaction_id"],
                                             productId=product1["product_id"],
                                             productUnitId=productUnit1["product_unit_id"],
-                                            unitPrice=locale.currency(38.38),
+                                            unitPrice=Decimal("38.38"),
                                             quantity=99.25,
-                                            cost=locale.currency(39.57),
-                                            discount=locale.currency(38.21))
+                                            cost=Decimal("39.57"),
+                                            discount=Decimal("38.21"))
         soldProduct3 = add_sold_product(db=self.db,
                                             saleTransactionId=saleTransaction["sale_transaction_id"],
                                             productId=product2["product_id"],
                                             productUnitId=productUnit2["product_unit_id"],
-                                            unitPrice=locale.currency(23.38),
+                                            unitPrice=Decimal("23.38"),
                                             quantity=399.25,
-                                            cost=locale.currency(11.57),
-                                            discount=locale.currency(53.21),
+                                            cost=Decimal("11.57"),
+                                            discount=Decimal("53.21"),
                                             noteId=note["note_id"])
         viewedSoldProducts = view_sold_products(db=self.db,
                                                 saleTransactionId=saleTransaction["sale_transaction_id"])

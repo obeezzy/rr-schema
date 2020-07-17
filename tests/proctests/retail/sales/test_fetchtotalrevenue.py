@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
 from decimal import Decimal
@@ -11,18 +10,18 @@ class FetchTotalRevenue(StoredProcedureTestCase):
                                                 customerName="Danny Phantom")
         salePayment1 = add_sale_payment(db=self.db,
                                         saleTransactionId=saleTransaction1["sale_transaction_id"],
-                                        amount=locale.currency(58.21),
+                                        amount=Decimal("58.21"),
                                         paymentMethod="cash")
         salePayment2 = add_sale_payment(db=self.db,
                                         saleTransactionId=saleTransaction1["sale_transaction_id"],
-                                        amount=locale.currency(77.23),
+                                        amount=77.23,
                                         paymentMethod="cash")
 
         saleTransaction2 = add_sale_transaction(db=self.db,
                                                 customerName="Samurai Jack")
         salePayment3 = add_sale_payment(db=self.db,
                                         saleTransactionId=saleTransaction2["sale_transaction_id"],
-                                        amount=locale.currency(82.14),
+                                        amount=Decimal("82.14"),
                                         paymentMethod="debit_card")
 
         today = date.today()
@@ -32,7 +31,7 @@ class FetchTotalRevenue(StoredProcedureTestCase):
                                                     toDate=tomorrow)
 
         self.assertEqual(fetchedTotalRevenue["total_revenue"], 
-                            locale.currency(Decimal(salePayment1["amount"].strip(self.db.currency_symbol)) + Decimal(salePayment2["amount"].strip(self.db.currency_symbol)) + Decimal(salePayment3["amount"].strip(self.db.currency_symbol))),
+                            salePayment1["amount"] + salePayment2["amount"] + salePayment3["amount"],
                             "Total revenue mismatch.")
 
 

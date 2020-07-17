@@ -2,8 +2,8 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase
 
-class ArchiveStockProduct(StoredProcedureTestCase):
-    def test_archive_stock_product(self):
+class ArchiveProduct(StoredProcedureTestCase):
+    def test_archive_product(self):
         productCategory1 = add_product_category(db=self.db,
                                         category="Ben 10 aliens")
         productCategory2 = add_product_category(db=self.db,
@@ -18,7 +18,7 @@ class ArchiveStockProduct(StoredProcedureTestCase):
                                 productCategoryId=productCategory1["product_category_id"],
                                 product="Kingpin")
 
-        archive_stock_product(db=self.db,
+        archive_product(db=self.db,
                                 archived=True,
                                 productId=product2["product_id"])
         fetchedProductCategories = fetch_product_categories(db=self.db,
@@ -48,7 +48,7 @@ class ArchiveStockProduct(StoredProcedureTestCase):
                             product3["product"],
                             "Product mismatch.")
 
-        archive_stock_product(db=self.db,
+        archive_product(db=self.db,
                                 archived=False,
                                 productId=product2["product_id"])
         fetchedProductCategories = fetch_product_categories(db=self.db,
@@ -136,13 +136,13 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def archive_stock_product(db, archived, productId):
+def archive_product(db, archived, productId):
     args = {
         "archived": archived,
         "product_id": productId,
         "user_id": 1
     }
-    db.call_procedure("ArchiveStockProduct", tuple(args.values()))
+    db.call_procedure("ArchiveProduct", tuple(args.values()))
 
 def fetch_product_categories(db, archived):
     db.execute("""SELECT id AS product_category_id,

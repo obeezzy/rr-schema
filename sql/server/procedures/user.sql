@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION AddSqlUser (
-    IN iUser VARCHAR(100),
-    IN iPassword VARCHAR(100)
+    IN iUser TEXT,
+    IN iPassword TEXT
 )
 AS $$
 BEGIN
@@ -11,8 +11,8 @@ $$ LANGUAGE plpgsql;
 ---
 
 CREATE PROCEDURE GrantSqlPrivilege (
-    IN iUser VARCHAR(50),
-    IN iPrivilege VARCHAR(30)
+    IN iUser TEXT,
+    IN iPrivilege TEXT
 ) RETURNS void
 AS $$
 BEGIN

@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
+from decimal import Decimal
 
-class AddStockProductUnit(StoredProcedureTestCase):
-    def test_add_stock_product_unit(self):
-        addedProductUnit = add_stock_product_unit(db=self.db,
+class AddProductUnit(StoredProcedureTestCase):
+    def test_add_product_unit(self):
+        addedProductUnit = add_product_unit(db=self.db,
                                                     productId=1,
                                                     unit="G-Unit",
                                                     shortForm="50cent",
-                                                    costPrice=locale.currency(832.38),
-                                                    retailPrice=locale.currency(943.28))
+                                                    costPrice=Decimal("832.38"),
+                                                    retailPrice=Decimal("943.28"))
         fetchedProductUnit = fetch_product_unit(db=self.db,
                                                 productId=addedProductUnit["product_id"])
 
@@ -94,7 +94,7 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def add_stock_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
+def add_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
     productUnit = {
         "product_id": productId,
         "unit": unit,
@@ -107,7 +107,7 @@ def add_stock_product_unit(db, productId, unit, shortForm, costPrice, retailPric
         "note_id": 1,
         "user_id": 1
     }
-    db.call_procedure("AddStockProductUnit",
+    db.call_procedure("AddProductUnit",
                         tuple(productUnit.values()))
     result = {}
     for row in db:

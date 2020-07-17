@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION AddNote (
-    IN iNote VARCHAR(200),
-    IN iTableName VARCHAR(20),
+    IN iNote TEXT,
+    IN iTableName TEXT,
     IN iUserId BIGINT
 ) RETURNS BIGINT
 AS $$
@@ -17,8 +17,8 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION UpdateNote (
     IN iNoteId BIGINT,
-    IN iNote VARCHAR(200),
-    IN iTableName VARCHAR(20),
+    IN iNote TEXT,
+    IN iTableName TEXT,
     IN iUserId BIGINT
 ) RETURNS void
 AS $$

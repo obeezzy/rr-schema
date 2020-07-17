@@ -2,9 +2,9 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase
 
-class FilterStockProductCount(StoredProcedureTestCase):
+class FilterProductCount(StoredProcedureTestCase):
     @unittest.skip("Needs to be refactored.")
-    def test_fetch_stock_product_count(self):
+    def test_fetch_product_count(self):
         productCategory1 = add_product_category(db=self.db,
                                                     category="Cars")
         product1 = add_product(db=self.db,
@@ -29,19 +29,19 @@ class FilterStockProductCount(StoredProcedureTestCase):
                                 productCategoryId=productCategory2["product_category_id"],
                                 product="Xbox One")
 
-        fetchedProductCount = filter_stock_product_count(db=self.db,
+        fetchedProductCount = filter_product_count(db=self.db,
                                                             filterColumn="product_category",
                                                             filterText="con",
                                                             archived=False)
         self.assertEqual(fetchedProductCount["product_count"], 1, "Product count mismatch.")
 
-        fetchedProductCount = filter_stock_product_count(db=self.db,
+        fetchedProductCount = filter_product_count(db=self.db,
                                                             filterColumn="product_category",
                                                             filterText="car",
                                                             archived=False)
         self.assertEqual(fetchedProductCount["product_count"], 5, "Product count mismatch.")
 
-        fetchedProductCount = filter_stock_product_count(db=self.db,
+        fetchedProductCount = filter_product_count(db=self.db,
                                                             filterColumn="product",
                                                             filterText="t",
                                                             archived=False)
@@ -93,8 +93,8 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def filter_stock_product_count(db, filterColumn, filterText, archived=False):
-    db.call_procedure("FilterStockProductCount", [filterColumn, filterText, archived])
+def filter_product_count(db, filterColumn, filterText, archived=False):
+    db.call_procedure("FilterProductCount", [filterColumn, filterText, archived])
     result = {}
     for row in db:
         result = {

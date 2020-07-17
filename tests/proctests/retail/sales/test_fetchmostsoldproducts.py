@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
 from decimal import Decimal
@@ -15,8 +14,8 @@ class FetchMostSoldProducts(StoredProcedureTestCase):
         productUnit1 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(285.28),
-                                        retailPrice=locale.currency(302.31))
+                                        costPrice=Decimal("285.28"),
+                                        retailPrice=Decimal("302.31"))
 
         product2 = add_product(db=self.db,
                                 productCategoryId=productCategory1["product_category_id"],
@@ -24,8 +23,8 @@ class FetchMostSoldProducts(StoredProcedureTestCase):
         productUnit2 = add_product_unit(db=self.db,
                                         productId=product2["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(543.28),
-                                        retailPrice=locale.currency(602.31))
+                                        costPrice=Decimal("543.28"),
+                                        retailPrice=Decimal("602.31"))
 
         productCategory2 = add_product_category(db=self.db,
                                                 category="Computers")
@@ -35,32 +34,32 @@ class FetchMostSoldProducts(StoredProcedureTestCase):
         productUnit3 = add_product_unit(db=self.db,
                                         productId=product3["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(285.28),
-                                        retailPrice=locale.currency(302.31))
+                                        costPrice=Decimal("285.28"),
+                                        retailPrice=Decimal("302.31"))
 
         saleTransaction = add_sale_transaction(db=self.db,
                                                 customerName="Philip DeFranco")
         soldProduct1 = add_sold_product(db=self.db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
                                         productId=product1["product_id"],
-                                        unitPrice=locale.currency(51.22),
-                                        quantity=1000.75,
+                                        unitPrice=Decimal("51.22"),
+                                        quantity=Decimal("1000.75"),
                                         productUnitId=productUnit1["product_unit_id"],
-                                        cost=locale.currency(73.32))
+                                        cost=Decimal("73.32"))
         soldProduct2 = add_sold_product(db=self.db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
                                         productId=product2["product_id"],
-                                        unitPrice=locale.currency(38.22),
-                                        quantity=900.75,
+                                        unitPrice=Decimal("38.22"),
+                                        quantity=Decimal("900.75"),
                                         productUnitId=productUnit2["product_unit_id"],
-                                        cost=locale.currency(89.88))
+                                        cost=Decimal("89.88"))
         soldProduct3 = add_sold_product(db=self.db,
                                         saleTransactionId=saleTransaction["sale_transaction_id"],
                                         productId=product3["product_id"],
-                                        unitPrice=locale.currency(76.22),
+                                        unitPrice=Decimal("76.22"),
                                         quantity=700.75,
                                         productUnitId=productUnit3["product_unit_id"],
-                                        cost=locale.currency(77.32))
+                                        cost=Decimal("77.32"))
 
         today = date.today()
         tomorrow = today + timedelta(days=1)
@@ -69,78 +68,78 @@ class FetchMostSoldProducts(StoredProcedureTestCase):
                                                             toDate=tomorrow,
                                                             limit=5)
         self.assertEqual(len(fetchedMostSoldProducts), 3, "Expected 3 products.")
-        self.assertEqual(fetchedMostSoldProducts[0]["product_category_id"], 
+        self.assertEqual(fetchedMostSoldProducts[0]["product_category_id"],
                             productCategory1["product_category_id"],
                             "Product category ID mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[0]["product_category"], 
+        self.assertEqual(fetchedMostSoldProducts[0]["product_category"],
                             productCategory1["category"],
                             "Product category mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[0]["product_id"], 
+        self.assertEqual(fetchedMostSoldProducts[0]["product_id"],
                             product1["product_id"],
                             "Product ID mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[0]["product"], 
+        self.assertEqual(fetchedMostSoldProducts[0]["product"],
                             product1["product"],
                             "Product mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[0]["product_unit_id"], 
+        self.assertEqual(fetchedMostSoldProducts[0]["product_unit_id"],
                             productUnit1["product_unit_id"],
                             "Product unit ID mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[0]["product_unit"], 
+        self.assertEqual(fetchedMostSoldProducts[0]["product_unit"],
                             productUnit1["unit"],
                             "Product unit mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[0]["total_revenue"], 
-                            locale.currency(Decimal(soldProduct1["cost"].strip(self.db.currency_symbol)) - Decimal(soldProduct1["discount"].strip(self.db.currency_symbol))),
+        self.assertEqual(fetchedMostSoldProducts[0]["total_revenue"],
+                            soldProduct1["cost"] - soldProduct1["discount"],
                             "Total revenue mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[0]["total_quantity"], 
+        self.assertEqual(fetchedMostSoldProducts[0]["total_quantity"],
                             soldProduct1["quantity"],
                             "Total quantity mismatch.")
 
-        self.assertEqual(fetchedMostSoldProducts[1]["product_category_id"], 
+        self.assertEqual(fetchedMostSoldProducts[1]["product_category_id"],
                             productCategory1["product_category_id"],
                             "Product category ID mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[1]["product_category"], 
+        self.assertEqual(fetchedMostSoldProducts[1]["product_category"],
                             productCategory1["category"],
                             "Product category mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[1]["product_id"], 
+        self.assertEqual(fetchedMostSoldProducts[1]["product_id"],
                             product2["product_id"],
                             "Product ID mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[1]["product"], 
+        self.assertEqual(fetchedMostSoldProducts[1]["product"],
                             product2["product"],
                             "Product mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[1]["product_unit_id"], 
+        self.assertEqual(fetchedMostSoldProducts[1]["product_unit_id"],
                             productUnit2["product_unit_id"],
                             "Product unit ID mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[1]["product_unit"], 
+        self.assertEqual(fetchedMostSoldProducts[1]["product_unit"],
                             productUnit2["unit"],
                             "Product unit mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[1]["total_revenue"], 
-                            locale.currency(Decimal(soldProduct2["cost"].strip(self.db.currency_symbol)) - Decimal(soldProduct2["discount"].strip(self.db.currency_symbol))),
+        self.assertEqual(fetchedMostSoldProducts[1]["total_revenue"],
+                            soldProduct2["cost"] - soldProduct2["discount"],
                             "Total revenue mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[1]["total_quantity"], 
+        self.assertEqual(fetchedMostSoldProducts[1]["total_quantity"],
                             soldProduct2["quantity"],
                             "Total quantity mismatch.")
 
-        self.assertEqual(fetchedMostSoldProducts[2]["product_category_id"], 
+        self.assertEqual(fetchedMostSoldProducts[2]["product_category_id"],
                             productCategory2["product_category_id"],
                             "Product category ID mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[2]["product_category"], 
+        self.assertEqual(fetchedMostSoldProducts[2]["product_category"],
                             productCategory2["category"],
                             "Product category mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[2]["product_id"], 
+        self.assertEqual(fetchedMostSoldProducts[2]["product_id"],
                             product3["product_id"],
                             "Product ID mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[2]["product"], 
+        self.assertEqual(fetchedMostSoldProducts[2]["product"],
                             product3["product"],
                             "Product mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[2]["product_unit_id"], 
+        self.assertEqual(fetchedMostSoldProducts[2]["product_unit_id"],
                             productUnit3["product_unit_id"],
                             "Product unit ID mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[2]["product_unit"], 
+        self.assertEqual(fetchedMostSoldProducts[2]["product_unit"],
                             productUnit3["unit"],
                             "Product unit mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[2]["total_revenue"], 
-                            locale.currency(Decimal(soldProduct3["cost"].strip(self.db.currency_symbol)) - Decimal(soldProduct3["discount"].strip(self.db.currency_symbol))),
+        self.assertEqual(fetchedMostSoldProducts[2]["total_revenue"],
+                            soldProduct3["cost"] - soldProduct3["discount"],
                             "Total revenue mismatch.")
-        self.assertEqual(fetchedMostSoldProducts[2]["total_quantity"], 
+        self.assertEqual(fetchedMostSoldProducts[2]["total_quantity"],
                             soldProduct3["quantity"],
                             "Total quantity mismatch.")
 

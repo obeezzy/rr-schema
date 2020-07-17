@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 from decimal import Decimal
@@ -16,18 +15,18 @@ class ViewDebtPayments(StoredProcedureTestCase):
 
         addedDebtPayment1 = add_debt_payment(self.db,
                                                 debtTransactionId=addedDebtTransaction["debt_transaction_id"],
-                                                totalDebt=locale.currency(750),
-                                                amountPaid=locale.currency(250),
+                                                totalDebt=Decimal("750"),
+                                                amountPaid=Decimal("250"),
                                                 noteId=addedNote1["note_id"])
         addedDebtPayment2 = add_debt_payment(self.db,
                                                 debtTransactionId=addedDebtTransaction["debt_transaction_id"],
-                                                totalDebt=locale.currency(800),
-                                                amountPaid=locale.currency(300),
+                                                totalDebt=Decimal("800"),
+                                                amountPaid=Decimal("300"),
                                                 noteId=addedNote2["note_id"])
         addedDebtPayment3 = add_debt_payment(self.db,
                                                 debtTransactionId=addedDebtTransaction["debt_transaction_id"],
-                                                totalDebt=locale.currency(2100),
-                                                amountPaid=locale.currency(200),
+                                                totalDebt=Decimal("2100"),
+                                                amountPaid=Decimal("200"),
                                                 noteId=addedNote3["note_id"])
 
         viewedDebtPayments = view_debt_payments(db=self.db, debtTransactionId=1)
@@ -93,7 +92,7 @@ def add_debt_payment(db, debtTransactionId, totalDebt, amountPaid, noteId):
         "debt_transaction_id": debtTransactionId,
         "total_debt": totalDebt,
         "amount_paid": amountPaid,
-        "balance": locale.currency(Decimal(totalDebt.strip(db.currency_symbol)) - Decimal(amountPaid.strip(db.currency_symbol))),
+        "balance": totalDebt - amountPaid,
         "due_date_time": datetime.now(),
         "note_id": noteId,
         "currency": "NGN",
@@ -141,9 +140,9 @@ def view_debt_payments(db, debtTransactionId, archived=False):
         result = {
             "debt_payment_id": row["debt_payment_id"],
             "debt_transaction_id": row["debt_transaction_id"],
-            "total_debt": row["total_debt"].replace(",", ""),
-            "amount_paid": row["amount_paid"].replace(",", ""),
-            "balance": row["balance"].replace(",", ""),
+            "total_debt": row["total_debt"],
+            "amount_paid": row["amount_paid"],
+            "balance": row["balance"],
             "due_date_time": row["due_date_time"],
             "note_id": row["note_id"],
             "note": row["note"],

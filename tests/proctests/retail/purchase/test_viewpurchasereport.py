@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
 from decimal import Decimal
@@ -15,22 +14,22 @@ class ViewPurchaseReport(StoredProcedureTestCase):
         productUnit1 = add_product_unit(db=self.db,
                                         productId=product1["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(6.38),
-                                        retailPrice=locale.currency(50.38))
-        currentProductQuantity1 = add_current_product_quantity(db=self.db,
-                                                                productId=product1["product_id"],
-                                                                quantity=38.28)
+                                        costPrice=Decimal("6.38"),
+                                        retailPrice=Decimal("50.38"))
+        currentProductQuantity1 = add_product_quantity(db=self.db,
+                                                        productId=product1["product_id"],
+                                                        quantity=38.28)
         product2 = add_product(db=self.db,
                                 productCategoryId=productCategory1["product_category_id"],
                                 product="Captain America's shield")
         productUnit2 = add_product_unit(db=self.db,
                                         productId=product2["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(489.28),
-                                        retailPrice=locale.currency(550.38))
-        currentProductQuantity2 = add_current_product_quantity(db=self.db,
-                                                                productId=product2["product_id"],
-                                                                quantity=66.28)
+                                        costPrice=Decimal("489.28"),
+                                        retailPrice=Decimal("550.38"))
+        currentProductQuantity2 = add_product_quantity(db=self.db,
+                                                        productId=product2["product_id"],
+                                                        quantity=66.28)
 
         productCategory2 = add_product_category(db=self.db,
                                                 category="More Weapons")
@@ -40,9 +39,9 @@ class ViewPurchaseReport(StoredProcedureTestCase):
         productUnit3 = add_product_unit(db=self.db,
                                         productId=product3["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(138456.83),
-                                        retailPrice=locale.currency(383593.32))
-        currentProductQuantity3 = add_current_product_quantity(db=self.db,
+                                        costPrice=Decimal("138456.83"),
+                                        retailPrice=Decimal("383593.32"))
+        currentProductQuantity3 = add_product_quantity(db=self.db,
                                                                 productId=product3["product_id"],
                                                                 quantity=78.90)
 
@@ -51,38 +50,38 @@ class ViewPurchaseReport(StoredProcedureTestCase):
         purchasedProduct1 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction1["purchase_transaction_id"],
                                                     productId=product1["product_id"],
-                                                    unitPrice=locale.currency(38.27),
+                                                    unitPrice=38.27,
                                                     quantity=583.5,
                                                     productUnitId=productUnit1["product_unit_id"],
-                                                    cost=locale.currency(378.28),
-                                                    discount=locale.currency(8.28))
+                                                    cost=378.28,
+                                                    discount=8.28)
         purchasedProduct2 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction1["purchase_transaction_id"],
                                                     productId=product2["product_id"],
-                                                    unitPrice=locale.currency(38.27),
+                                                    unitPrice=38.27,
                                                     quantity=583.5,
                                                     productUnitId=productUnit2["product_unit_id"],
-                                                    cost=locale.currency(378.28),
-                                                    discount=locale.currency(8.28))
+                                                    cost=378.28,
+                                                    discount=8.28)
         purchasedProduct3 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction1["purchase_transaction_id"],
                                                     productId=product2["product_id"],
-                                                    unitPrice=locale.currency(38.27),
+                                                    unitPrice=38.27,
                                                     quantity=583.5,
                                                     productUnitId=productUnit2["product_unit_id"],
-                                                    cost=locale.currency(378.28),
-                                                    discount=locale.currency(8.28))
+                                                    cost=378.28,
+                                                    discount=8.28)
 
         purchaseTransaction2 = add_purchase_transaction(db=self.db,
                                                         vendorName="Harley Quinn")
         purchasedProduct4 = add_purchased_product(db=self.db,
                                                     purchaseTransactionId=purchaseTransaction2["purchase_transaction_id"],
                                                     productId=product3["product_id"],
-                                                    unitPrice=locale.currency(38.27),
+                                                    unitPrice=38.27,
                                                     quantity=583.5,
                                                     productUnitId=productUnit3["product_unit_id"],
-                                                    cost=locale.currency(378.28),
-                                                    discount=locale.currency(8.28))
+                                                    cost=378.28,
+                                                    discount=8.28)
         today = date.today()
         tomorrow = today + timedelta(days=1)
         viewedPurchaseReport = view_purchase_report(db=self.db,
@@ -125,7 +124,7 @@ class ViewPurchaseReport(StoredProcedureTestCase):
                             purchasedProduct2["quantity"] + purchasedProduct3["quantity"],
                             "Quantity mismatch")
         self.assertEqual(viewedPurchaseReport[1]["total_expenditure"],
-                            locale.currency(Decimal(purchasedProduct2["cost"].strip(self.db.currency_symbol)) + Decimal(purchasedProduct3["cost"].strip(self.db.currency_symbol))),
+                            purchasedProduct2["cost"] + purchasedProduct3["cost"],
                             "Total expenditure mismatch")
 
         self.assertEqual(viewedPurchaseReport[2]["product_category_id"],
@@ -307,25 +306,25 @@ def add_purchase_transaction(db, vendorName):
         }
     return result
 
-def add_current_product_quantity(db, productId, quantity):
+def add_product_quantity(db, productId, quantity):
     currentProductQuantity = {
         "product_id": productId,
         "quantity": quantity,
         "user_id": 1
     }
 
-    db.execute("""INSERT INTO current_product_quantity (product_id,
+    db.execute("""INSERT INTO product_quantity (product_id,
                                                         quantity,
                                                         user_id)
                 VALUES (%s, %s, %s)
-                RETURNING id AS current_product_quantity_id,
+                RETURNING id AS product_quantity_id,
                     product_id,
                     quantity,
                     user_id""", tuple(currentProductQuantity.values()))
     result = {}
     for row in db:
         result = {
-            "current_product_quantity_id": row["current_product_quantity_id"],
+            "product_quantity_id": row["product_quantity_id"],
             "product_id": row["product_id"],
             "quantity": row["quantity"],
             "user_id": row["user_id"]

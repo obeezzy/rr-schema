@@ -2,8 +2,8 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase
 
-class FetchStockProductCount(StoredProcedureTestCase):
-    def test_fetch_stock_product_count(self):
+class FetchProductCount(StoredProcedureTestCase):
+    def test_fetch_product_count(self):
         productCategory1 = add_product_category(db=self.db,
                                                     category="Cars")
         product1 = add_product(db=self.db,
@@ -22,7 +22,7 @@ class FetchStockProductCount(StoredProcedureTestCase):
                                 productCategoryId=productCategory1["product_category_id"],
                                 product="BMW")
 
-        fetchedProductCount = fetch_stock_product_count(db=self.db,
+        fetchedProductCount = fetch_product_count(db=self.db,
                                                         productCategoryId=productCategory1["product_category_id"],
                                                         archived=False)
 
@@ -74,8 +74,8 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def fetch_stock_product_count(db, productCategoryId, archived=False):
-    db.call_procedure("FetchStockProductCount", [productCategoryId, archived])
+def fetch_product_count(db, productCategoryId, archived=False):
+    db.call_procedure("FetchProductCount", [productCategoryId, archived])
     result = {}
     for row in db:
         result = {

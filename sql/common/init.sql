@@ -4,13 +4,13 @@ CREATE TYPE PAYMENT_METHOD AS ENUM('cash', 'credit_card', 'debit_card');
 -- Create business details table
 CREATE TABLE business_details (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    address VARCHAR(200) NOT NULL,
-    business_family VARCHAR(500) NOT NULL,
+    name TEXT NOT NULL,
+    address TEXT NOT NULL,
+    business_family TEXT NOT NULL,
     establishment_year INTEGER NOT NULL,
-    phone_number VARCHAR(20) DEFAULT NULL,
+    phone_number TEXT DEFAULT NULL,
     logo BYTEA,
-    extra_details VARCHAR(100) DEFAULT NULL,
+    extra_details TEXT DEFAULT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_edited TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -18,12 +18,12 @@ CREATE TABLE business_details (
 -- Create client table
 CREATE TABLE client (
     id BIGSERIAL PRIMARY KEY,
-    first_name VARCHAR(100) DEFAULT NULL,
-    last_name VARCHAR(100) DEFAULT NULL,
-    preferred_name VARCHAR(100) NOT NULL,
-    phone_number VARCHAR(20) NOT NULL UNIQUE,
-    alternate_phone_number VARCHAR(20) DEFAULT NULL,
-    address VARCHAR(100) DEFAULT NULL,
+    first_name TEXT DEFAULT NULL,
+    last_name TEXT DEFAULT NULL,
+    preferred_name TEXT NOT NULL,
+    phone_number TEXT NOT NULL UNIQUE,
+    alternate_phone_number TEXT DEFAULT NULL,
+    address TEXT DEFAULT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -35,10 +35,10 @@ CREATE TABLE client (
 CREATE TABLE credit_payment (
     id BIGSERIAL PRIMARY KEY,
     credit_transaction_id BIGINT NOT NULL,
-    total_credit MONEY NOT NULL,
-    amount_paid MONEY NOT NULL,
-    balance MONEY NOT NULL,
-    currency VARCHAR(4) NOT NULL,
+    total_credit NUMERIC(19,2) NOT NULL,
+    amount_paid NUMERIC(19,2) NOT NULL,
+    balance NUMERIC(19,2) NOT NULL,
+    currency TEXT NOT NULL,
     due_date_time TIMESTAMP NOT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
@@ -62,7 +62,7 @@ CREATE TABLE creditor (
 CREATE TABLE credit_transaction (
     id BIGSERIAL PRIMARY KEY,
     creditor_id BIGINT NOT NULL,
-    transaction_table VARCHAR(20) NOT NULL,
+    transaction_table TEXT NOT NULL,
     transaction_id BIGINT DEFAULT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
@@ -71,11 +71,11 @@ CREATE TABLE credit_transaction (
     user_id BIGINT NOT NULL
 );
 
--- Create current product quantity table
-CREATE TABLE current_product_quantity (
+-- Create product quantity table
+CREATE TABLE product_quantity (
     id BIGSERIAL PRIMARY KEY,
     product_id BIGINT NOT NULL UNIQUE,
-    quantity DOUBLE PRECISION NOT NULL,
+    quantity REAL NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_edited TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id BIGINT NOT NULL
@@ -95,7 +95,7 @@ CREATE TABLE customer (
 CREATE TABLE damaged_quantity (
     id BIGSERIAL PRIMARY KEY,
     product_id BIGINT DEFAULT NULL UNIQUE,
-    quantity DOUBLE PRECISION NOT NULL,
+    quantity REAL NOT NULL,
     product_unit_id BIGINT NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_edited TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -104,8 +104,8 @@ CREATE TABLE damaged_quantity (
 
 -- Create DB info table
 CREATE TABLE db_info (
-    version VARCHAR(20) PRIMARY KEY,
-    rack_id VARCHAR(40) NOT NULL,
+    version TEXT PRIMARY KEY,
+    rack_id TEXT NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_edited TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -114,10 +114,10 @@ CREATE TABLE db_info (
 CREATE TABLE debt_payment (
     id BIGSERIAL PRIMARY KEY,
     debt_transaction_id BIGINT NOT NULL,
-    total_debt MONEY NOT NULL,
-    amount_paid MONEY NOT NULL,
-    balance MONEY NOT NULL,
-    currency VARCHAR(4) NOT NULL,
+    total_debt NUMERIC(19,2) NOT NULL,
+    amount_paid NUMERIC(19,2) NOT NULL,
+    balance NUMERIC(19,2) NOT NULL,
+    currency TEXT NOT NULL,
     due_date_time TIMESTAMP NOT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
@@ -130,7 +130,7 @@ CREATE TABLE debt_payment (
 CREATE TABLE debt_transaction (
     id BIGSERIAL PRIMARY KEY,
     debtor_id BIGINT NOT NULL,
-    transaction_table VARCHAR(20) NOT NULL,
+    transaction_table TEXT NOT NULL,
     transaction_id BIGINT DEFAULT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
@@ -153,12 +153,12 @@ CREATE TABLE debtor (
 -- Create expense transaction table
 CREATE TABLE expense_transaction (
     id BIGSERIAL PRIMARY KEY,
-    client_name VARCHAR(30) NOT NULL,
+    client_name TEXT NOT NULL,
     client_id BIGINT DEFAULT NULL,
-    purpose VARCHAR(100) NOT NULL,
-    amount MONEY NOT NULL,
+    purpose TEXT NOT NULL,
+    amount NUMERIC(19,2) NOT NULL,
     payment_method PAYMENT_METHOD NOT NULL DEFAULT 'cash',
-    currency VARCHAR(4) NOT NULL,
+    currency TEXT NOT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -169,12 +169,12 @@ CREATE TABLE expense_transaction (
 -- Create income transaction table
 CREATE TABLE income_transaction (
     id BIGSERIAL PRIMARY KEY,
-    client_name VARCHAR(30) NOT NULL,
+    client_name TEXT NOT NULL,
     client_id BIGINT DEFAULT NULL,
-    purpose VARCHAR(100) NOT NULL,
-    amount MONEY NOT NULL,
+    purpose TEXT NOT NULL,
+    amount NUMERIC(19,2) NOT NULL,
     payment_method PAYMENT_METHOD NOT NULL DEFAULT 'cash',
-    currency VARCHAR(4) NOT NULL,
+    currency TEXT NOT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -182,12 +182,12 @@ CREATE TABLE income_transaction (
     user_id BIGINT NOT NULL
 );
 
--- Create initial product quantity table
-CREATE TABLE initial_product_quantity (
+-- Create product quantity snapshot table
+CREATE TABLE product_quantity_snapshot (
     id BIGSERIAL PRIMARY KEY,
     product_id BIGINT NOT NULL,
-    quantity DOUBLE PRECISION NOT NULL,
-    reason VARCHAR(30) NOT NULL,
+    quantity REAL NOT NULL,
+    reason TEXT NOT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_edited TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -204,8 +204,8 @@ CREATE TABLE last_used_date_time (
 -- Create note table
 CREATE TABLE note (
     id BIGSERIAL PRIMARY KEY,
-    note VARCHAR(200) NOT NULL,
-    table_name VARCHAR(30) DEFAULT NULL,
+    note TEXT NOT NULL,
+    table_name TEXT DEFAULT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_edited TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id BIGINT NOT NULL
@@ -215,10 +215,10 @@ CREATE TABLE note (
 CREATE TABLE product (
     id BIGSERIAL PRIMARY KEY,
     product_category_id BIGINT NOT NULL,
-    product VARCHAR(200) NOT NULL,
-    short_form VARCHAR(10) DEFAULT NULL,
-    description VARCHAR(200) DEFAULT NULL,
-    barcode VARCHAR(100) DEFAULT NULL,
+    product TEXT NOT NULL,
+    short_form TEXT DEFAULT NULL,
+    description TEXT DEFAULT NULL,
+    barcode TEXT DEFAULT NULL,
     divisible BOOLEAN DEFAULT TRUE,
     image BYTEA DEFAULT NULL,
     note_id BIGINT DEFAULT NULL,
@@ -231,8 +231,8 @@ CREATE TABLE product (
 -- Create product category table
 CREATE TABLE product_category (
     id BIGSERIAL PRIMARY KEY,
-    category VARCHAR(100) NOT NULL UNIQUE,
-    short_form VARCHAR(25) DEFAULT NULL,
+    category TEXT NOT NULL UNIQUE,
+    short_form TEXT DEFAULT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -244,13 +244,13 @@ CREATE TABLE product_category (
 CREATE TABLE product_unit (
     id BIGSERIAL PRIMARY KEY,
     product_id BIGINT NOT NULL,
-    unit VARCHAR(30) NOT NULL,
-    short_form VARCHAR(10) DEFAULT NULL,
+    unit TEXT NOT NULL,
+    short_form TEXT DEFAULT NULL,
     preferred BOOLEAN NOT NULL DEFAULT FALSE,
-    base_unit_equivalent DOUBLE PRECISION NOT NULL,
-    cost_price MONEY NOT NULL,
-    retail_price MONEY NOT NULL,
-    currency VARCHAR(4) NOT NULL,
+    base_unit_equivalent REAL NOT NULL,
+    cost_price NUMERIC(19,2) NOT NULL,
+    retail_price NUMERIC(19,2) NOT NULL,
+    currency TEXT NOT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -263,12 +263,12 @@ CREATE TABLE purchased_product (
     id BIGSERIAL PRIMARY KEY,
     purchase_transaction_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
-    unit_price MONEY NOT NULL,
-    quantity DOUBLE PRECISION NOT NULL,
+    unit_price NUMERIC(19,2) NOT NULL,
+    quantity REAL NOT NULL,
     product_unit_id BIGINT NOT NULL,
-    cost MONEY NOT NULL,
-    discount MONEY DEFAULT '0.00',
-    currency VARCHAR(4) NOT NULL,
+    cost NUMERIC(19,2) NOT NULL,
+    discount NUMERIC(19,2) DEFAULT '0.00',
+    currency TEXT NOT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -280,9 +280,9 @@ CREATE TABLE purchased_product (
 CREATE TABLE purchase_payment (
     id BIGSERIAL PRIMARY KEY,
     purchase_transaction_id BIGINT NOT NULL,
-    amount MONEY NOT NULL,
+    amount NUMERIC(19,2) NOT NULL,
     payment_method PAYMENT_METHOD NOT NULL DEFAULT 'cash',
-    currency VARCHAR(4) NOT NULL,
+    currency TEXT NOT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -293,9 +293,9 @@ CREATE TABLE purchase_payment (
 -- Create purchase transaction table
 CREATE TABLE purchase_transaction (
     id BIGSERIAL PRIMARY KEY,
-    vendor_name VARCHAR(50) NOT NULL,
+    vendor_name TEXT NOT NULL,
     vendor_id BIGINT DEFAULT NULL,
-    discount MONEY NOT NULL DEFAULT '0.00',
+    discount NUMERIC(19,2) NOT NULL DEFAULT '0.00',
     suspended BOOLEAN NOT NULL DEFAULT FALSE,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
@@ -309,12 +309,12 @@ CREATE TABLE sold_product (
     id BIGSERIAL PRIMARY KEY,
     sale_transaction_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
-    unit_price MONEY NOT NULL,
-    quantity DOUBLE PRECISION NOT NULL,
+    unit_price NUMERIC(19,2) NOT NULL,
+    quantity REAL NOT NULL,
     product_unit_id BIGINT NOT NULL,
-    cost MONEY NOT NULL,
-    discount MONEY DEFAULT '0.00',
-    currency VARCHAR(4) NOT NULL,
+    cost NUMERIC(19,2) NOT NULL,
+    discount NUMERIC(19,2) DEFAULT '0.00',
+    currency TEXT NOT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -326,9 +326,9 @@ CREATE TABLE sold_product (
 CREATE TABLE sale_payment (
     id BIGSERIAL PRIMARY KEY,
     sale_transaction_id BIGINT NOT NULL,
-    amount MONEY NOT NULL,
+    amount NUMERIC(19,2) NOT NULL,
     payment_method PAYMENT_METHOD NOT NULL DEFAULT 'cash',
-    currency VARCHAR(4) NOT NULL,
+    currency TEXT NOT NULL,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -339,9 +339,9 @@ CREATE TABLE sale_payment (
 -- Create sale transaction table
 CREATE TABLE sale_transaction (
     id BIGSERIAL PRIMARY KEY,
-    customer_name VARCHAR(50) NOT NULL,
+    customer_name TEXT NOT NULL,
     customer_id BIGINT DEFAULT NULL,
-    discount MONEY NOT NULL DEFAULT '0.00',
+    discount NUMERIC(19,2) NOT NULL DEFAULT '0.00',
     suspended BOOLEAN NOT NULL DEFAULT FALSE,
     note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
@@ -354,9 +354,9 @@ CREATE TABLE sale_transaction (
 CREATE TABLE unit_relation (
     id BIGSERIAL PRIMARY KEY,
     product_id BIGINT NOT NULL,
-    old_unit_quantity DOUBLE PRECISION NOT NULL,
+    old_unit_quantity REAL NOT NULL,
     old_unit_id BIGINT NOT NULL,
-    new_unit_quantity DOUBLE PRECISION NOT NULL,
+    new_unit_quantity REAL NOT NULL,
     new_unit_id BIGINT NOT NULL,
     note_id BIGINT NOT NULL DEFAULT 0,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
@@ -368,14 +368,12 @@ CREATE TABLE unit_relation (
 -- Create user table
 CREATE TABLE rr_user (
     id BIGSERIAL PRIMARY KEY,
-    username VARCHAR(60) NOT NULL UNIQUE,
-    first_name VARCHAR(60) NOT NULL,
-    last_name VARCHAR(60) NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
     photo BYTEA DEFAULT NULL,
-    phone_number VARCHAR(20) DEFAULT NULL,
-    email_address VARCHAR(30) DEFAULT NULL,
-    active BOOLEAN DEFAULT FALSE,
-    note_id BIGINT DEFAULT NULL,
+    phone_number TEXT DEFAULT NULL,
+    email_address TEXT DEFAULT NULL, active BOOLEAN DEFAULT FALSE, note_id BIGINT DEFAULT NULL,
     archived BOOLEAN NOT NULL DEFAULT FALSE,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_edited TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

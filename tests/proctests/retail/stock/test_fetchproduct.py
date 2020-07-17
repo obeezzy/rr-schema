@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date
 
-class FetchStockProduct(StoredProcedureTestCase):
-    def test_fetch_stock_product(self):
+class FetchProduct(StoredProcedureTestCase):
+    def test_fetch_product(self):
         productCategory = add_product_category(db=self.db,
                                                 category="TVs")
         product = add_product(db=self.db,
@@ -15,60 +14,60 @@ class FetchStockProduct(StoredProcedureTestCase):
         productUnit = add_product_unit(db=self.db,
                                         productId=product["product_id"],
                                         unit="unit(s)",
-                                        costPrice=locale.currency(285.28),
-                                        retailPrice=locale.currency(302.31))
-        currentProductQuantity = add_current_product_quantity(db=self.db,
+                                        costPrice=285.28,
+                                        retailPrice=302.31)
+        currentProductQuantity = add_product_quantity(db=self.db,
                                                                 productId=product["product_id"],
                                                                 quantity=38.825)
 
-        fetchedStockProduct = fetch_stock_product(db=self.db,
+        fetchedProduct = fetch_product(db=self.db,
                                                     productId=product["product_id"])
-        self.assertEqual(fetchedStockProduct["product_category_id"], 
+        self.assertEqual(fetchedProduct["product_category_id"], 
                             productCategory["product_category_id"],
                             "Product category ID mismatch.")
-        self.assertEqual(fetchedStockProduct["product_category"], 
+        self.assertEqual(fetchedProduct["product_category"], 
                             productCategory["category"],
                             "Product category mismatch.")
-        self.assertEqual(fetchedStockProduct["product_id"], 
+        self.assertEqual(fetchedProduct["product_id"], 
                             product["product_id"],
                             "Product ID mismatch.")
-        self.assertEqual(fetchedStockProduct["product"], 
+        self.assertEqual(fetchedProduct["product"], 
                             product["product"],
                             "Product mismatch.")
-        self.assertEqual(fetchedStockProduct["product_unit_id"], 
+        self.assertEqual(fetchedProduct["product_unit_id"], 
                             productUnit["product_unit_id"],
                             "Product unit ID mismatch.")
-        self.assertEqual(fetchedStockProduct["product_unit"], 
+        self.assertEqual(fetchedProduct["product_unit"], 
                             productUnit["unit"],
                             "Product unit mismatch.")
-        self.assertEqual(fetchedStockProduct["description"], 
+        self.assertEqual(fetchedProduct["description"], 
                             product["description"],
                             "Description mismatch.")
-        self.assertEqual(fetchedStockProduct["divisible"], 
+        self.assertEqual(fetchedProduct["divisible"], 
                             product["divisible"],
                             "Divisible flag mismatch.")
-        self.assertEqual(fetchedStockProduct["quantity"], 
+        self.assertEqual(fetchedProduct["quantity"], 
                             currentProductQuantity["quantity"],
                             "Quantity mismatch.")
-        self.assertEqual(fetchedStockProduct["cost_price"], 
+        self.assertEqual(fetchedProduct["cost_price"], 
                             productUnit["cost_price"],
                             "Cost price mismatch.")
-        self.assertEqual(fetchedStockProduct["retail_price"], 
+        self.assertEqual(fetchedProduct["retail_price"], 
                             productUnit["retail_price"],
                             "Retail price mismatch.")
-        self.assertEqual(fetchedStockProduct["currency"], 
+        self.assertEqual(fetchedProduct["currency"], 
                             productUnit["currency"],
                             "Currency mismatch.")
-        self.assertEqual(fetchedStockProduct["created"].date(),
+        self.assertEqual(fetchedProduct["created"].date(),
                             date.today(),
                             "Created date/time mismatch.")
-        self.assertEqual(fetchedStockProduct["last_edited"].date(),
+        self.assertEqual(fetchedProduct["last_edited"].date(),
                             date.today(),
                             "Last edited date/time flag mismatch.")
-        self.assertEqual(fetchedStockProduct["user_id"], 
+        self.assertEqual(fetchedProduct["user_id"], 
                             1,
                             "User ID mismatch.")
-        self.assertEqual(fetchedStockProduct["username"], 
+        self.assertEqual(fetchedProduct["username"], 
                             "admin",
                             "User mismatch.")
 
@@ -171,33 +170,33 @@ def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquiva
         }
     return result
 
-def add_current_product_quantity(db, productId, quantity):
+def add_product_quantity(db, productId, quantity):
     currentProductQuantity = {
         "product_id": productId,
         "quantity": quantity,
         "user_id": 1
     }
 
-    db.execute("""INSERT INTO current_product_quantity (product_id,
+    db.execute("""INSERT INTO product_quantity (product_id,
                                                         quantity,
                                                         user_id)
                 VALUES (%s, %s, %s)
-                RETURNING id AS current_product_quantity_id,
+                RETURNING id AS product_quantity_id,
                     product_id,
                     quantity,
                     user_id""", tuple(currentProductQuantity.values()))
     result = {}
     for row in db:
         result = {
-            "current_product_quantity_id": row["current_product_quantity_id"],
+            "product_quantity_id": row["product_quantity_id"],
             "product_id": row["product_id"],
             "quantity": row["quantity"],
             "user_id": row["user_id"]
         }
     return result
 
-def fetch_stock_product(db, productId):
-    db.call_procedure("FetchStockProduct", [productId])
+def fetch_product(db, productId):
+    db.call_procedure("FetchProduct", [productId])
     result = {}
     for row in db:
         result = {

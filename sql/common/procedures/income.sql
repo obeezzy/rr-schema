@@ -1,10 +1,10 @@
 CREATE OR REPLACE FUNCTION AddIncomeTransaction (
     IN iClientId BIGINT,
-    IN iClientName VARCHAR(50),
-    IN iPurpose VARCHAR(200),
-    IN iAmount MONEY,
+    IN iClientName TEXT,
+    IN iPurpose TEXT,
+    IN iAmount NUMERIC(19,2),
     IN iPaymentMethod PAYMENT_METHOD,
-    IN iCurrency VARCHAR(4),
+    IN iCurrency TEXT,
     IN iNoteId BIGINT,
     IN iUserId BIGINT
 ) RETURNS BIGINT
@@ -34,8 +34,8 @@ CREATE OR REPLACE FUNCTION ViewIncomeTransactions (
     IN iFrom TIMESTAMP DEFAULT '1970-01-01 00:00:00',
     IN iTo TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     IN iArchived BOOLEAN DEFAULT FALSE
-) RETURNS TABLE(income_transaction_id BIGINT, client_id BIGINT, client_name VARCHAR(100),
-                purpose VARCHAR(200), amount MONEY, currency VARCHAR(4))
+) RETURNS TABLE(income_transaction_id BIGINT, client_id BIGINT, client_name TEXT,
+                purpose TEXT, amount NUMERIC(19,2), currency TEXT)
 AS $$
 BEGIN
     RETURN QUERY SELECT income_transaction.id AS income_transaction_id,
@@ -53,13 +53,13 @@ $$ LANGUAGE plpgsql;
 ---
 
 CREATE OR REPLACE FUNCTION FilterIncomeReport (
-    IN iFilterColumn VARCHAR(20),
-    IN iFilterText VARCHAR(100),
-    IN iSortColumn VARCHAR(20),
-    IN iSortOrder VARCHAR(15),
+    IN iFilterColumn TEXT,
+    IN iFilterText TEXT,
+    IN iSortColumn TEXT,
+    IN iSortOrder TEXT,
     IN iFrom TIMESTAMP DEFAULT '1970-01-01 00:00:00',
     IN iTo TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) RETURNS TABLE(income_transaction_id BIGINT, purpose VARCHAR(200), amount MONEY)
+) RETURNS TABLE(income_transaction_id BIGINT, purpose TEXT, amount NUMERIC(19,2))
 AS $$
 BEGIN
     RETURN QUERY SELECT income_transaction.id AS income_transaction_id,
@@ -93,7 +93,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION ViewIncomeReport (
     IN iFrom TIMESTAMP DEFAULT '1970-01-01 00:00:00',
     IN iTo TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) RETURNS TABLE(income_transaction_id BIGINT, purpose VARCHAR(200), amount MONEY)
+) RETURNS TABLE(income_transaction_id BIGINT, purpose TEXT, amount NUMERIC(19,2))
 AS $$
 BEGIN
     RETURN QUERY SELECT income_transaction.id AS income_transaction_id,

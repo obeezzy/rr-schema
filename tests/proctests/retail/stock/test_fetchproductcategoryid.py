@@ -3,8 +3,8 @@ import unittest
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 
-class FetchStockProductCategoryId(StoredProcedureTestCase):
-    def test_fetch_stock_product(self):
+class FetchProductCategoryId(StoredProcedureTestCase):
+    def test_fetch_product(self):
         product1 = add_product(db=self.db,
                                 productCategoryId=1,
                                 product="Wolverine")
@@ -15,13 +15,13 @@ class FetchStockProductCategoryId(StoredProcedureTestCase):
                                 productCategoryId=2,
                                 product="Scott Summers")
 
-        productCategoryId1 = fetch_stock_product_category_id(db=self.db,
+        productCategoryId1 = fetch_product_category_id(db=self.db,
                                                                 productId=product1["product_id"])
         self.assertEqual(product1["product_category_id"],
                             productCategoryId1,
                             "Product category ID mismatch.")
 
-        productCategoryId3 = fetch_stock_product_category_id(db=self.db,
+        productCategoryId3 = fetch_product_category_id(db=self.db,
                                                                 productId=product3["product_id"])
         self.assertEqual(product3["product_category_id"],
                             productCategoryId3,
@@ -52,8 +52,8 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def fetch_stock_product_category_id(db, productId):
-    db.call_procedure("FetchStockProductCategoryId", [productId])
+def fetch_product_category_id(db, productId):
+    db.call_procedure("FetchProductCategoryId", [productId])
     result = {}
     for row in db:
         result = {

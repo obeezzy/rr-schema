@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
+from decimal import Decimal
 
 class AddPurchaseTransaction(StoredProcedureTestCase):
     def test_add_purchase_transaction(self):
         addedPurchaseTransaction = add_purchase_transaction(db=self.db,
                                                             vendorName="Lois Lane",
-                                                            discount=locale.currency(20.40))
+                                                            discount=Decimal("20.40"))
         fetchedPurchaseTransaction = fetch_purchase_transaction(self.db)
 
         self.assertEqual(addedPurchaseTransaction["vendor_name"],

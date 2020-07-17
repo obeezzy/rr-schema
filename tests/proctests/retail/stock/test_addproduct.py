@@ -3,10 +3,10 @@ import unittest
 from proctests.utils import StoredProcedureTestCase
 from psycopg2.errors import RaiseException
 
-class AddStockProduct(StoredProcedureTestCase):
-    def test_add_stock_product(self):
-        addedProduct = add_stock_product(self.db)
-        fetchedProduct = fetch_stock_product(self.db)
+class AddProduct(StoredProcedureTestCase):
+    def test_add_product(self):
+        addedProduct = add_product(self.db)
+        fetchedProduct = fetch_product(self.db)
 
         self.assertEqual(addedProduct["product_category_id"], fetchedProduct["product_category_id"], "Product category ID mismatch.")
         self.assertEqual(addedProduct["product"], fetchedProduct["product"], "Product mismatch.")
@@ -20,13 +20,13 @@ class AddStockProduct(StoredProcedureTestCase):
 
     def test_raise_duplicate_entry_exception(self):
         with self.assertRaises(RaiseException) as context:
-            add_stock_product(self.db)
-            add_stock_product(self.db)
+            add_product(self.db)
+            add_product(self.db)
 
         self.assertEqual("P0001", context.exception.pgcode)
         self.assertIn("Product already exists.", context.exception.pgerror)
 
-def add_stock_product(db):
+def add_product(db):
     product = {
         "product_category_id": 1,
         "product": "Product",
@@ -39,8 +39,7 @@ def add_stock_product(db):
         "user_id": 1
     }
 
-    db.call_procedure("AddStockProduct",
-                        tuple(product.values()))
+    db.call_procedure("AddProduct", tuple(product.values()))
     result = {}
     for row in db:
         result = {
@@ -49,7 +48,7 @@ def add_stock_product(db):
     result.update(product)
     return result
 
-def fetch_stock_product(db):
+def fetch_product(db):
     db.execute("""SELECT id AS product_id,
                             product_category_id,
                             product,

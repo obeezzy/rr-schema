@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
+from decimal import Decimal
 
 class AddPurchasePayment(StoredProcedureTestCase):
     def test_add_purchase_payment(self):
@@ -33,7 +33,7 @@ class AddPurchasePayment(StoredProcedureTestCase):
 def add_purchase_payment(db):
     purchasePayment = {
         "purchase_transaction_id": 1,
-        "amount": locale.currency(100.30),
+        "amount": Decimal("100.30"),
         "payment_method": "cash",
         "currency": "NGN",
         "note_id": 1,

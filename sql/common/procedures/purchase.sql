@@ -1,11 +1,11 @@
 CREATE OR REPLACE FUNCTION ViewPurchaseTransactions (
-    IN iFrom TIMESTAMP DEFAULT '1970-01-01 00:00:00',
+    IN iFrom TIMESTAMP DEFAULT CURRENT_TIMESTAMP - INTERVAL '1 day',
     IN iTo TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     IN iSuspended BOOLEAN DEFAULT FALSE,
     IN iArchived BOOLEAN DEFAULT FALSE
-) RETURNS TABLE(purchase_transaction_id BIGINT, vendor_name VARCHAR(100), vendor_id BIGINT,
-                discount MONEY, suspended BOOLEAN, note_id BIGINT,
-                total_amount MONEY, note VARCHAR(200), archived BOOLEAN,
+) RETURNS TABLE(purchase_transaction_id BIGINT, vendor_name TEXT, vendor_id BIGINT,
+                discount NUMERIC(19,2), suspended BOOLEAN, note_id BIGINT,
+                total_amount NUMERIC(19,2), note TEXT, archived BOOLEAN,
                 created TIMESTAMP, last_edited TIMESTAMP, user_id BIGINT)
 AS $$
 BEGIN
@@ -35,9 +35,9 @@ $$ LANGUAGE plpgsql;
 ---
 
 CREATE OR REPLACE FUNCTION AddPurchaseTransaction (
-    IN iVendorName VARCHAR(100),
+    IN iVendorName TEXT,
     IN iVendorId BIGINT,
-    IN iDiscount MONEY,
+    IN iDiscount NUMERIC(19,2),
     IN iSuspended BOOLEAN,
     IN iNoteId BIGINT,
     IN iUserId BIGINT
@@ -62,9 +62,9 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION AddPurchasePayment (
     IN iPurchaseTransactionId BIGINT,
-    IN iAmount MONEY,
+    IN iAmount NUMERIC(19,2),
     IN iPaymentMethod PAYMENT_METHOD,
-    IN iCurrency VARCHAR(4),
+    IN iCurrency TEXT,
     IN iNoteId BIGINT,
     IN iUserId BIGINT
 ) RETURNS BIGINT
@@ -90,11 +90,11 @@ CREATE OR REPLACE FUNCTION AddPurchasedProduct (
     IN iPurchaseTransactionId BIGINT,
     IN iProductId BIGINT,
     IN iProductUnitId BIGINT,
-    IN iQuantity DOUBLE PRECISION,
-    IN iUnitPrice MONEY,
-    IN iCost MONEY,
-    IN iDiscount MONEY,
-    IN iCurrency VARCHAR(4),
+    IN iQuantity REAL,
+    IN iUnitPrice NUMERIC(19,2),
+    IN iCost NUMERIC(19,2),
+    IN iDiscount NUMERIC(19,2),
+    IN iCurrency TEXT,
     IN iUserId BIGINT
 ) RETURNS BIGINT
 AS $$
@@ -137,7 +137,7 @@ CREATE OR REPLACE FUNCTION RevertPurchaseQuantityUpdate (
     IN iUserId BIGINT
 ) RETURNS void
 AS $$
-    UPDATE current_product_quantity AS cpq
+    UPDATE product_quantity AS cpq
         SET quantity = cpq.quantity - pp.quantity,
             user_id = iUserId
         FROM purchased_product pp, purchase_transaction pt
@@ -152,12 +152,12 @@ CREATE OR REPLACE FUNCTION ViewPurchaseTransactionProducts (
     IN iPurchaseTransactionId BIGINT,
     IN iSuspended BOOLEAN DEFAULT FALSE,
     IN iArchived BOOLEAN DEFAULT FALSE
-) RETURNS TABLE(product_category_id BIGINT, product_category VARCHAR(100), product_id BIGINT,
-                product VARCHAR(100), quantity DOUBLE PRECISION, unit_price MONEY,
-                product_unit_id BIGINT, product_unit VARCHAR(100), cost MONEY,
-                discount MONEY, currency VARCHAR(4), note_id BIGINT,
-                note VARCHAR(200), archived BOOLEAN, created TIMESTAMP,
-                last_edited TIMESTAMP, user_id BIGINT, username VARCHAR(100))
+) RETURNS TABLE(product_category_id BIGINT, product_category TEXT, product_id BIGINT,
+                product TEXT, quantity REAL, unit_price NUMERIC(19,2),
+                product_unit_id BIGINT, product_unit TEXT, cost NUMERIC(19,2),
+                discount NUMERIC(19,2), currency TEXT, note_id BIGINT,
+                note TEXT, archived BOOLEAN, created TIMESTAMP,
+                last_edited TIMESTAMP, user_id BIGINT, username TEXT)
 AS $$
 BEGIN
     RETURN QUERY SELECT product_category.id AS product_category_id,
@@ -197,13 +197,13 @@ CREATE OR REPLACE FUNCTION ViewPurchaseCart (
     IN iPurchaseTransactionId BIGINT,
     IN iPurchaseTransactionArchived BOOLEAN,
     IN iPurchasedProductArchived BOOLEAN
-) RETURNS TABLE(purchase_transaction_id BIGINT, vendor_name VARCHAR(100), vendor_id BIGINT,
-                vendor_phone_number VARCHAR(100), suspended BOOLEAN, note_id BIGINT,
-                note VARCHAR(200), product_category_id BIGINT, product_category VARCHAR(100),
-                product_id BIGINT, product VARCHAR(100), unit_price MONEY,
-                quantity DOUBLE PRECISION, available_quantity DOUBLE PRECISION, product_unit_id BIGINT,
-                product_unit VARCHAR(100), cost_price MONEY, retail_price MONEY,
-                cost MONEY, discount MONEY, currency VARCHAR(4),
+) RETURNS TABLE(purchase_transaction_id BIGINT, vendor_name TEXT, vendor_id BIGINT,
+                vendor_phone_number TEXT, suspended BOOLEAN, note_id BIGINT,
+                note TEXT, product_category_id BIGINT, product_category TEXT,
+                product_id BIGINT, product TEXT, unit_price NUMERIC(19,2),
+                quantity REAL, available_quantity REAL, product_unit_id BIGINT,
+                product_unit TEXT, cost_price NUMERIC(19,2), retail_price NUMERIC(19,2),
+                cost NUMERIC(19,2), discount NUMERIC(19,2), currency TEXT,
                 created TIMESTAMP, last_edited TIMESTAMP, user_id BIGINT)
 AS $$
 BEGIN
@@ -220,7 +220,7 @@ BEGIN
             product.product AS product,
             purchased_product.unit_price AS unit_price,
             purchased_product.quantity AS quantity,
-            current_product_quantity.quantity AS available_quantity,
+            product_quantity.quantity AS available_quantity,
             product_unit.id AS product_unit_id,
             product_unit.unit AS product_unit,
             product_unit.cost_price AS cost_price,
@@ -235,7 +235,7 @@ BEGIN
     INNER JOIN purchase_transaction ON purchased_product.purchase_transaction_id = purchase_transaction.id
     INNER JOIN product ON purchased_product.product_id = product.id
     INNER JOIN product_unit ON purchased_product.product_id = product_unit.product_id
-    INNER JOIN current_product_quantity ON purchased_product.product_id = current_product_quantity.product_id
+    INNER JOIN product_quantity ON purchased_product.product_id = product_quantity.product_id
     INNER JOIN product_category ON product.product_category_id = product_category.id
     LEFT JOIN vendor ON purchase_transaction.vendor_id = vendor.id
     LEFT JOIN client ON vendor.client_id = client.id
@@ -268,7 +268,7 @@ CREATE OR REPLACE FUNCTION UndoRevertPurchaseQuantityUpdate (
     IN iUserId BIGINT
 ) RETURNS void
 AS $$
-    UPDATE current_product_quantity AS cpq
+    UPDATE product_quantity AS cpq
         SET quantity = cpq.quantity + pp.quantity,
             user_id = iUserId
         FROM purchased_product pp, purchase_transaction pt
@@ -282,9 +282,9 @@ $$ LANGUAGE sql;
 CREATE OR REPLACE FUNCTION ViewPurchaseReport (
     IN iFrom TIMESTAMP DEFAULT '1970-01-01 00:00:00',
     IN iTo TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) RETURNS TABLE(product_category_id BIGINT, product_category VARCHAR(100), product_id BIGINT,
-                product VARCHAR(100), quantity_bought DOUBLE PRECISION, product_unit_id BIGINT,
-                product_unit VARCHAR(100), total_expenditure MONEY)
+) RETURNS TABLE(product_category_id BIGINT, product_category TEXT, product_id BIGINT,
+                product TEXT, quantity_bought REAL, product_unit_id BIGINT,
+                product_unit TEXT, total_expenditure NUMERIC(19,2))
 AS $$
 BEGIN
     RETURN QUERY SELECT product_category.id AS product_category_id,
@@ -304,7 +304,7 @@ BEGIN
     FROM product p
     INNER JOIN product_category ON p.product_category_id = product_category.id
     INNER JOIN product_unit ON p.id = product_unit.product_id
-    INNER JOIN current_product_quantity ON p.id = current_product_quantity.product_id
+    INNER JOIN product_quantity ON p.id = product_quantity.product_id
     LEFT JOIN rr_user ON p.user_id = rr_user.id
     WHERE p.archived = FALSE
         AND product_unit.base_unit_equivalent = 1
@@ -315,15 +315,15 @@ $$ LANGUAGE plpgsql;
 ---
 
 CREATE OR REPLACE FUNCTION FilterPurchaseReport (
-    IN iFilterColumn VARCHAR(20),
-    IN iFilterText VARCHAR(100),
-    IN iSortColumn VARCHAR(20),
-    IN iSortOrder VARCHAR(15),
+    IN iFilterColumn TEXT,
+    IN iFilterText TEXT,
+    IN iSortColumn TEXT,
+    IN iSortOrder TEXT,
     IN iFrom TIMESTAMP DEFAULT '1970-01-01 00:00:00',
     IN iTo TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) RETURNS TABLE(product_id BIGINT, product_category_id BIGINT, product_category VARCHAR(100),
-                product VARCHAR(100), quantity_bought DOUBLE PRECISION, product_unit_id BIGINT,
-                product_unit VARCHAR(100), total_expenditure MONEY)
+) RETURNS TABLE(product_id BIGINT, product_category_id BIGINT, product_category TEXT,
+                product TEXT, quantity_bought REAL, product_unit_id BIGINT,
+                product_unit TEXT, total_expenditure NUMERIC(19,2))
 AS $$
 BEGIN
     RETURN QUERY SELECT p.id AS product_id,
@@ -343,7 +343,7 @@ BEGIN
         FROM product p
         INNER JOIN product_category ON p.product_category_id = product_category.id
         INNER JOIN product_unit ON p.id = product_unit.product_id
-        INNER JOIN current_product_quantity ON p.id = current_product_quantity.product_id
+        INNER JOIN product_quantity ON p.id = product_quantity.product_id
         LEFT JOIN rr_user ON p.user_id = rr_user.id
         WHERE p.archived = FALSE
         AND product_unit.base_unit_equivalent = 1

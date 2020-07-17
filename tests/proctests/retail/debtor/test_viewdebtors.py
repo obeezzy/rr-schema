@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime
 
@@ -31,20 +30,20 @@ def add_first_debtor(db):
                                             transactionTable="debtor")
     debtPayment1 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=locale.currency(420),
-                                    amountPaid=locale.currency(60))
+                                    totalDebt=420,
+                                    amountPaid=60)
     debtPayment2 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=locale.currency(360),
-                                    amountPaid=locale.currency(300)) # 60
+                                    totalDebt=360,
+                                    amountPaid=300) # 60
 
     debtTransaction2 = add_debt_transaction(db=db,
                                             debtorId=debtor["debtor_id"],
                                             transactionTable="debtor")
     debtPayment3 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction2["debt_transaction_id"],
-                                    totalDebt=locale.currency(240),
-                                    amountPaid=locale.currency(40)) # 200
+                                    totalDebt=240,
+                                    amountPaid=40) # 200
 
     return {
         "debtor_id": debtor["debtor_id"],
@@ -67,16 +66,16 @@ def add_second_debtor(db):
                                             transactionTable="debtor")
     debtPayment1 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=locale.currency(1400),
-                                    amountPaid=locale.currency(200))
+                                    totalDebt=1400,
+                                    amountPaid=200)
 
     debtTransaction2 = add_debt_transaction(db=db,
                                             debtorId=debtor["debtor_id"],
                                             transactionTable="debtor")
     debtPayment2 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction2["debt_transaction_id"],
-                                    totalDebt=locale.currency(600),
-                                    amountPaid=locale.currency(200))
+                                    totalDebt=600,
+                                    amountPaid=200)
 
     return {
         "debtor_id": debtor["debtor_id"],
@@ -99,40 +98,40 @@ def add_third_debtor(db):
                                             transactionTable="debtor")
     debtPayment1 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=locale.currency(3000),
-                                    amountPaid=locale.currency(1000))
+                                    totalDebt=3000,
+                                    amountPaid=1000)
     debtPayment2 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction1["debt_transaction_id"],
-                                    totalDebt=locale.currency(2000),
-                                    amountPaid=locale.currency(500))
+                                    totalDebt=2000,
+                                    amountPaid=500)
 
     debtTransaction2 = add_debt_transaction(db=db,
                                             debtorId=debtor["debtor_id"],
                                             transactionTable="debtor")
     debtPayment3 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction2["debt_transaction_id"],
-                                    totalDebt=locale.currency(240),
-                                    amountPaid=locale.currency(40))
+                                    totalDebt=240,
+                                    amountPaid=40)
 
     debtTransaction3 = add_debt_transaction(db=db,
                                             debtorId=debtor["debtor_id"],
                                             transactionTable="debtor")
     debtPayment4 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction3["debt_transaction_id"],
-                                    totalDebt=locale.currency(2200),
-                                    amountPaid=locale.currency(200))
+                                    totalDebt=2200,
+                                    amountPaid=200)
     debtPayment5 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction3["debt_transaction_id"],
-                                    totalDebt=locale.currency(2000),
-                                    amountPaid=locale.currency(500))
+                                    totalDebt=2000,
+                                    amountPaid=500)
     debtPayment6 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction3["debt_transaction_id"],
-                                    totalDebt=locale.currency(1500),
-                                    amountPaid=locale.currency(300))
+                                    totalDebt=1500,
+                                    amountPaid=300)
     debtPayment7 = add_debt_payment(db=db,
                                     debtTransactionId=debtTransaction3["debt_transaction_id"],
-                                    totalDebt=locale.currency(1200),
-                                    amountPaid=locale.currency(1200))
+                                    totalDebt=1200,
+                                    amountPaid=1200)
 
     return {
         "debtor_id": debtor["debtor_id"],

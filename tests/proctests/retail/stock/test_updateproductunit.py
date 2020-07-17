@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
+from decimal import Decimal
 
-class UpdateStockProductUnit(StoredProcedureTestCase):
-    def test_update_stock_product_unit(self):
+class UpdateProductUnit(StoredProcedureTestCase):
+    def test_update_product_unit(self):
         product = add_product(db=self.db,
                                 productCategoryId=1,
                                 product="Cannabis")
@@ -12,8 +12,8 @@ class UpdateStockProductUnit(StoredProcedureTestCase):
                                         productId=product["product_id"],
                                         unit="gram(s)",
                                         shortForm="Kush",
-                                        costPrice=locale.currency(3882.18),
-                                        retailPrice=locale.currency(4819.57))
+                                        costPrice=Decimal("3882.18"),
+                                        retailPrice=Decimal("4819.57"))
         fetchedProductUnit = fetch_product_unit(db=self.db)
 
         self.assertEqual(fetchedProductUnit["product_unit_id"],
@@ -44,12 +44,12 @@ class UpdateStockProductUnit(StoredProcedureTestCase):
                             productUnit["user_id"],
                             "User ID mismatch.")
 
-        updatedProductUnit = update_stock_product_unit(db=self.db,
+        updatedProductUnit = update_product_unit(db=self.db,
                                                         productId=product["product_id"],
                                                         unit="gram(s)",
                                                         shortForm="Kush",
-                                                        costPrice=locale.currency(1000.38),
-                                                        retailPrice=locale.currency(2000.84))
+                                                        costPrice=Decimal("1000.38"),
+                                                        retailPrice=Decimal("2000.84"))
         fetchedProductUnit = fetch_product_unit(db=self.db)
 
         self.assertEqual(fetchedProductUnit["product_id"],
@@ -147,15 +147,15 @@ def add_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, bas
             "short_form": row["short_form"],
             "base_unit_equivalent": row["base_unit_equivalent"],
             "preferred": row["preferred"],
-            "cost_price": row["cost_price"].replace(",", ""),
-            "retail_price": row["retail_price"].replace(",", ""),
+            "cost_price": row["cost_price"],
+            "retail_price": row["retail_price"],
             "currency": row["currency"],
             "note_id": row["note_id"],
             "user_id": row["user_id"]
         }
     return result
 
-def update_stock_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
+def update_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
     productUnit = {
         "product_id": productId,
         "unit": unit,
@@ -169,7 +169,7 @@ def update_stock_product_unit(db, productId, unit, shortForm, costPrice, retailP
         "user_id": 1
     }
 
-    db.call_procedure("UpdateStockProductUnit", tuple(productUnit.values()))
+    db.call_procedure("UpdateProductUnit", tuple(productUnit.values()))
     return productUnit
 
 def fetch_product_unit(db):
@@ -192,8 +192,8 @@ def fetch_product_unit(db):
             "product_id": row["product_id"],
             "unit": row["unit"],
             "short_form": row["short_form"],
-            "cost_price": row["cost_price"].replace(",", ""),
-            "retail_price": row["retail_price"].replace(",", ""),
+            "cost_price": row["cost_price"],
+            "retail_price": row["retail_price"],
             "base_unit_equivalent": row["base_unit_equivalent"],
             "preferred": row["preferred"],
             "currency": row["currency"],

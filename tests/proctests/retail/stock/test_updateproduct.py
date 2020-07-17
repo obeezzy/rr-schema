@@ -2,8 +2,8 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase
 
-class UpdateStockProduct(StoredProcedureTestCase):
-    def test_update_stock_product(self):
+class UpdateProduct(StoredProcedureTestCase):
+    def test_update_product(self):
         product = add_product(self.db,
                                 productCategoryId=1,
                                 product="Daylyt")
@@ -40,14 +40,14 @@ class UpdateStockProduct(StoredProcedureTestCase):
                             product["user_id"],
                             "User ID mismatch.")
 
-        updatedProduct = update_stock_product(db=self.db,
-                                                productCategoryId=1,
-                                                productId=1,
-                                                product="Ill Mac",
-                                                shortForm="Day",
-                                                description="Battle rapper",
-                                                barcode="barcode",
-                                                divisible=True)
+        updatedProduct = update_product(db=self.db,
+                                        productCategoryId=1,
+                                            productId=1,
+                                            product="Ill Mac",
+                                            shortForm="Day",
+                                            description="Battle rapper",
+                                            barcode="barcode",
+                                            divisible=True)
         fetchedProduct = fetch_product(db=self.db)
 
         self.assertEqual(fetchedProduct["product_id"],
@@ -108,7 +108,7 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def update_stock_product(db, productCategoryId, productId, product, shortForm, description, barcode, divisible=True):
+def update_product(db, productCategoryId, productId, product, shortForm, description, barcode, divisible=True):
     note = {
         "product_category_id": productCategoryId,
         "product_id": productId,
@@ -122,7 +122,7 @@ def update_stock_product(db, productCategoryId, productId, product, shortForm, d
         "user_id": 1
     }
 
-    db.call_procedure("UpdateStockProduct", tuple(note.values()))
+    db.call_procedure("UpdateProduct", tuple(note.values()))
     return note
 
 def fetch_product(db):

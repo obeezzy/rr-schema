@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 import unittest
-import locale
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date, timedelta
+from decimal import Decimal
 
 class ViewIncomeReport(StoredProcedureTestCase):
     def test_view_income_report(self):
         incomeTransaction1 = add_income_transaction(db=self.db,
                                                         clientName="Jack Dorsey",
                                                         purpose="Buy Twitter",
-                                                        amount=locale.currency(40))
+                                                        amount=Decimal("40.00"))
         incomeTransaction2 = add_income_transaction(db=self.db,
                                                         clientName="Elon Musk",
                                                         purpose="Buy Tesla",
-                                                        amount=locale.currency(90))
+                                                        amount=Decimal("90.00"))
         incomeTransaction3 = add_income_transaction(db=self.db,
                                                         clientName="Mark Zuckerberg",
                                                         purpose="Buy Facebook",
-                                                        amount=locale.currency(190))
+                                                        amount=Decimal("190.00"))
 
         today = date.today()
         tomorrow = today + timedelta(days=1)

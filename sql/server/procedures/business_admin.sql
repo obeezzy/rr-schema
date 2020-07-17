@@ -1,9 +1,9 @@
 CREATE OR REPLACE FUNCTION AddBusinessAdmin (
-    IN iEmailAddress VARCHAR(100),
-    IN iFirstName VARCHAR(100),
-    IN iLastName VARCHAR(100),
+    IN iEmailAddress TEXT,
+    IN iFirstName TEXT,
+    IN iLastName TEXT,
     IN iPhoto BYTEA,
-    IN iPhoneNumber VARCHAR(100)
+    IN iPhoneNumber TEXT
 ) RETURNS TABLE(business_admin_id BIGINT)
 AS $$
 BEGIN
@@ -28,8 +28,8 @@ $$ LANGUAGE plpgsql;
 ---
 
 CREATE OR REPLACE FUNCTION FetchBusinessAdmin (
-    IN iEmailAddress VARCHAR(100)
-) RETURNS TABLE(email_address VARCHAR(100))
+    IN iEmailAddress TEXT
+) RETURNS TABLE(email_address TEXT)
 AS $$
 BEGIN
     RETURN QUERY SELECT ba.id AS business_admin_id,

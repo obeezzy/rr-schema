@@ -17,10 +17,10 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION AddDebtPayment (
     IN iDebtTransactionId BIGINT,
-    IN iTotalDebt MONEY,
-    IN iAmountPaid MONEY,
-    IN iBalance MONEY,
-    IN iCurrency VARCHAR(4),
+    IN iTotalDebt NUMERIC(19,2),
+    IN iAmountPaid NUMERIC(19,2),
+    IN iBalance NUMERIC(19,2),
+    IN iCurrency TEXT,
     IN iDueDateTime TIMESTAMP,
     IN iNoteId BIGINT,
     IN iUserId BIGINT
@@ -49,7 +49,7 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION AddDebtTransaction (
     IN iDebtorId BIGINT,
-    IN iTransactionTable VARCHAR(20),
+    IN iTransactionTable TEXT,
     IN iTransactionId BIGINT,
     IN iNoteId BIGINT,
     IN iUserId BIGINT
@@ -72,7 +72,7 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION ArchiveDebtTransactionByTransactionTable (
     IN iArchived BOOLEAN,
-    IN iTransactionTable VARCHAR(40),
+    IN iTransactionTable TEXT,
     IN iTransactionId BIGINT,
     IN iUserId BIGINT
 ) RETURNS void
@@ -102,10 +102,10 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION UpdateDebtPayment (
     IN iDebtPaymentId BIGINT,
-    IN iTotalDebt MONEY,
-    IN iAmountPaid MONEY,
-    IN iBalance MONEY,
-    IN iCurrency VARCHAR(4),
+    IN iTotalDebt NUMERIC(19,2),
+    IN iAmountPaid NUMERIC(19,2),
+    IN iBalance NUMERIC(19,2),
+    IN iCurrency TEXT,
     IN iDueDateTime TIMESTAMP,
     IN iUserId BIGINT
 ) RETURNS void 
@@ -153,15 +153,26 @@ $$ LANGUAGE plpgsql;
 ---
 
 CREATE OR REPLACE FUNCTION FilterDebtorsByName (
-    IN iFilterColumn VARCHAR(100),
-    IN iFilterText VARCHAR(100),
-    IN iSortColumn VARCHAR(100),
-    IN iSortOrder VARCHAR(15),
+    IN iFilterColumn TEXT,
+    IN iFilterText TEXT,
+    IN iSortColumn TEXT,
+    IN iSortOrder TEXT,
     IN iArchived BOOLEAN DEFAULT FALSE
-) RETURNS TABLE(debtor_id BIGINT, preferred_name VARCHAR(100), first_name VARCHAR(100), last_name VARCHAR(100), total_balance MONEY, balance MONEY)
+) RETURNS TABLE(debtor_id BIGINT,
+                preferred_name TEXT,
+                first_name TEXT,
+                last_name TEXT,
+                total_balance NUMERIC(19,2),
+                balance NUMERIC(19,2))
 AS $$
 BEGIN
-    RETURN QUERY SELECT id AS debtor_id FROM debtor;
+    RETURN QUERY SELECT id AS debtor_id,
+        '' AS preferred_name,
+        '' AS first_name,
+        '' AS last_name,
+        0 AS total_balance,
+        0 AS balance
+    FROM debtor;
 END
 $$ LANGUAGE plpgsql;
 
@@ -208,7 +219,7 @@ $$ LANGUAGE sql;
 CREATE OR REPLACE FUNCTION FetchDebtor (
     IN iDebtorId BIGINT,
     IN iArchived BOOLEAN DEFAULT FALSE
-) RETURNS TABLE(debtor_id BIGINT, first_name VARCHAR(100), last_name VARCHAR(100), preferred_name VARCHAR(100), phone_number VARCHAR(100), note VARCHAR(100), user_id BIGINT)
+) RETURNS TABLE(debtor_id BIGINT, first_name TEXT, last_name TEXT, preferred_name TEXT, phone_number TEXT, note TEXT, user_id BIGINT)
 AS $$
 BEGIN
     RETURN QUERY SELECT debtor.id AS debtor_id,
@@ -231,9 +242,9 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION ViewDebtTransactions (
     IN iDebtorId BIGINT,
     IN iArchived BOOLEAN DEFAULT FALSE
-) RETURNS TABLE(debt_transaction_id BIGINT, debtor_id BIGINT, related_transaction_table VARCHAR(100), related_transaction_id BIGINT,
-                debt_transaction_created TIMESTAMP, debt_payment_id BIGINT, total_debt MONEY,
-                amount_paid MONEY, balance MONEY, currency VARCHAR(4),
+) RETURNS TABLE(debt_transaction_id BIGINT, debtor_id BIGINT, related_transaction_table TEXT, related_transaction_id BIGINT,
+                debt_transaction_created TIMESTAMP, debt_payment_id BIGINT, total_debt NUMERIC(19,2),
+                amount_paid NUMERIC(19,2), balance NUMERIC(19,2), currency TEXT,
                 due_date_time TIMESTAMP, debt_transaction_note_id BIGINT, debt_payment_note_id BIGINT,
                 archived BOOLEAN, debt_payment_created TIMESTAMP)
 AS $$
@@ -267,7 +278,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ViewDebtors (
     IN iArchived BIGINT
-) RETURNS TABLE(debtor_id BIGINT, preferred_name VARCHAR(100), first_name VARCHAR(100), last_name VARCHAR(100))
+) RETURNS TABLE(debtor_id BIGINT, preferred_name TEXT, first_name TEXT, last_name TEXT)
 AS $$
 BEGIN
     RETURN QUERY SELECT DISTINCT
@@ -304,9 +315,9 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION ViewDebtPayments (
     IN iDebtTransactionId BIGINT,
     IN iArchived BOOLEAN DEFAULT FALSE
-) RETURNS TABLE(debt_transaction_id BIGINT, debt_payment_id BIGINT, total_debt MONEY,
-                amount_paid MONEY, balance MONEY, currency VARCHAR(4),
-                due_date_time TIMESTAMP, note_id BIGINT, note VARCHAR(200),
+) RETURNS TABLE(debt_transaction_id BIGINT, debt_payment_id BIGINT, total_debt NUMERIC(19,2),
+                amount_paid NUMERIC(19,2), balance NUMERIC(19,2), currency TEXT,
+                due_date_time TIMESTAMP, note_id BIGINT, note TEXT,
                 archived BOOLEAN, created TIMESTAMP, last_edited TIMESTAMP)
 AS $$
 BEGIN

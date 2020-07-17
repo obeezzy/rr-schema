@@ -2,12 +2,12 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase
 
-class AddOrUpdateStockProductCategory(StoredProcedureTestCase):
-    def test_add_or_update_stock_product_category(self):
-        addedProductCategory = add_or_update_stock_product_category(db=self.db,
+class AddOrUpdateProductCategory(StoredProcedureTestCase):
+    def test_add_or_update__product_category(self):
+        addedProductCategory = add_or_update__product_category(db=self.db,
                                                                     category="Superheroes",
                                                                     shortForm="hero")
-        fetchedProductCategory = fetch_stock_product_category(self.db)
+        fetchedProductCategory = fetch__product_category(self.db)
 
         self.assertEqual(addedProductCategory["product_category_id"],
                             fetchedProductCategory["product_category_id"],
@@ -25,14 +25,14 @@ class AddOrUpdateStockProductCategory(StoredProcedureTestCase):
                             1,
                             "Product category mismatch.")
 
-def add_or_update_stock_product_category(db, category, shortForm):
+def add_or_update__product_category(db, category, shortForm):
     productCategory = {
         "category": category,
         "short_form": shortForm,
         "note_id": 1,
         "user_id": 1
     }
-    db.call_procedure("AddOrUpdateStockProductCategory", 
+    db.call_procedure("AddOrUpdateProductCategory", 
                         tuple(productCategory.values()))
     result = {}
     for row in db:
@@ -42,7 +42,7 @@ def add_or_update_stock_product_category(db, category, shortForm):
     result.update(productCategory)
     return result
 
-def fetch_stock_product_category(db):
+def fetch__product_category(db):
     db.execute("""SELECT id AS product_category_id,
                             category,
                             short_form,
