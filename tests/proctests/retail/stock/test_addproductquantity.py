@@ -16,19 +16,21 @@ class AddProductQuantity(StoredProcedureTestCase):
                                         retailPrice=943.28)
         productQuantity = add_product_quantity(db=self.db,
                                                 productId=product["product_id"],
-                                                quantity=200.5)
-        newQuantity = 200.125
-        add_product_quantity_snapshot(db=self.db,
-                                        productId=product["product_id"],
-                                        quantity=newQuantity,
-                                        reason="sale_transaction")
-        fetchedProductQuantitySnapshot = fetch_product_quantity_snapshot(db=self.db, productId=product["product_id"])
-        fetchedProductQuantity = fetch_product_quantity(db=self.db, productId=product["product_id"])
+                                                quantity=200.5,
+                                                reason="sale_transaction")
+        fetchedProductQuantitySnapshot = fetch_product_quantity_snapshot(self.db,
+                                                                            productId=product["product_id"])
+        fetchedProductQuantity = fetch_product_quantity(self.db,
+                                                        productId=product["product_id"])
 
-        self.assertGreater(len(fetchedProductQuantitySnapshot), 0, "Expected 1 row.")
-        self.assertGreater(len(fetchedProductQuantity), 0, "Expected 1 row.")
-        self.assertEqual(fetchedProductQuantity["quantity"],
-                            productQuantity["quantity"] + newQuantity,
+        self.assertEqual(fetchedProductQuantitySnapshot["product_id"], fetchedProductQuantity["product_id"], "Product ID mismatch.")
+        self.assertEqual(fetchedProductQuantitySnapshot["quantity"], fetchedProductQuantity["quantity"], "Quantity mismatch.")
+        self.assertEqual(fetchedProductQuantitySnapshot["reason"], "sale_transaction", "Reason mismatch.")
+        self.assertEqual(fetchedProductQuantitySnapshot["created"], fetchedProductQuantity["created"], "Created date mismatch.")
+        self.assertEqual(fetchedProductQuantitySnapshot["last_edited"], fetchedProductQuantity["last_edited"], "Last edited date mismatch.")
+        self.assertEqual(fetchedProductQuantitySnapshot["user_id"], fetchedProductQuantity["user_id"], "User ID mismatch.")
+        self.assertEqual(productQuantity["product_quantity_id"],
+                            1,
                             "Quantity mismatch.")
 
 def add_product_category(db, category):
@@ -122,43 +124,28 @@ def add_product_unit(db, productId, unit, costPrice, retailPrice, baseUnitEquiva
         }
     return result
 
-def add_product_quantity(db, productId, quantity):
-    currentProductQuantity = {
+def add_product_quantity(db, productId, quantity, reason):
+    productQuantity = {
         "product_id": productId,
         "quantity": quantity,
+        "reason": reason,
         "user_id": 1
     }
 
-    db.execute("""INSERT INTO product_quantity (product_id,
-                                                        quantity,
-                                                        user_id)
-                VALUES (%s, %s, %s)
-                RETURNING id AS product_quantity_id,
-                    product_id,
-                    quantity,
-                    user_id""", tuple(currentProductQuantity.values()))
+    db.call_procedure("AddProductQuantity", tuple(productQuantity.values()))
     result = {}
     for row in db:
         result = {
-            "product_quantity_id": row["product_quantity_id"],
-            "product_id": row["product_id"],
-            "quantity": row["quantity"],
-            "user_id": row["user_id"]
-        }
-    return result
-
-def add_product_quantity_snapshot(db, productId, quantity, reason, userId=1):
-    db.call_procedure("AddProductQuantity", [productId, quantity, reason, userId])
-    result = {}
-    for row in db:
-        result = {
-            "new_quantity": row[0]
+            "product_quantity_id": row["product_quantity_id"]
         }
     return result
 
 def fetch_product_quantity_snapshot(db, productId):
     db.execute("""SELECT product_id,
                             quantity,
+                            reason,
+                            created,
+                            last_edited,
                             user_id
                 FROM product_quantity_snapshot
                 WHERE product_id = %s""", [productId])
@@ -167,6 +154,9 @@ def fetch_product_quantity_snapshot(db, productId):
         result = {
             "product_id": row["product_id"],
             "quantity": row["quantity"],
+            "reason": row["reason"],
+            "created": row["created"],
+            "last_edited": row["last_edited"],
             "user_id": row["user_id"]
         }
     return result
@@ -174,6 +164,8 @@ def fetch_product_quantity_snapshot(db, productId):
 def fetch_product_quantity(db, productId):
     db.execute("""SELECT product_id,
                             quantity,
+                            created,
+                            last_edited,
                             user_id
                 FROM product_quantity
                 WHERE product_id = %s""", [productId])
@@ -182,6 +174,8 @@ def fetch_product_quantity(db, productId):
         result = {
             "product_id": row["product_id"],
             "quantity": row["quantity"],
+            "created": row["created"],
+            "last_edited": row["last_edited"],
             "user_id": row["user_id"]
         }
     return result
