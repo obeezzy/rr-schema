@@ -21,7 +21,7 @@ CREATE OR REPLACE FUNCTION ViewProducts (
                 product TEXT, description TEXT, divisible BOOLEAN,
                 image BYTEA, quantity REAL, product_unit_id BIGINT,
                 product_unit TEXT, cost_price NUMERIC(19,2), retail_price NUMERIC(19,2),
-                currency TEXT, created TIMESTAMP, last_edited TIMESTAMP,
+                currency VARCHAR(4), created TIMESTAMP, last_edited TIMESTAMP,
                 user_id BIGINT, username TEXT)
 AS $$
 BEGIN
@@ -92,7 +92,7 @@ CREATE OR REPLACE FUNCTION FilterProducts (
                 product TEXT, description TEXT, divisible BOOLEAN,
                 image BYTEA, quantity REAL, product_unit_id BIGINT,
                 product_unit TEXT, cost_price NUMERIC(19,2), retail_price NUMERIC(19,2),
-                currency TEXT, created TIMESTAMP, last_edited TIMESTAMP,
+                currency VARCHAR(4), created TIMESTAMP, last_edited TIMESTAMP,
                 user_id BIGINT, username TEXT)
 AS $$
 BEGIN
@@ -132,17 +132,17 @@ $$ LANGUAGE plpgsql;
 ---
 
 CREATE OR REPLACE FUNCTION FetchProductCount (
-    IN iProductCategory BIGINT,
+    IN iProductCategory BIGINT DEFAULT NULL,
     IN iArchived BOOLEAN DEFAULT FALSE
 ) RETURNS TABLE(product_count BIGINT)
 AS $$
 BEGIN
-    IF iProductCategory IS NULL OR iProductCategory < 1 THEN
+    IF iProductCategory IS NULL THEN
         RETURN QUERY SELECT COUNT(product.id) AS product_count
             FROM product
             INNER JOIN product_category ON product.product_category_id = product_category.id
             LEFT JOIN rr_user ON product.user_id = rr_user.id
-            WHERE product.archived = archived;
+            WHERE product.archived = iArchived;
     ELSE
         RETURN QUERY SELECT COUNT(product.id) AS product_count
             FROM product
@@ -195,13 +195,13 @@ BEGIN
                                             reason,
                                             last_edited,
                                             user_id)
-    SELECT product_quantity.product_id,
-            product_quantity.quantity,
+    SELECT pq.product_id,
+            pq.quantity,
             iReason,
             CURRENT_TIMESTAMP,
             iUserId
-    FROM product_quantity
-    WHERE product_quantity.product_id = iProductId;
+    FROM product_quantity pq
+    WHERE pq.product_id = iProductId;
 
     UPDATE product_quantity 
         SET quantity = quantity + iQuantity,
@@ -267,7 +267,7 @@ CREATE OR REPLACE FUNCTION FetchProduct (
                 product_unit TEXT,
                 cost_price NUMERIC(19,2),
                 retail_price NUMERIC(19,2),
-                currency TEXT,
+                currency VARCHAR(4),
                 created TIMESTAMP,
                 last_edited TIMESTAMP,
                 user_id BIGINT,
@@ -305,9 +305,9 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION AddOrUpdateProductCategory (
     IN iCategory TEXT,
-    IN iShortForm TEXT,
-    IN iNoteId BIGINT,
-    IN iUserId BIGINT
+    IN iUserId BIGINT,
+    IN iShortForm TEXT DEFAULT NULL,
+    IN iNoteId BIGINT DEFAULT NULL
 ) RETURNS TABLE(product_category_id BIGINT)
 AS $$
 BEGIN
@@ -386,7 +386,7 @@ CREATE OR REPLACE FUNCTION AddProductUnit (
     IN iCostPrice NUMERIC(19,2),
     IN iRetailPrice NUMERIC(19,2),
     IN iPreferred BOOLEAN,
-    IN iCurrency TEXT,
+    IN iCurrency VARCHAR(4),
     IN iNoteId BIGINT,
     IN iUserId BIGINT
 ) RETURNS TABLE(product_unit_id BIGINT)
@@ -471,7 +471,7 @@ CREATE OR REPLACE FUNCTION UpdateProductUnit (
     IN iCostPrice NUMERIC(19,2),
     IN iRetailPrice NUMERIC(19,2),
     IN iPreferred BOOLEAN,
-    IN iCurrency TEXT,
+    IN iCurrency VARCHAR(4),
     IN iNoteId BIGINT,
     IN iUserId BIGINT
 ) RETURNS void

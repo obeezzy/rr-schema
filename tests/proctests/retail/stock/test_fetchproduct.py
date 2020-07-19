@@ -2,6 +2,7 @@
 import unittest
 from proctests.utils import StoredProcedureTestCase
 from datetime import datetime, date
+from decimal import Decimal
 
 class FetchProduct(StoredProcedureTestCase):
     def test_fetch_product(self):
@@ -14,8 +15,8 @@ class FetchProduct(StoredProcedureTestCase):
         productUnit = add_product_unit(db=self.db,
                                         productId=product["product_id"],
                                         unit="unit(s)",
-                                        costPrice=285.28,
-                                        retailPrice=302.31)
+                                        costPrice=Decimal("285.28"),
+                                        retailPrice=Decimal("302.31"))
         currentProductQuantity = add_product_quantity(db=self.db,
                                                                 productId=product["product_id"],
                                                                 quantity=38.825)

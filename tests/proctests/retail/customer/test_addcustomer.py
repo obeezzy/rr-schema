@@ -4,6 +4,8 @@ from proctests.utils import StoredProcedureTestCase
 
 class AddCustomer(StoredProcedureTestCase):
     def test_add_customer(self):
+        addedClient = add_client(self.db)
+        addedNote = add_note(self.db)
         addedCustomer = add_customer(self.db)
         fetchedCustomer = fetch_customer(self.db)
 
@@ -11,6 +13,45 @@ class AddCustomer(StoredProcedureTestCase):
         self.assertEqual(addedCustomer["client_id"], fetchedCustomer["client_id"], "Client ID mismatch.")
         self.assertEqual(addedCustomer["note_id"], fetchedCustomer["note_id"], "Note ID mismatch.")
         self.assertEqual(addedCustomer["user_id"], fetchedCustomer["user_id"], "User ID mismatch.")
+
+def add_client(db):
+    client = {
+        "preferred_name": "Preferred name",
+        "phone_number": "1234",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO client (preferred_name,
+                                        phone_number,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS client_id""", tuple(client.values()))
+    result = {}
+    for row in db:
+        result = {
+            "client_id": row["client_id"]
+        }
+    result.update(client)
+    return result
+
+def add_note(db):
+    note = {
+        "note": "Note",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO note (note,
+                                    user_id)
+                VALUES (%s, %s)
+                RETURNING id AS note_id,
+                    note,
+                    user_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"]
+        }
+    return result
 
 def add_customer(db):
     customer = {

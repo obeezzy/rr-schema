@@ -64,12 +64,13 @@ CREATE OR REPLACE FUNCTION AddPurchasePayment (
     IN iPurchaseTransactionId BIGINT,
     IN iAmount NUMERIC(19,2),
     IN iPaymentMethod PAYMENT_METHOD,
-    IN iCurrency TEXT,
+    IN iCurrency VARCHAR(4),
     IN iNoteId BIGINT,
     IN iUserId BIGINT
-) RETURNS BIGINT
+) RETURNS TABLE(purchase_payment_id BIGINT)
 AS $$
-    INSERT INTO purchase_payment (purchase_transaction_id,
+BEGIN
+    RETURN QUERY INSERT INTO purchase_payment (purchase_transaction_id,
                                     amount,
                                     payment_method,
                                     currency,
@@ -82,7 +83,8 @@ AS $$
                 NULLIF(iNoteId, 0),
                 iUserId)
     RETURNING id AS purchase_payment_id;
-$$ LANGUAGE sql;
+END
+$$ LANGUAGE plpgsql;
 
 ---
 
@@ -94,7 +96,7 @@ CREATE OR REPLACE FUNCTION AddPurchasedProduct (
     IN iUnitPrice NUMERIC(19,2),
     IN iCost NUMERIC(19,2),
     IN iDiscount NUMERIC(19,2),
-    IN iCurrency TEXT,
+    IN iCurrency VARCHAR(4),
     IN iUserId BIGINT
 ) RETURNS BIGINT
 AS $$
@@ -155,7 +157,7 @@ CREATE OR REPLACE FUNCTION ViewPurchaseTransactionProducts (
 ) RETURNS TABLE(product_category_id BIGINT, product_category TEXT, product_id BIGINT,
                 product TEXT, quantity REAL, unit_price NUMERIC(19,2),
                 product_unit_id BIGINT, product_unit TEXT, cost NUMERIC(19,2),
-                discount NUMERIC(19,2), currency TEXT, note_id BIGINT,
+                discount NUMERIC(19,2), currency VARCHAR(4), note_id BIGINT,
                 note TEXT, archived BOOLEAN, created TIMESTAMP,
                 last_edited TIMESTAMP, user_id BIGINT, username TEXT)
 AS $$
@@ -203,7 +205,7 @@ CREATE OR REPLACE FUNCTION ViewPurchaseCart (
                 product_id BIGINT, product TEXT, unit_price NUMERIC(19,2),
                 quantity REAL, available_quantity REAL, product_unit_id BIGINT,
                 product_unit TEXT, cost_price NUMERIC(19,2), retail_price NUMERIC(19,2),
-                cost NUMERIC(19,2), discount NUMERIC(19,2), currency TEXT,
+                cost NUMERIC(19,2), discount NUMERIC(19,2), currency VARCHAR(4),
                 created TIMESTAMP, last_edited TIMESTAMP, user_id BIGINT)
 AS $$
 BEGIN

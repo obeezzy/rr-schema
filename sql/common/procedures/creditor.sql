@@ -49,20 +49,20 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION AddCreditTransaction (
     IN iCreditorId BIGINT,
-    IN iTransactionTable TEXT,
-    IN iTransactionId BIGINT,
+    IN iTableRef TEXT,
+    IN iTableId BIGINT,
     IN iNoteId BIGINT,
     IN iUserId BIGINT
 ) RETURNS BIGINT
 AS $$
     INSERT INTO credit_transaction (creditor_id,
-                                    transaction_table,
-                                    transaction_id,
+                                    table_ref,
+                                    table_id,
                                     note_id,
                                     user_id)
         VALUES (iCreditorId,
-                iTransactionTable,
-                iTransactionId,
+                iTableRef,
+                iTableId,
                 iNoteId,
                 iUserId)
         RETURNING id AS credit_transaction_id;
@@ -72,14 +72,14 @@ $$ LANGUAGE sql;
 
 CREATE OR REPLACE FUNCTION ArchiveCreditTransaction (
     IN iArchived BOOLEAN,
-    IN iTransactionTable TEXT,
-    IN iTransactionId BIGINT,
+    IN iTableRef TEXT,
+    IN iTableId BIGINT,
     IN iUserId BIGINT
 ) RETURNS void
 AS $$
     UPDATE credit_transaction
         SET archived = iArchived,
             user_id = iUserId
-    WHERE transaction_table = iTransactionTable
-        AND transaction_id = iTransactionId;
+    WHERE table_ref = iTableRef
+        AND table_id = iTableId;
 $$ LANGUAGE sql;

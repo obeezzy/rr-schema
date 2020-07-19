@@ -4,13 +4,15 @@ from proctests.utils import StoredProcedureTestCase
 
 class AddUser(StoredProcedureTestCase):
     def test_add_user(self):
+        addedNote = add_note(self.db)
         addedUser = add_user(db=self.db,
                                 user="superman2004",
                                 firstName="Christopher",
                                 lastName="Reeves",
                                 photo=None,
                                 phoneNumber="198389493",
-                                emailAddress="a@b.com")
+                                emailAddress="a@b.com",
+                                noteId=addedNote["note_id"])
         fetchedUser = fetch_user(db=self.db,
                                     userId=addedUser["user_id"])
 
@@ -23,7 +25,24 @@ class AddUser(StoredProcedureTestCase):
         self.assertEqual(addedUser["note_id"], fetchedUser["note_id"], "Note ID mismatch.")
         self.assertEqual(addedUser["user_id"], fetchedUser["user_id"], "User ID mismatch.")
 
-def add_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
+def add_note(db):
+    note = {
+        "note": "Note",
+        "user_id": 1
+    }
+    
+    db.execute("""INSERT INTO note (note,
+                                    user_id)
+                VALUES (%s, %s)
+                RETURNING id AS note_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"]
+        }
+    return result
+
+def add_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress, noteId):
     user = {
         "username": user,
         "first_name": firstName,
@@ -31,7 +50,7 @@ def add_user(db, user, firstName, lastName, photo, phoneNumber, emailAddress):
         "photo": photo,
         "phone_number": phoneNumber,
         "email_address": emailAddress,
-        "note_id": 1,
+        "note_id": noteId,
         "user_id": 1
     }
 

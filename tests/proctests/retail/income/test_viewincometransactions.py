@@ -77,8 +77,8 @@ def add_income_transaction(db, clientName, purpose, amount, paymentMethod):
             "amount": row["amount"],
             "payment_method": row["payment_method"],
             "currency": row["currency"],
-            "note_id": row["note_id"],
-            "user_id": row["user_id"]
+            "user_id": row["user_id"],
+            "note_id": row["note_id"]
         }
     return result
 

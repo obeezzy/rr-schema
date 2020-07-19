@@ -32,12 +32,12 @@ class ViewDebtTransactions(StoredProcedureTestCase):
         viewedDebtTransactions = view_debt_transactions(db=self.db,
                                                         debtorId=debtor1["debtor_id"])
         self.assertEqual(len(viewedDebtTransactions), 3, "Expected 3 transactions.")
-        self.assertEqual(viewedDebtTransactions[0]["related_transaction_table"],
-                            debtTransaction1["transaction_table"], 
-                            "Related transaction table mismatch.")
-        self.assertEqual(viewedDebtTransactions[0]["related_transaction_id"],
+        self.assertEqual(viewedDebtTransactions[0]["table_ref"],
+                            debtTransaction1["table_ref"], 
+                            "Table ref mismatch.")
+        self.assertEqual(viewedDebtTransactions[0]["table_id"],
                             None,
-                            "Related transaction ID mismatch.")
+                            "Table ID mismatch.")
         self.assertEqual(viewedDebtTransactions[0]["debt_payment_id"],
                             debtPayment1["debt_payment_id"],
                             "Debt payment ID mismatch.")
@@ -60,12 +60,12 @@ class ViewDebtTransactions(StoredProcedureTestCase):
                             False,
                             "Archived flag mismatch.")
 
-        self.assertEqual(viewedDebtTransactions[1]["related_transaction_table"],
-                            debtTransaction1["transaction_table"], 
-                            "Related transaction table mismatch.")
-        self.assertEqual(viewedDebtTransactions[1]["related_transaction_id"],
+        self.assertEqual(viewedDebtTransactions[1]["table_ref"],
+                            debtTransaction1["table_ref"], 
+                            "Table ref mismatch.")
+        self.assertEqual(viewedDebtTransactions[1]["table_id"],
                             None,
-                            "Related transaction ID mismatch.")
+                            "Table ID mismatch.")
         self.assertEqual(viewedDebtTransactions[1]["debt_payment_id"],
                             debtPayment2["debt_payment_id"],
                             "Debt payment ID mismatch.")
@@ -88,12 +88,12 @@ class ViewDebtTransactions(StoredProcedureTestCase):
                             False,
                             "Archived flag mismatch.")
 
-        self.assertEqual(viewedDebtTransactions[2]["related_transaction_table"],
-                            debtTransaction2["transaction_table"], 
-                            "Related transaction table mismatch.")
-        self.assertEqual(viewedDebtTransactions[2]["related_transaction_id"],
+        self.assertEqual(viewedDebtTransactions[2]["table_ref"],
+                            debtTransaction2["table_ref"], 
+                            "Table ref mismatch.")
+        self.assertEqual(viewedDebtTransactions[2]["table_id"],
                             None,
-                            "Related transaction ID mismatch.")
+                            "Table ID mismatch.")
         self.assertEqual(viewedDebtTransactions[2]["debt_payment_id"],
                             debtPayment3["debt_payment_id"],
                             "Debt payment ID mismatch.")
@@ -173,24 +173,24 @@ def add_debtor(db, clientId):
 def add_debt_transaction(db, debtorId):
     debtTransaction = {
         "debtor_id": debtorId,
-        "transaction_table": "debtor",
+        "table_ref": "debtor",
         "user_id": 1
     }
 
     db.execute("""INSERT INTO debt_transaction (debtor_id,
-                                                transaction_table,
+                                                table_ref,
                                                 user_id)
                 VALUES (%s, %s, %s)
                 RETURNING id AS debt_transaction_id,
                     debtor_id,
-                    transaction_table,
+                    table_ref,
                     user_id""", tuple(debtTransaction.values()))
     result = {}
     for row in db:
         result = {
             "debt_transaction_id": row["debt_transaction_id"],
             "debtor_id": row["debtor_id"],
-            "transaction_table": row["transaction_table"],
+            "table_ref": row["table_ref"],
             "user_id": row["user_id"]
         }
     return result
@@ -243,8 +243,8 @@ def view_debt_transactions(db, debtorId, archived=False):
         result = {
             "debt_transaction_id": row["debt_transaction_id"],
             "debtor_id": row["debtor_id"],
-            "related_transaction_table": row["related_transaction_table"],
-            "related_transaction_id": row["related_transaction_id"],
+            "table_ref": row["table_ref"],
+            "table_id": row["table_id"],
             "debt_payment_id": row["debt_payment_id"],
             "total_debt": row["total_debt"],
             "amount_paid": row["amount_paid"],

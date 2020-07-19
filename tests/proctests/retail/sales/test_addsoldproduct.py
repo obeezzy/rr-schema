@@ -5,7 +5,15 @@ from decimal import Decimal
 
 class AddSoldProduct(StoredProcedureTestCase):
     def test_add_sold_product(self):
-        addedSoldProduct = add_sold_product(self.db)
+        addedProductCategory = add_product_category(self.db)
+        addedProduct = add_product(self.db,
+                                    productCategoryId=addedProductCategory["product_category_id"])
+        addedProductUnit = add_product_unit(self.db,
+                            productId=addedProduct["product_id"])
+        addedSaleTransaction = add_sale_transaction(self.db)
+        addedSoldProduct = add_sold_product(self.db,
+                                            saleTransactionId=addedSaleTransaction["sale_transaction_id"], productId=addedProduct["product_id"],
+                                            productUnitId=addedProductUnit["product_unit_id"])
         fetchedSoldProduct = fetch_sold_product(self.db)
 
         self.assertEqual(addedSoldProduct["sold_product_id"],
@@ -39,11 +47,95 @@ class AddSoldProduct(StoredProcedureTestCase):
                             fetchedSoldProduct["user_id"],
                             "User ID mismatch.")
 
-def add_sold_product(db):
+def add_product_category(db):
+    productCategory = {
+        "category": "Category",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"]
+        }
+    result.update(productCategory)
+    return result
+
+def add_product(db, productCategoryId):
+    product = {
+        "product_category_id": productCategoryId,
+        "product": "Product",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product (product_category_id,
+                                        product,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS product_id""", tuple(product.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"]
+        }
+    result.update(product)
+    return result
+
+def add_product_unit(db, productId):
+    productUnit = {
+        "product_id": productId,
+        "unit": "unit",
+        "base_unit_equivalent": 1,
+        "cost_price": Decimal("200.00"),
+        "retail_price": Decimal("420.00"),
+        "currency": "NGN",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product_unit (product_id,
+                                            unit,
+                                            base_unit_equivalent,
+                                            cost_price,
+                                            retail_price,
+                                            currency,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS product_unit_id""", tuple(productUnit.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_unit_id": row["product_unit_id"]
+        }
+    result.update(productUnit)
+    return result
+
+def add_sale_transaction(db):
+    saleTransaction = {
+        "customer_name": "Customer name",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO sale_transaction (customer_name,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS sale_transaction_id""", tuple(saleTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "sale_transaction_id": row["sale_transaction_id"]
+        }
+    result.update(saleTransaction)
+    return result
+
+def add_sold_product(db, saleTransactionId, productId, productUnitId):
     soldProduct = {
-        "sale_transaction_id": 1,
-        "product_id": 1,
-        "product_unit_id": 1,
+        "sale_transaction_id": saleTransactionId,
+        "product_id": productId,
+        "product_unit_id": productUnitId,
         "unit_price": Decimal("1038.39"),
         "quantity": Decimal("183.25"),
         "cost": Decimal("1832.28"),

@@ -13,18 +13,16 @@ class UpdateNote(StoredProcedureTestCase):
 def add_note(db):
     note = {
         "note": "This is very very noteworthy",
-        "table_name": "income_transaction",
         "user_id": 1
     }
 
     db.execute("""INSERT INTO note (note,
-                                    table_name,
                                     user_id)
-                VALUES (%s, %s, %s)
+                VALUES (%s, %s)
                 RETURNING id AS note_id""", tuple(note.values()))
     for row in db:
         result = {
-            "note_id": row[0]
+            "note_id": row["note_id"]
         }
     result.update(note)
     return result
@@ -33,7 +31,6 @@ def update_note(db):
     note = {
         "note_id": 1,
         "note": "New noteworthy note!",
-        "table_name": "expense_transaction",
         "user_id": 1
     }
 
@@ -43,14 +40,12 @@ def update_note(db):
 def fetch_note(db):
     db.execute("""SELECT id AS note_id,
                             note,
-                            table_name,
                             user_id
                 FROM note""")
     for row in db:
         result = {
             "note_id": row["note_id"],
             "note": row["note"],
-            "table_name": row["table_name"],
             "user_id": row["user_id"]
         }
     return result

@@ -4,45 +4,106 @@ from proctests.utils import StoredProcedureTestCase
 
 class ArchiveDebtTransactionById(StoredProcedureTestCase):
     def test_archive_debt_transaction_by_id(self):
-        add_single_debt_transaction(db=self.db,
-                                        debtorId=1,
-                                        transactionTable="sale_transaction",
-                                        transactionId=22)
-        add_single_debt_transaction(db=self.db,
-                                        debtorId=2,
-                                        transactionTable="purchase_transaction",
-                                        transactionId=40)
-        add_single_debt_transaction(db=self.db,
-                                        debtorId=3,
-                                        transactionTable="income_transaction",
-                                        transactionId=58)
+        client1 = add_client(self.db,
+                                preferredName="Name 1",
+                                phoneNumber="12")
+        client2 = add_client(self.db,
+                                preferredName="Name 2",
+                                phoneNumber="123")
+        client3 = add_client(self.db,
+                                preferredName="Name 3",
+                                phoneNumber="1234")
+
+        debtor1 = add_debtor(self.db,
+                                clientId=client1["client_id"])
+        debtor2 = add_debtor(self.db,
+                                clientId=client2["client_id"])
+        debtor3 = add_debtor(self.db,
+                                clientId=client3["client_id"])
+
+        debtTransaction1 = add_debt_transaction(db=self.db,
+                                                debtorId=debtor1["debtor_id"],
+                                                tableRef="sale_transaction",
+                                tableId=22)
+        debtTransaction2 = add_debt_transaction(db=self.db,
+                                                debtorId=debtor2["debtor_id"],
+                                                tableRef="purchase_transaction",
+                                                tableId=40)
+        debtTransaction3 = add_debt_transaction(db=self.db,
+                                                debtorId=debtor3["debtor_id"],
+                                                tableRef="income_transaction",
+                                                tableId=58)
 
         archive_debt_transaction_by_id(db=self.db,
-                                        debtTransactionId=1)
+                                        debtTransactionId=debtTransaction1["debt_transaction_id"])
 
         fetchedDebtTransactions = fetch_debt_transactions(self.db)
         self.assertEqual(len(fetchedDebtTransactions), 2, "Expected 2 debt transactions to be returned.")
 
         debtTransactionArchived = len([debtTransaction for debtTransaction in fetchedDebtTransactions \
-                                        if debtTransaction["debt_transaction_id"] == 1]) == 0
+                                        if debtTransaction["debt_transaction_id"] == debtTransaction1["debt_transaction_id"]]) == 0
         self.assertEqual(debtTransactionArchived, True, "Debt transaction not archived.")
 
-def add_single_debt_transaction(db, debtorId, transactionTable, transactionId):
+def add_client(db, preferredName, phoneNumber):
+    client = {
+        "preferred_name": preferredName,
+        "phone_number": phoneNumber,
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO client (preferred_name,
+                                        phone_number,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS client_id""", tuple(client.values()))
+    result = {}
+    for row in db:
+        result = {
+            "client_id": row["client_id"]
+        }
+    result.update(client)
+    return result
+
+def add_debtor(db, clientId):
+    debtor = {
+        "client_id": clientId,
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO debtor (client_id,
+                                        user_id)
+                VALUES (%s, %s)
+                RETURNING id AS debtor_id""", tuple(debtor.values()))
+    result = {}
+    for row in db:
+        result = {
+            "debtor_id": row["debtor_id"]
+        }
+    result.update(debtor)
+    return result
+
+def add_debt_transaction(db, debtorId, tableRef, tableId):
     debtTransaction = {
         "debtor_id": debtorId,
-        "transaction_table": transactionTable,
-        "transaction_id": transactionId,
-        "note_id": 1,
+        "table_ref": tableRef,
+        "table_id": tableId,
+        "note_id": None,
         "user_id": 1
     }
 
     db.execute("""INSERT INTO debt_transaction (debtor_id,
-                                                transaction_table,
-                                                transaction_id,
+                                                table_ref,
+                                                table_id,
                                                 note_id,
                                                 user_id)
-                VALUES (%s, %s, %s, %s, %s)""", tuple(debtTransaction.values()))
-    db.commit()
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id AS debt_transaction_id""", tuple(debtTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "debt_transaction_id": row["debt_transaction_id"]
+        }
+    return result
 
 def archive_debt_transaction_by_id(db, debtTransactionId):
     debtTransaction = {

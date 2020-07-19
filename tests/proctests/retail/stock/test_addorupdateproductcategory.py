@@ -4,9 +4,11 @@ from proctests.utils import StoredProcedureTestCase
 
 class AddOrUpdateProductCategory(StoredProcedureTestCase):
     def test_add_or_update__product_category(self):
+        addedNote = add_note(self.db)
         addedProductCategory = add_or_update__product_category(db=self.db,
                                                                     category="Superheroes",
-                                                                    shortForm="hero")
+                                                                    shortForm="hero",
+                                                                    noteId=addedNote["note_id"])
         fetchedProductCategory = fetch__product_category(self.db)
 
         self.assertEqual(addedProductCategory["product_category_id"],
@@ -25,19 +27,36 @@ class AddOrUpdateProductCategory(StoredProcedureTestCase):
                             1,
                             "Product category mismatch.")
 
-def add_or_update__product_category(db, category, shortForm):
+def add_note(db):
+    note = {
+        "note": "Note",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO note (note,
+                                    user_id)
+                VALUES (%s, %s)
+                RETURNING id AS note_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"]
+        }
+    return result
+
+def add_or_update__product_category(db, category, shortForm, noteId):
     productCategory = {
         "category": category,
+        "user_id": 1,
         "short_form": shortForm,
-        "note_id": 1,
-        "user_id": 1
+        "note_id": noteId
     }
     db.call_procedure("AddOrUpdateProductCategory", 
                         tuple(productCategory.values()))
     result = {}
     for row in db:
         result = {
-            "product_category_id": row[0]
+            "product_category_id": row["product_category_id"]
         }
     result.update(productCategory)
     return result
