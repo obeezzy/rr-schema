@@ -142,7 +142,7 @@ BEGIN
             FROM product
             INNER JOIN product_category ON product.product_category_id = product_category.id
             LEFT JOIN rr_user ON product.user_id = rr_user.id
-            WHERE product.archived = archived;
+            WHERE product.archived = iArchived;
     ELSE
         RETURN QUERY SELECT COUNT(product.id) AS product_count
             FROM product
