@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION AddSoldProduct (
     IN iQuantity REAL,
     IN iCost NUMERIC(19,2),
     IN iDiscount NUMERIC(19,2),
-    IN iCurrency TEXT,
+    IN iCurrency VARCHAR(4),
     IN iUserId BIGINT
 ) RETURNS TABLE(sold_product_id BIGINT)
 AS $$
@@ -39,12 +39,13 @@ CREATE OR REPLACE FUNCTION AddSalePayment (
     IN iSaleTransactionId BIGINT,
     IN iAmount NUMERIC(19,2),
     IN iPaymentMethod PAYMENT_METHOD,
-    IN iCurrency TEXT,
-    IN iNoteId BIGINT,
-    IN iUserId BIGINT
-) RETURNS BIGINT
+    IN iCurrency VARCHAR(4),
+    IN iUserId BIGINT,
+    IN iNoteId BIGINT
+) RETURNS TABLE(sale_payment_id BIGINT)
 AS $$
-    INSERT INTO sale_payment (sale_transaction_id,
+BEGIN
+    RETURN QUERY INSERT INTO sale_payment (sale_transaction_id,
                                 amount,
                                 payment_method,
                                 currency,
@@ -57,7 +58,8 @@ AS $$
             NULLIF(iNoteId, 0),
             iUserId)
     RETURNING id AS sale_payment_id;
-$$ LANGUAGE sql;
+END
+$$ LANGUAGE plpgsql;
 
 ---
 
@@ -166,7 +168,7 @@ CREATE OR REPLACE FUNCTION ViewSaleCart (
                 product TEXT, product_unit_id BIGINT, product_unit TEXT,
                 unit_price NUMERIC(19,2), quantity REAL, available_quantity REAL,
                 cost_price NUMERIC(19,2), retail_price NUMERIC(19,2),
-                cost NUMERIC(19,2), discount NUMERIC(19,2), currency TEXT,
+                cost NUMERIC(19,2), discount NUMERIC(19,2), currency VARCHAR(4),
                 note TEXT)
 AS $$
 BEGIN
@@ -217,12 +219,12 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION ViewSoldProducts (
     IN iSaleTransactionId BIGINT,
-    IN iSuspended BOOLEAN,
-    IN iArchived BOOLEAN
+    IN iSuspended BOOLEAN DEFAULT FALSE,
+    IN iArchived BOOLEAN DEFAULT FALSE
 ) RETURNS TABLE(product_category_id BIGINT, product_category TEXT, product_id BIGINT,
                 product TEXT, unit_price NUMERIC(19,2), quantity REAL,
                 product_unit_id BIGINT, product_unit TEXT, cost NUMERIC(19,2),
-                discount NUMERIC(19,2), currency TEXT, note_id BIGINT,
+                discount NUMERIC(19,2), currency VARCHAR(4), note_id BIGINT,
                 note TEXT, archived BOOLEAN, created TIMESTAMP,
                 last_edited TIMESTAMP, user_id BIGINT, username TEXT)
 AS $$

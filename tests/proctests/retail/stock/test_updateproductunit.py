@@ -5,15 +5,19 @@ from decimal import Decimal
 
 class UpdateProductUnit(StoredProcedureTestCase):
     def test_update_product_unit(self):
+        productCategory = add_product_category(self.db,
+                                                category="Drugs")
         product = add_product(db=self.db,
-                                productCategoryId=1,
+                                productCategoryId=productCategory["product_category_id"],
                                 product="Cannabis")
+        addedNote = add_note(self.db)
         productUnit = add_product_unit(db=self.db,
                                         productId=product["product_id"],
                                         unit="gram(s)",
                                         shortForm="Kush",
                                         costPrice=Decimal("3882.18"),
-                                        retailPrice=Decimal("4819.57"))
+                                        retailPrice=Decimal("4819.57"),
+                                        noteId=addedNote["note_id"])
         fetchedProductUnit = fetch_product_unit(db=self.db)
 
         self.assertEqual(fetchedProductUnit["product_unit_id"],
@@ -77,6 +81,23 @@ class UpdateProductUnit(StoredProcedureTestCase):
                             updatedProductUnit["user_id"],
                             "User ID mismatch.")
 
+def add_product_category(db, category):
+    productCategory = {
+        "category": category,
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"]
+        }
+    return result
+
 def add_product(db, productCategoryId, product):
     product = {
         "product_category_id": productCategoryId,
@@ -102,7 +123,24 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def add_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
+def add_note(db):
+    note = {
+        "note": "Note",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO note (note,
+                                    user_id)
+                VALUES (%s, %s)
+                RETURNING id AS note_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"]
+        }
+    return result
+
+def add_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, noteId, baseUnitEquivalent=1, preferred=True):
     productUnit = {
         "product_id": productId,
         "unit": unit,
@@ -112,7 +150,7 @@ def add_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, bas
         "cost_price": costPrice,
         "retail_price": retailPrice,
         "currency": "NGN",
-        "note_id": 1,
+        "note_id": noteId,
         "user_id": 1
     }
 

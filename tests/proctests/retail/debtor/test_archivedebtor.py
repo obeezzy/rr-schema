@@ -4,24 +4,43 @@ from proctests.utils import StoredProcedureTestCase
 
 class ArchiveDebtor(StoredProcedureTestCase):
     def test_archive_debtor(self):
-        add_debtor(db=self.db, debtorId=1, clientId=1)
-        archive_debtor(db=self.db, debtorId=1)
+        addedClient = add_client(self.db)
+        addedDebtor = add_debtor(db=self.db, clientId=addedClient["client_id"])
+        archive_debtor(db=self.db, debtorId=addedDebtor["debtor_id"])
         archivedDebtors = fetch_debtors(self.db)
         debtorArchived = len([debtor for debtor in archivedDebtors if debtor["debtor_id"] == 1]) == 0
 
         self.assertEqual(debtorArchived, True, "Debtor not archived.")
 
-def add_debtor(db, debtorId, clientId):
+def add_client(db):
+    client = {
+        "preferred_name": "Preferred name",
+        "phone_number": "1234",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO client (preferred_name,
+                                        phone_number,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS client_id""", tuple(client.values()))
+    result = {}
+    for row in db:
+        result = {
+            "client_id": row["client_id"]
+        }
+    result.update(client)
+    return result
+
+def add_debtor(db, clientId):
     debtor = {
-        "debtor_id": debtorId,
         "client_id": clientId,
         "user_id": 1
     }
 
-    db.execute("""INSERT INTO debtor (id,
-                                        client_id,
+    db.execute("""INSERT INTO debtor (client_id,
                                         user_id)
-                VALUES (%s, %s, %s)
+                VALUES (%s, %s)
                 RETURNING id AS debtor_id,
                     client_id,
                     user_id""", tuple(debtor.values()))

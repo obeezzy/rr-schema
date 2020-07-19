@@ -5,12 +5,19 @@ from decimal import Decimal
 
 class AddProductUnit(StoredProcedureTestCase):
     def test_add_product_unit(self):
+        addedProductCategory = add_product_category(self.db,
+                                                    category="Category")
+        addedProduct = add_product(self.db,
+                                    productCategoryId=addedProductCategory["product_category_id"],
+                                    product="Product")
+        addedNote = add_note(self.db)
         addedProductUnit = add_product_unit(db=self.db,
-                                                    productId=1,
+                                                    productId=addedProduct["product_id"],
                                                     unit="G-Unit",
                                                     shortForm="50cent",
                                                     costPrice=Decimal("832.38"),
-                                                    retailPrice=Decimal("943.28"))
+                                                    retailPrice=Decimal("943.28"),
+                                                    noteId=addedNote["note_id"])
         fetchedProductUnit = fetch_product_unit(db=self.db,
                                                 productId=addedProductUnit["product_id"])
 
@@ -94,7 +101,24 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def add_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, baseUnitEquivalent=1, preferred=True):
+def add_note(db):
+    note = {
+        "note": "Note",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO note (note,
+                                    user_id)
+                VALUES (%s, %s)
+                RETURNING id AS note_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"]
+        }
+    return result
+
+def add_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, noteId, baseUnitEquivalent=1, preferred=True):
     productUnit = {
         "product_id": productId,
         "unit": unit,
@@ -104,7 +128,7 @@ def add_product_unit(db, productId, unit, shortForm, costPrice, retailPrice, bas
         "retail_price": retailPrice,
         "preferred": preferred,
         "currency": "NGN",
-        "note_id": 1,
+        "note_id": noteId,
         "user_id": 1
     }
     db.call_procedure("AddProductUnit",

@@ -18,22 +18,22 @@ class TouchDebtTransaction(StoredProcedureTestCase):
 def add_debt_transaction(db):
     debtTransaction = {
         "debtor_id": 1,
-        "transaction_table": "sale",
-        "transaction_id": 20,
+        "table_ref": "sale_transaction",
+        "table_id": 20,
         "note_id": 1,
         "user_id": 1
     }
 
     db.execute("""INSERT INTO debt_transaction (debtor_id,
-                                                transaction_table,
-                                                transaction_id,
+                                                table_ref,
+                                                table_id,
                                                 note_id,
                                                 user_id)
                 VALUES (%s, %s, %s, %s, %s)
                 RETURNING id AS debt_transaction_id,
                     debtor_id,
-                    transaction_table,
-                    transaction_id,
+                    table_ref,
+                    table_id,
                     note_id,
                     user_id""", tuple(debtTransaction.values()))
     result = {}
@@ -41,8 +41,8 @@ def add_debt_transaction(db):
         result = {
             "debt_transaction_id": row["debt_transaction_id"],
             "debtor_id": row["debtor_id"],
-            "transaction_table": row["transaction_table"],
-            "transaction_id": row["transaction_id"],
+            "table_ref": row["table_ref"],
+            "table_id": row["table_id"],
             "note_id": row["note_id"],
             "user_id": row["user_id"]
         }
@@ -60,8 +60,8 @@ def touch_debt_transaction(db):
 def fetch_debt_transaction(db):
     db.execute("""SELECT id AS debt_transaction_id,
                             debtor_id,
-                            transaction_table,
-                            transaction_id,
+                            table_ref,
+                            table_id,
                             note_id,
                             created,
                             last_edited,
@@ -72,8 +72,8 @@ def fetch_debt_transaction(db):
         result = {
             "debt_transaction_id": row["debt_transaction_id"],
             "debtor_id": row["debtor_id"],
-            "transaction_table": row["transaction_table"],
-            "transaction_id": row["transaction_id"],
+            "table_ref": row["table_ref"],
+            "table_id": row["table_id"],
             "note_id": row["note_id"],
             "created": row["created"],
             "last_edited": row["last_edited"],

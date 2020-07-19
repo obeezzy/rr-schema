@@ -55,8 +55,7 @@ class ViewPurchaseCart(StoredProcedureTestCase):
         vendor = add_vendor(db=self.db,
                             clientId=client["client_id"])
         note = add_note(db=self.db,
-                        note="Note",
-                        tableName="purchase")
+                        note="Note")
         purchaseTransaction = add_purchase_transaction(self.db,
                                                         vendorId=vendor["vendor_id"],
                                                         vendorName=client["preferred_name"],
@@ -545,27 +544,23 @@ def add_vendor(db, clientId):
         }
     return result
 
-def add_note(db, note, tableName):
+def add_note(db, note):
     note = {
         "note": note,
-        "table_name": tableName,
         "user_id": 1
     }
 
     db.execute("""INSERT INTO note (note,
-                                    table_name,
                                     user_id)
-                VALUES (%s, %s, %s)
+                VALUES (%s, %s)
                 RETURNING id AS note_id,
                     note,
-                    table_name,
                     user_id""", tuple(note.values()))
     result = {}
     for row in db:
         result = {
             "note_id": row["note_id"],
             "note": row["note"],
-            "table_name": row["table_name"],
             "user_id": row["user_id"]
         }
     return result

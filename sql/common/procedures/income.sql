@@ -31,11 +31,11 @@ $$ LANGUAGE sql;
 ---
 
 CREATE OR REPLACE FUNCTION ViewIncomeTransactions (
-    IN iFrom TIMESTAMP DEFAULT '1970-01-01 00:00:00',
+    IN iFrom TIMESTAMP DEFAULT CURRENT_TIMESTAMP - INTERVAL '1 day',
     IN iTo TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     IN iArchived BOOLEAN DEFAULT FALSE
 ) RETURNS TABLE(income_transaction_id BIGINT, client_id BIGINT, client_name TEXT,
-                purpose TEXT, amount NUMERIC(19,2), currency TEXT)
+                purpose TEXT, amount NUMERIC(19,2), currency VARCHAR(4))
 AS $$
 BEGIN
     RETURN QUERY SELECT income_transaction.id AS income_transaction_id,
@@ -57,7 +57,7 @@ CREATE OR REPLACE FUNCTION FilterIncomeReport (
     IN iFilterText TEXT,
     IN iSortColumn TEXT,
     IN iSortOrder TEXT,
-    IN iFrom TIMESTAMP DEFAULT '1970-01-01 00:00:00',
+    IN iFrom TIMESTAMP DEFAULT CURRENT_TIMESTAMP - INTERVAL '1 day',
     IN iTo TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) RETURNS TABLE(income_transaction_id BIGINT, purpose TEXT, amount NUMERIC(19,2))
 AS $$
@@ -91,7 +91,7 @@ $$ LANGUAGE plpgsql;
 ---
 
 CREATE OR REPLACE FUNCTION ViewIncomeReport (
-    IN iFrom TIMESTAMP DEFAULT '1970-01-01 00:00:00',
+    IN iFrom TIMESTAMP DEFAULT CURRENT_TIMESTAMP - INTERVAL '1 day',
     IN iTo TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) RETURNS TABLE(income_transaction_id BIGINT, purpose TEXT, amount NUMERIC(19,2))
 AS $$

@@ -29,8 +29,8 @@ class ViewSaleCart(StoredProcedureTestCase):
                                         productId=product2["product_id"],
                                         unit="unit(s)",
                                         baseUnitEquivalent=1,
-                                        costPrice=183.32,
-                                        retailPrice=182.95)
+                                        costPrice=Decimal("183.32"),
+                                        retailPrice=Decimal("182.95"))
 
         productCategory2 = add_product_category(db=self.db,
                                                 category="Logitech")
@@ -44,8 +44,8 @@ class ViewSaleCart(StoredProcedureTestCase):
                                         productId=product3["product_id"],
                                         unit="unit(s)",
                                         baseUnitEquivalent=1,
-                                        costPrice=400.32,
-                                        retailPrice=382.95)
+                                        costPrice=Decimal("400.32"),
+                                        retailPrice=Decimal("382.95"))
 
         client = add_client(db=self.db,
                             firstName="Carol",
@@ -55,8 +55,7 @@ class ViewSaleCart(StoredProcedureTestCase):
         customer = add_customer(db=self.db,
                             clientId=client["client_id"])
         note = add_note(db=self.db,
-                        note="Note",
-                        tableName="sale")
+                        note="Note")
         saleTransaction = add_sale_transaction(self.db,
                                                         customerId=customer["customer_id"],
                                                         customerName=client["preferred_name"],
@@ -64,29 +63,29 @@ class ViewSaleCart(StoredProcedureTestCase):
         soldProduct1 = add_sold_product(db=self.db,
                                                     saleTransactionId=saleTransaction["sale_transaction_id"],
                                                     productId=product1["product_id"],
-                                                    unitPrice=89.66,
+                                                    unitPrice=Decimal("89.66"),
                                                     quantity=43.5,
                                                     productUnitId=productUnit1["product_unit_id"],
-                                                    cost=459.34,
-                                                    discount=96.38,
+                                                    cost=Decimal("459.34"),
+                                                    discount=Decimal("96.38"),
                                                     noteId=note["note_id"])
         soldProduct2 = add_sold_product(db=self.db,
                                                     saleTransactionId=saleTransaction["sale_transaction_id"],
                                                     productId=product2["product_id"],
-                                                    unitPrice=27.36,
+                                                    unitPrice=Decimal("27.36"),
                                                     quantity=54.5,
                                                     productUnitId=productUnit2["product_unit_id"],
-                                                    cost=389.22,
-                                                    discount=28.38,
+                                                    cost=Decimal("389.22"),
+                                                    discount=Decimal("28.38"),
                                                     noteId=note["note_id"])
         soldProduct3 = add_sold_product(db=self.db,
                                                     saleTransactionId=saleTransaction["sale_transaction_id"],
                                                     productId=product3["product_id"],
-                                                    unitPrice=36.86,
+                                                    unitPrice=Decimal("36.86"),
                                                     quantity=64.5,
                                                     productUnitId=productUnit3["product_unit_id"],
-                                                    cost=483.23,
-                                                    discount=38.48,
+                                                    cost=Decimal("483.23"),
+                                                    discount=Decimal("38.48"),
                                                     noteId=note["note_id"])
 
         viewedSaleCart = view_sale_transaction_products(db=self.db,
@@ -547,27 +546,23 @@ def add_customer(db, clientId):
         }
     return result
 
-def add_note(db, note, tableName):
+def add_note(db, note):
     note = {
         "note": note,
-        "table_name": tableName,
         "user_id": 1
     }
 
     db.execute("""INSERT INTO note (note,
-                                    table_name,
                                     user_id)
-                VALUES (%s, %s, %s)
+                VALUES (%s, %s)
                 RETURNING id AS note_id,
                     note,
-                    table_name,
                     user_id""", tuple(note.values()))
     result = {}
     for row in db:
         result = {
             "note_id": row["note_id"],
             "note": row["note"],
-            "table_name": row["table_name"],
             "user_id": row["user_id"]
         }
     return result

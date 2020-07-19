@@ -5,7 +5,11 @@ from decimal import Decimal
 
 class AddSalePayment(StoredProcedureTestCase):
     def test_add_sale_payment(self):
-        addedSalePayment = add_sale_payment(self.db)
+        addedSaleTransaction = add_sale_transaction(self.db)
+        addedNote = add_note(self.db)
+        addedSalePayment = add_sale_payment(self.db,
+                                            saleTransactionId=addedSaleTransaction["sale_transaction_id"],
+                                            noteId=addedNote["note_id"])
         fetchedSalePayment = fetch_sale_payment(self.db)
 
         self.assertEqual(addedSalePayment["sale_payment_id"],
@@ -30,14 +34,50 @@ class AddSalePayment(StoredProcedureTestCase):
                             fetchedSalePayment["user_id"],
                             "User ID mismatch.")
 
-def add_sale_payment(db):
+def add_sale_transaction(db):
     salePayment = {
-        "sale_transaction_id": 1,
+        "customer_name": "Customer name",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO sale_transaction (customer_name,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS sale_transaction_id""", tuple(salePayment.values()))
+    result = {}
+    for row in db:
+        result = {
+            "sale_transaction_id": row["sale_transaction_id"]
+        }
+    result.update(salePayment)
+    return result
+
+def add_note(db):
+    note = {
+        "note": "Note",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO note (note,
+                                    user_id)
+                VALUES (%s, %s)
+                RETURNING id AS note_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"]
+        }
+    result.update(note)
+    return result
+
+def add_sale_payment(db, saleTransactionId, noteId):
+    salePayment = {
+        "sale_transaction_id": saleTransactionId,
         "amount": Decimal("100.30"),
         "payment_method": "cash",
         "currency": "NGN",
-        "note_id": 1,
-        "user_id": 1
+        "user_id": 1,
+        "note_id": noteId
     }
 
     db.call_procedure("AddSalePayment",
@@ -45,7 +85,7 @@ def add_sale_payment(db):
     result = {}
     for row in db:
         result = {
-            "sale_payment_id": row[0]
+            "sale_payment_id": row["sale_payment_id"]
         }
     result.update(salePayment)
     return result

@@ -7,8 +7,14 @@ class UndoRevertPurchaseQuantityUpdate(StoredProcedureTestCase):
     def test_undo_revert_purchase_quantity_update(self):
         addedPurchaseTransaction = add_purchase_transaction(db=self.db,
                                                             vendorName="Tony Stark")
+        addedCategory = add_product_category(self.db,
+                                                category="Avenger Gear")
         addedProduct = add_product(db=self.db,
+                                    productCategoryId=addedCategory["product_category_id"],
                                     product="Iron Man suit")
+        addedProductUnit = add_product_unit(self.db,
+                                            productId=addedProduct["product_id"],
+                                            unit="suit(s)")
         addedProductQuantity = add_product_quantity(db=self.db,
                                                     productId=addedProduct["product_id"],
                                                     quantity=200.25)
@@ -73,9 +79,26 @@ def add_purchase_transaction(db, vendorName, suspended=False):
         }
     return result
 
-def add_product(db, product):
+def add_product_category(db, category):
+    productCategory = {
+        "category": category,
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"]
+        }
+    return result
+
+def add_product(db, productCategoryId, product):
     product = {
-        "product_category_id": 1,
+        "product_category_id": productCategoryId,
         "product": product,
         "user_id": 1
     }
@@ -94,6 +117,33 @@ def add_product(db, product):
             "product_category_id": row["product_category_id"],
             "product": row["product"],
             "user_id": row["user_id"]
+        }
+    return result
+
+def add_product_unit(db, productId, unit):
+    productUnit = {
+        "product_id": productId,
+        "unit": unit,
+        "base_unit_equivalent": 1,
+        "cost_price": Decimal("420.00"),
+        "retail_price": Decimal("420.00"),
+        "currency": "NGN",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product_unit (product_id,
+                                            unit,
+                                            base_unit_equivalent,
+                                            cost_price,
+                                            retail_price,
+                                            currency,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS product_unit_id""", tuple(productUnit.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_unit_id": row["product_unit_id"]
         }
     return result
 

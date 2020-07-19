@@ -222,28 +222,28 @@ def add_client(db, firstName, lastName, preferredName, phoneNumber):
 def add_debt_transaction(db, debtorId, transactionTable, transactionId=None):
     debtTransaction = {
         "debtor_id": debtorId,
-        "transaction_table": transactionTable,
-        "transaction_id": transactionId,
+        "table_ref": tableRef,
+        "table_id": tableId,
         "user_id": 1
     }
 
     db.execute("""INSERT INTO debt_transaction (debtor_id,
-                                                transaction_table,
-                                                transaction_id,
+                                                table_ref,
+                                                table_id,
                                                 user_id)
                 VALUES (%s, %s, %s, %s)
                 RETURNING id AS debt_transaction_id,
                     debtor_id,
-                    transaction_table,
-                    transaction_id,
+                    table_ref,
+                    table_id,
                     user_id""", tuple(debtTransaction.values()))
     result = {}
     for row in db:
         result = {
             "debt_transaction_id": row["debt_transaction_id"],
             "debtor_id": row["debtor_id"],
-            "transaction_table": row["transaction_table"],
-            "transaction_id": row["transaction_id"],
+            "table_ref": row["table_ref"],
+            "table_id": row["table_id"],
             "user_id": row["user_id"]
         }
     result.update(debtTransaction)
