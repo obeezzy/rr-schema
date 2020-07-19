@@ -5,7 +5,11 @@ from psycopg2.errors import RaiseException
 
 class AddProduct(StoredProcedureTestCase):
     def test_add_product(self):
-        addedProduct = add_product(self.db)
+        addedProductCategory = add_product_category(self.db)
+        addedNote = add_note(self.db)
+        addedProduct = add_product(self.db,
+                                    productCategoryId=addedProductCategory["product_category_id"],
+                                    noteId=addedNote["note_id"])
         fetchedProduct = fetch_product(self.db)
 
         self.assertEqual(addedProduct["product_category_id"], fetchedProduct["product_category_id"], "Product category ID mismatch.")
@@ -20,22 +24,62 @@ class AddProduct(StoredProcedureTestCase):
 
     def test_raise_duplicate_entry_exception(self):
         with self.assertRaises(RaiseException) as context:
-            add_product(self.db)
-            add_product(self.db)
+            addedProductCategory = add_product_category(self.db)
+            addedNote = add_note(self.db)
+            add_product(self.db,
+                        productCategoryId=addedProductCategory["product_category_id"],
+                        noteId=addedNote["note_id"])
+            add_product(self.db,
+                        productCategoryId=addedProductCategory["product_category_id"],
+                        noteId=addedNote["note_id"])
 
         self.assertEqual("P0001", context.exception.pgcode)
         self.assertIn("Product already exists.", context.exception.pgerror)
 
-def add_product(db):
+def add_product_category(db):
+    productCategory = {
+        "category": "Category",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"]
+        }
+    return result
+
+def add_note(db):
+    note = {
+        "note": "Note",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO note (note,
+                                    user_id)
+                VALUES (%s, %s)
+                RETURNING id AS note_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"]
+        }
+    return result
+
+def add_product(db, productCategoryId, noteId):
     product = {
-        "product_category_id": 1,
+        "product_category_id": productCategoryId,
         "product": "Product",
         "short_form": "Short",
         "description": "Description",
         "barcode": "Barcode",
         "divisible": True,
         "image": None,
-        "note_id": None,
+        "note_id": noteId,
         "user_id": 1
     }
 

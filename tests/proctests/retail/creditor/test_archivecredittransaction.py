@@ -4,23 +4,29 @@ from proctests.utils import StoredProcedureTestCase
 
 class ArchiveCreditTransaction(StoredProcedureTestCase):
     def test_archive_credit_transaction(self):
-        add_single_credit_transaction(db=self.db,
-                                        creditorId=1,
-                                        transactionTable="sale_transaction",
-                                        transactionId=22)
-        add_single_credit_transaction(db=self.db,
-                                        creditorId=2,
-                                        transactionTable="purchase_transaction",
-                                        transactionId=40)
-        add_single_credit_transaction(db=self.db,
-                                        creditorId=3,
-                                        transactionTable="income_transaction",
-                                        transactionId=58)
+        addedClient = add_client(self.db)
+        addedCreditor = add_creditor(self.db, clientId=addedClient["client_id"])
+        addedNote = add_note(self.db)
+        add_credit_transaction(db=self.db,
+                                        creditorId=addedCreditor["creditor_id"],
+                                        tableRef="sale_transaction",
+                                        tableId=22,
+                                        noteId=addedNote["note_id"])
+        add_credit_transaction(db=self.db,
+                                        creditorId=addedCreditor["creditor_id"],
+                                        tableRef="purchase_transaction",
+                                        tableId=40,
+                                        noteId=addedNote["note_id"])
+        add_credit_transaction(db=self.db,
+                                        creditorId=addedCreditor["creditor_id"],
+                                        tableRef="income_transaction",
+                                        tableId=58,
+                                        noteId=addedNote["note_id"])
 
         archive_credit_transaction(db=self.db,
                                     archived=True,
-                                    transactionTable="sale_transaction",
-                                    transactionId=22)
+                                    tableRef="sale_transaction",
+                                    tableId=22)
 
         fetchedCreditTransactions = fetch_credit_transactions(self.db, archived=False)
         self.assertEqual(len(fetchedCreditTransactions), 2, "Expected 2 credit transactions to be returned.")
@@ -29,28 +35,85 @@ class ArchiveCreditTransaction(StoredProcedureTestCase):
                                         if creditTransaction["credit_transaction_id"] == 1]) == 0
         self.assertEqual(creditTransactionArchived, True, "Credit transaction not archived.")
 
-def add_single_credit_transaction(db, creditorId, transactionTable, transactionId):
+def add_client(db):
+    client = {
+        "preferred_name": "Preferred name",
+        "phone_number": "1234",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO client (preferred_name,
+                                        phone_number,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS client_id""", tuple(client.values()))
+    result = {}
+    for row in db:
+        result = {
+            "client_id": row["client_id"]
+        }
+    result.update(client)
+    return result
+
+def add_creditor(db, clientId):
+    creditor = {
+        "client_id": clientId,
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO creditor (client_id,
+                                        user_id)
+                VALUES (%s, %s)
+                RETURNING id AS creditor_id""", tuple(creditor.values()))
+    result = {}
+    for row in db:
+        result = {
+            "creditor_id": row["creditor_id"]
+        }
+    result.update(creditor)
+    return result
+
+def add_note(db):
+    note = {
+        "note": "Note",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO note (note,
+                                    user_id)
+                VALUES (%s, %s)
+                RETURNING id AS note_id,
+                    note,
+                    user_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"]
+        }
+    return result
+
+def add_credit_transaction(db, creditorId, tableRef, tableId, noteId):
     creditTransaction = {
         "creditor_id": creditorId,
-        "transaction_table": transactionTable,
-        "transaction_id": transactionId,
-        "note_id": 1,
+        "table_ref": tableRef,
+        "transaction_id": tableId,
+        "note_id": noteId,
         "user_id": 1
     }
 
     db.execute("""INSERT INTO credit_transaction (creditor_id,
-                                                    transaction_table,
-                                                    transaction_id,
+                                                    table_ref,
+                                                    table_id,
                                                     note_id,
                                                     user_id)
                 VALUES (%s, %s, %s, %s, %s)""", tuple(creditTransaction.values()))
     db.commit()
 
-def archive_credit_transaction(db, archived, transactionTable, transactionId):
+def archive_credit_transaction(db, archived, tableRef, tableId):
     creditTransaction = {
         "archived": archived,
-        "transaction_table": transactionTable,
-        "transaction_id": transactionId,
+        "table_ref": tableRef,
+        "table_id": tableId,
         "user_id": 1
     }
 
@@ -60,8 +123,8 @@ def archive_credit_transaction(db, archived, transactionTable, transactionId):
 def fetch_credit_transactions(db, archived=False):
     db.execute("""SELECT id AS credit_transaction_id,
                             creditor_id,
-                            transaction_table,
-                            transaction_id,
+                            table_ref,
+                            table_id,
                             note_id,
                             user_id
                 FROM credit_transaction
@@ -71,8 +134,8 @@ def fetch_credit_transactions(db, archived=False):
         result = {
             "credit_transaction_id": row["credit_transaction_id"],
             "creditor_id": row["creditor_id"],
-            "transaction_table": row["transaction_table"],
-            "transacation_id": row["transaction_id"],
+            "table_ref": row["table_ref"],
+            "table_id": row["table_id"],
             "note_id": row["note_id"],
             "user_id": row["user_id"]
         }

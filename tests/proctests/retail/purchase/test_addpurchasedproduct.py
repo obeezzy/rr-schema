@@ -5,7 +5,14 @@ from decimal import Decimal
 
 class AddPurchasedProduct(StoredProcedureTestCase):
     def test_add_purchased_product(self):
-        addedPurchasedProduct = add_purchased_product(self.db)
+        productCategory = add_product_category(self.db)
+        product = add_product(self.db, productCategoryId=productCategory["product_category_id"])
+        productUnit = add_product_unit(self.db, productId=product["product_id"])
+        purchaseTransaction = add_purchase_transaction(self.db)
+        addedPurchasedProduct = add_purchased_product(self.db,
+                                                        purchaseTransactionId=purchaseTransaction["purchase_transaction_id"],
+                                                        productId=product["product_id"],
+                                                        productUnitId=productUnit["product_unit_id"])
         fetchedPurchasedProduct = fetch_purchased_product(self.db)
 
         self.assertEqual(addedPurchasedProduct["purchased_product_id"],
@@ -39,11 +46,95 @@ class AddPurchasedProduct(StoredProcedureTestCase):
                             fetchedPurchasedProduct["user_id"],
                             "User ID mismatch.")
 
-def add_purchased_product(db):
+def add_product_category(db):
+    productCategory = {
+        "category": "Category",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"]
+        }
+    result.update(productCategory)
+    return result
+
+def add_product(db, productCategoryId):
+    product = {
+        "product_category_id": productCategoryId,
+        "product": "Product",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product (product_category_id,
+                                        product,
+                                        user_id)
+                VALUES (%s, %s, %s)
+                RETURNING id AS product_id""", tuple(product.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_id": row["product_id"]
+        }
+    result.update(product)
+    return result
+
+def add_product_unit(db, productId):
+    productUnit = {
+        "product_id": productId,
+        "unit": "unit",
+        "base_unit_equivalent": 1,
+        "cost_price": Decimal("200.00"),
+        "retail_price": Decimal("420.00"),
+        "currency": "NGN",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product_unit (product_id,
+                                            unit,
+                                            base_unit_equivalent,
+                                            cost_price,
+                                            retail_price,
+                                            currency,
+                                            user_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id AS product_unit_id""", tuple(productUnit.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_unit_id": row["product_unit_id"]
+        }
+    result.update(productUnit)
+    return result
+
+def add_purchase_transaction(db):
+    purchaseTransaction = {
+        "vendor_name": "Vendor",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO purchase_transaction (vendor_name,
+                                                    user_id)
+                VALUES (%s, %s)
+                RETURNING id AS purchase_transaction_id""", tuple(purchaseTransaction.values()))
+    result = {}
+    for row in db:
+        result = {
+            "purchase_transaction_id": row["purchase_transaction_id"]
+        }
+    result.update(purchaseTransaction)
+    return result
+
+def add_purchased_product(db, purchaseTransactionId, productId, productUnitId):
     purchasedProduct = {
-        "purchase_transaction_id": 1,
-        "product_id": 1,
-        "product_unit_id": 1,
+        "purchase_transaction_id": purchaseTransactionId,
+        "product_id": productId,
+        "product_unit_id": productUnitId,
         "quantity": Decimal("183.25"),
         "unit_price": Decimal("1038.39"),
         "cost": Decimal("1832.28"),

@@ -1,30 +1,27 @@
 CREATE OR REPLACE FUNCTION AddNote (
     IN iNote TEXT,
-    IN iTableName TEXT,
     IN iUserId BIGINT
-) RETURNS BIGINT
+) RETURNS TABLE(note_id BIGINT)
 AS $$
-    INSERT INTO note (note,
-                        table_name,
+BEGIN
+    RETURN QUERY INSERT INTO note (note,
                         user_id)
     VALUES (iNote,
-            iTableName,
             iUserId)
     RETURNING id AS note_id;
-$$ LANGUAGE sql;
+END
+$$ LANGUAGE plpgsql;
 
 ---
 
 CREATE OR REPLACE FUNCTION UpdateNote (
     IN iNoteId BIGINT,
     IN iNote TEXT,
-    IN iTableName TEXT,
     IN iUserId BIGINT
 ) RETURNS void
 AS $$
     UPDATE note
         SET note = iNote,
-            table_name = iTableName,
             user_id = iUserId
     WHERE id = iNoteId;
 $$ LANGUAGE sql;

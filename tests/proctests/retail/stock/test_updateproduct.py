@@ -4,8 +4,10 @@ from proctests.utils import StoredProcedureTestCase
 
 class UpdateProduct(StoredProcedureTestCase):
     def test_update_product(self):
+        productCategory = add_product_category(self.db,
+                                                category="Battle Rappers")
         product = add_product(self.db,
-                                productCategoryId=1,
+                                productCategoryId=productCategory["product_category_id"],
                                 product="Daylyt")
         fetchedProduct = fetch_product(db=self.db)
 
@@ -40,6 +42,7 @@ class UpdateProduct(StoredProcedureTestCase):
                             product["user_id"],
                             "User ID mismatch.")
 
+        addedNote = add_note(self.db)
         updatedProduct = update_product(db=self.db,
                                         productCategoryId=1,
                                             productId=1,
@@ -47,7 +50,8 @@ class UpdateProduct(StoredProcedureTestCase):
                                             shortForm="Day",
                                             description="Battle rapper",
                                             barcode="barcode",
-                                            divisible=True)
+                                            divisible=True,
+                                            noteId=addedNote["note_id"])
         fetchedProduct = fetch_product(db=self.db)
 
         self.assertEqual(fetchedProduct["product_id"],
@@ -81,6 +85,23 @@ class UpdateProduct(StoredProcedureTestCase):
                             updatedProduct["user_id"],
                             "User ID mismatch.")
 
+def add_product_category(db, category):
+    productCategory = {
+        "category": category,
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO product_category (category,
+                                                user_id)
+                VALUES (%s, %s)
+                RETURNING id AS product_category_id""", tuple(productCategory.values()))
+    result = {}
+    for row in db:
+        result = {
+            "product_category_id": row["product_category_id"]
+        }
+    return result
+
 def add_product(db, productCategoryId, product):
     product = {
         "product_category_id": productCategoryId,
@@ -108,7 +129,24 @@ def add_product(db, productCategoryId, product):
         }
     return result
 
-def update_product(db, productCategoryId, productId, product, shortForm, description, barcode, divisible=True):
+def add_note(db):
+    note = {
+        "note": "Note",
+        "user_id": 1
+    }
+
+    db.execute("""INSERT INTO note (note,
+                                    user_id)
+                VALUES (%s, %s)
+                RETURNING id AS note_id""", tuple(note.values()))
+    result = {}
+    for row in db:
+        result = {
+            "note_id": row["note_id"]
+        }
+    return result
+
+def update_product(db, productCategoryId, productId, product, shortForm, description, barcode, noteId, divisible=True):
     note = {
         "product_category_id": productCategoryId,
         "product_id": productId,
@@ -118,7 +156,7 @@ def update_product(db, productCategoryId, productId, product, shortForm, descrip
         "barcode": barcode,
         "divisible": divisible,
         "image": None,
-        "note_id": 1,
+        "note_id": noteId,
         "user_id": 1
     }
 

@@ -9,13 +9,11 @@ class AddNote(StoredProcedureTestCase):
 
         self.assertEqual(addedNote["note_id"], fetchedNote["note_id"], "Note ID mismatch.")
         self.assertEqual(addedNote["note"], fetchedNote["note"], "Note mismatch.")
-        self.assertEqual(addedNote["table_name"], fetchedNote["table_name"], "Table name mismatch.")
         self.assertEqual(addedNote["user_id"], fetchedNote["user_id"], "User ID mismatch.")
 
 def add_note(db):
     note = {
         "note": "Note",
-        "table_name": "expense_transaction",
         "user_id": 1
     }
 
@@ -30,7 +28,6 @@ def add_note(db):
 def fetch_note(db):
     db.execute("""SELECT id AS note_id,
                             note,
-                            table_name,
                             user_id
                 FROM note""")
     result = {}
@@ -38,7 +35,6 @@ def fetch_note(db):
         result = {
             "note_id": row["note_id"],
             "note": row["note"],
-            "table_name": row["table_name"],
             "user_id": row["user_id"]
         }
     return result
