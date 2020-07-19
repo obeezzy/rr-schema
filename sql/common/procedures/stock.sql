@@ -190,26 +190,28 @@ CREATE OR REPLACE FUNCTION AddProductQuantity (
 ) RETURNS TABLE(product_quantity_id BIGINT)
 AS $$
 BEGIN
+    INSERT INTO product_quantity (product_id,
+                                    quantity,
+                                    last_edited,
+                                    user_id)
+        VALUES (iProductId,
+                iQuantity,
+                CURRENT_TIMESTAMP,
+                iUserId);
+
     INSERT INTO product_quantity_snapshot (product_id,
                                             quantity,
                                             reason,
                                             last_edited,
                                             user_id)
-    SELECT pq.product_id,
-            pq.quantity,
-            iReason,
-            CURRENT_TIMESTAMP,
-            iUserId
-    FROM product_quantity pq
-    WHERE pq.product_id = iProductId;
-
-    UPDATE product_quantity 
-        SET quantity = quantity + iQuantity,
-            last_edited = CURRENT_TIMESTAMP,
-            user_id = iUserId
-		WHERE product_id = iProductId;
-
-    RETURN QUERY SELECT MAX(id) AS product_quantity_id FROM product_quantity;
+        VALUES (iProductId,
+                iQuantity,
+                iReason,
+                CURRENT_TIMESTAMP,
+                iUserId);
+                
+    RETURN QUERY SELECT MAX(id) AS product_quantity_id
+    FROM product_quantity;
 END
 $$ LANGUAGE plpgsql;
 
