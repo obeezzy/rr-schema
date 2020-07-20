@@ -5,7 +5,7 @@ from proctests.utils import StoredProcedureTestCase
 class AddOrUpdateProductCategory(StoredProcedureTestCase):
     def test_add_or_update__product_category(self):
         addedNote = add_note(self.db)
-        addedProductCategory = add_or_update__product_category(db=self.db,
+        addedProductCategory = add_or_update_product_category(db=self.db,
                                                                     category="Superheroes",
                                                                     shortForm="hero",
                                                                     noteId=addedNote["note_id"])
@@ -44,7 +44,7 @@ def add_note(db):
         }
     return result
 
-def add_or_update__product_category(db, category, shortForm, noteId):
+def add_or_update_product_category(db, category, shortForm, noteId):
     productCategory = {
         "category": category,
         "user_id": 1,

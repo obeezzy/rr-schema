@@ -137,7 +137,7 @@ CREATE OR REPLACE FUNCTION FetchProductCount (
 ) RETURNS TABLE(product_count BIGINT)
 AS $$
 BEGIN
-    IF iProductCategory IS NULL THEN
+    IF iProductCategory IS NULL OR iProductCategory < 1 THEN
         RETURN QUERY SELECT COUNT(product.id) AS product_count
             FROM product
             INNER JOIN product_category ON product.product_category_id = product_category.id
@@ -209,7 +209,7 @@ BEGIN
                 iReason,
                 CURRENT_TIMESTAMP,
                 iUserId);
-                
+
     RETURN QUERY SELECT MAX(id) AS product_quantity_id
     FROM product_quantity;
 END
