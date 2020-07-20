@@ -347,7 +347,7 @@ AS $$
 DECLARE vProductAlreadyExists BOOLEAN := FALSE;
 BEGIN
     SELECT EXISTS(SELECT id FROM product
-        WHERE LOWER(product.product) = LOWER(product.product)
+        WHERE LOWER(product.product) = LOWER(iProduct)
             AND product.archived = FALSE) INTO vProductAlreadyExists;
     IF vProductAlreadyExists = TRUE THEN
         RAISE EXCEPTION 'Product already exists.';
